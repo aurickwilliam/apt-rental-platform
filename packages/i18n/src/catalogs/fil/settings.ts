@@ -5,6 +5,8 @@ export const settings: Record<keyof typeof enSettings, string> = {
   "settings.title": "Settings",
   "settings.close": "Isara ang settings",
   "settings.sections": "Mga seksyon ng settings",
+  "settings.paymentMethods": "Mga Paraan ng Pagbabayad",
+  "settings.tutorial": "Tutorial",
   "settings.general": "Pangkalahatan",
   "settings.security": "Seguridad",
   "settings.notifications": "Mga Notification",
@@ -125,22 +127,22 @@ export const settings: Record<keyof typeof enSettings, string> = {
   "settings.help.faq": "Mga Madalas Itanong",
   "settings.help.faq.1.question": "Paano ako magbabayad ng rent?",
   "settings.help.faq.1.answer":
-    "Pwede kang magbayad ng rent sa app sa pamamagitan ng pagpunta sa Rentals > Pay Rent at pagpili ng payment method (GCash, Maya, o card).",
+    "Buksan ang My Rental at piliin ang Pay now sa kasalukuyang bill mo, tapos pumili ng payment method. Ang online checkout ay nasa test mode pa lang at hindi tumatanggap ng totoong pera, at ang cash ay nananatiling pending hanggang kumpirmahin ng may-ari ng property.",
   "settings.help.faq.2.question": "Paano ako magsusumite ng maintenance request?",
   "settings.help.faq.2.answer":
-    "Pumunta sa Rentals page mo at i-click ang 'Request Maintenance'. Ilagay ang detalye ng problema at i-submit. Ma-no-notify ang landlord mo.",
+    "Buksan ang Maintenance mula sa My Rental, piliin ang Request Maintenance, ilarawan ang problema at itakda kung gaano ito kaurgent. Kayang suriin at sagutin ng landlord mo ito sa loob ng APT.",
   "settings.help.faq.3.question": "Paano ko makikita ang lease agreement ko?",
   "settings.help.faq.3.answer":
-    "Pumunta sa Rentals page mo at i-click ang 'View Lease'. Pwede mong tingnan at i-download ang lease agreement mo doon.",
+    "Kapag na-upload na ito ng landlord mo, buksan ang Signed lease sa My Rental upang makita ang kasalukuyang dokumento at kumpirmahing nabasa mo ito.",
   "settings.help.faq.4.question": "Paano ko makokontak ang landlord ko?",
   "settings.help.faq.4.answer":
-    "Pwede mong i-message ang landlord mo diretso sa Chat page o sa pag-click ng 'Chat Landlord' sa Rentals quick actions mo.",
+    "Gamitin ang Messages para makontak ang landlord mo. Ang mga conversation tungkol sa apartment ay nagpapanatili ng mga tanong at update tungkol sa property na iyon sa isang thread.",
   "settings.help.faq.5.question": "Paano ako maglilista ng property ko?",
   "settings.help.faq.5.answer":
-    "Bilang landlord, pumunta sa Units page at i-click ang '+' button para magdagdag ng bagong apartment listing. Punan ang mga kinakailangang detalye sa bawat step.",
+    "Mula sa My Properties sa landlord portal, magdagdag ng bagong listing na may CAMANAVA address, rent at deposit terms, amenities, at mga larawan, tapos i-publish ito para sa review.",
   "settings.help.faq.6.question": "Paano ko i-verify ang account ko?",
   "settings.help.faq.6.answer":
-    "Pumunta sa Profile page mo at i-click ang 'Verify Account'. Kailangan mong mag-upload ng valid na government-issued ID at selfie.",
+    "Buksan ang profile mo at piliin ang Verify Account. Kayang kumuha ng phones at tablets ng government ID at selfie mo diretso sa browser; sa desktop, pwede kang mag-scan ng QR code para magpatuloy sa phone mo o gumamit ng webcam.",
   "settings.help.terms": "Terms of Service",
   "settings.help.terms.admin": "Terms and conditions",
   "settings.help.privacy": "Privacy Policy",

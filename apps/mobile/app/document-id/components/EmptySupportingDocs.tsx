@@ -1,10 +1,8 @@
-import { Text, View } from "react-native";
-
 import { Button } from "heroui-native";
 
 import { IconFileUpload, IconPlus } from "@tabler/icons-react-native";
 
-import { useColors } from "@/hooks/useTheme";
+import EmptyState from "@/components/display/EmptyState";
 
 interface EmptySupportingDocsProps {
   onAddDocument: () => void;
@@ -18,25 +16,20 @@ interface EmptySupportingDocsProps {
 export default function EmptySupportingDocs({
   onAddDocument,
 }: EmptySupportingDocsProps) {
-  const { colors } = useColors();
-
   return (
-    <View className="items-center gap-3 py-10 px-4">
-      <IconFileUpload size={64} color={colors.primary} />
-      <Text className="text-foreground text-xl font-nunitoBold text-center">
-        No supporting documents yet
-      </Text>
-      <Text className="text-gray-400 text-base font-inter text-center px-8 leading-relaxed">
-        Add payslips, billing statements, or clearances so they&apos;re ready
-        when you apply for an apartment.
-      </Text>
-
-      <Button size="md" onPress={onAddDocument}>
-        <IconPlus size={18} color="#FFFFFF" />
-        <Button.Label className="text-white font-nunitoSemiBold">
-          Add a Document
-        </Button.Label>
-      </Button>
-    </View>
+    <EmptyState
+      className="py-10"
+      icon={IconFileUpload}
+      title="No supporting documents yet"
+      description="Add payslips, billing statements, or clearances so they're ready when you apply for an apartment."
+      action={
+        <Button size="sm" onPress={onAddDocument}>
+          <IconPlus size={16} color="#FFFFFF" />
+          <Button.Label className="text-white font-nunitoSemiBold">
+            Add a Document
+          </Button.Label>
+        </Button>
+      }
+    />
   );
 }

@@ -75,9 +75,9 @@ export default function VisitRequestDetailsCard({
         </div>
 
         {visit.status === "pending" && (
-          <div className="mt-3 flex items-center gap-2 rounded-2xl px-3 py-2.5" style={{ backgroundColor: "#FFF8E1" }}>
-            <Hourglass size={16} style={{ color: "#FACC15" }} className="shrink-0" />
-            <span className="flex-1 text-sm font-medium font-inter" style={{ color: "#FACC15" }}>
+          <div className="mt-3 flex items-center gap-2 rounded-2xl bg-muted px-3 py-2.5 text-muted-foreground">
+            <Hourglass size={16} className="shrink-0" />
+            <span className="flex-1 text-sm font-medium font-inter">
               Waiting for the landlord to respond
             </span>
           </div>
@@ -180,7 +180,7 @@ export default function VisitRequestDetailsCard({
 
         <Separator className="my-4" />
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs text-muted-foreground">Submitted {formatLongDate(visit.created_at)}</p>
           {canCancel && (
             <Button

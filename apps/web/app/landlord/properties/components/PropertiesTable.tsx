@@ -3,11 +3,14 @@ import Image from "next/image";
 
 import { Button, Dropdown, Table } from "@heroui/react";
 import StatusChip from "@/app/components/display/StatusChip";
-import { IconStar as Star, IconDots as MoreHorizontal, IconPencil as Pencil, IconTrash as Trash2 } from "@tabler/icons-react";
+import { IconStar as Star, IconDots as MoreHorizontal, IconPencil as Pencil, IconTrash as Trash2, IconBuilding } from "@tabler/icons-react";
 
 import { STATUS_COLOR } from "./propertyConstants";
+import HiddenListingChip from "./HiddenListingChip";
 import type { Property } from "./propertyTypes";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
+import EmptyState from "@/app/components/display/EmptyState";
+import { propertyStatusLabel } from "@/lib/property-listing-visibility";
 
 type Props = {
   properties: Property[];
@@ -26,10 +29,11 @@ export default function PropertiesTable({
 }: Props) {
   if (properties.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
-        <p className="text-base font-medium">No properties yet</p>
-        <p className="text-sm">Add your first listing to get started</p>
-      </div>
+      <EmptyState
+        icon={IconBuilding}
+        title="No properties yet"
+        description="Add your first listing to get started"
+      />
     );
   }
 
@@ -127,13 +131,16 @@ export default function PropertiesTable({
                 </Table.Cell>
 
                 <Table.Cell>
-                  <StatusChip
-                    size="sm"
-                    tone={STATUS_COLOR[property.status] ?? "neutral"}
-                    className="capitalize"
-                  >
-                    {property.status}
-                  </StatusChip>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <StatusChip
+                      size="sm"
+                      tone={STATUS_COLOR[property.status] ?? "neutral"}
+                      className="capitalize"
+                    >
+                      {propertyStatusLabel(property.status)}
+                    </StatusChip>
+                    <HiddenListingChip hidden={property.is_hidden_by_admin} />
+                  </div>
                 </Table.Cell>
 
                 <Table.Cell className="text-right">

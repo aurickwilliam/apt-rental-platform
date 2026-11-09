@@ -10,6 +10,7 @@ import ApartmentCard from "../../components/ui/ApartmentCard";
 import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+import { useRememberRecentApartment } from "@/hooks/use-recent-apartment-searches";
 import { BROWSE_GRID_CLASS } from "../lib/browse-layout";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
 import {
@@ -17,6 +18,8 @@ import {
   useHoverPreview,
   type HoveredCardRect,
 } from "./use-hover-preview";
+import EmptyState from "@/app/components/display/EmptyState";
+import { IconSearch } from "@tabler/icons-react";
 
 const ApartmentHoverPreview = dynamic(() => import("./ApartmentHoverPreview"));
 
@@ -26,6 +29,8 @@ interface RenderApartmentsProps {
   totalCount: number;
   pageSize: number;
   basePath?: string;
+  /** Grid columns; beside the filter rail it has one column fewer. */
+  gridClassName?: string;
 }
 
 // Memoized so list-level state (hover preview, page nav) never redraws
@@ -101,16 +106,25 @@ function getVisiblePages(page: number, totalPages: number): (number | "…")[] {
   return pages;
 }
 
-export default function RenderApartments({ apartment, page, totalCount, pageSize, basePath = "/browse" }: RenderApartmentsProps) {
+export default function RenderApartments({
+  apartment,
+  page,
+  totalCount,
+  pageSize,
+  basePath = "/browse",
+  gridClassName = BROWSE_GRID_CLASS,
+}: RenderApartmentsProps) {
   const router = useRouter();
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const totalPages = Math.ceil(totalCount / pageSize);
   const { isFavorite, toggleFavorite } = useFavorites();
+  const rememberRecentApartment = useRememberRecentApartment();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeFavoriteId, setActiveFavoriteId] = useState<string | null>(null);
   const {
     preview,
+    isPreviewClosing,
     handleHoverCard,
     handleLeaveCard,
     handleKeepPreview,
@@ -126,9 +140,11 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
   const handlePressApartment = useCallback(
     (apartmentId: string) => {
       dismissPreview();
+      const apt = apartment.find((item) => item.id === apartmentId);
+      if (apt) rememberRecentApartment(apt);
       router.push(`${basePath}/${apartmentId}`);
     },
-    [basePath, dismissPreview, router],
+    [apartment, basePath, dismissPreview, router, rememberRecentApartment],
   );
 
   const isVerifiedOnly = searchParams.get("verified") === "1";
@@ -175,14 +191,13 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
   return (
     <div className="flex min-w-0 flex-col gap-4">
       {apartment.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-64 px-4 text-center text-default-400">
-          <p className="text-lg font-medium">
-            {isVerifiedOnly ? t("browse.empty.noVerified") : t("browse.empty.none")}
-          </p>
-          <p className="text-sm">{t("browse.empty.hint")}</p>
-        </div>
+        <EmptyState
+          icon={IconSearch}
+          title={isVerifiedOnly ? t("browse.empty.noVerified") : t("browse.empty.none")}
+          description={t("browse.empty.hint")}
+        />
       ) : (
-        <div className={BROWSE_GRID_CLASS}>
+        <div className={gridClassName}>
           {apartment.map((apt, i) => (
             <ApartmentGridItem
               key={apt.id}
@@ -251,12 +266,13 @@ export default function RenderApartments({ apartment, page, totalCount, pageSize
           key={preview.apartment.id}
           apartment={preview.apartment}
           style={previewPosition(preview.rect)}
+          isClosing={isPreviewClosing}
           isFavorite={isFavorite(preview.apartment.id)}
           isFavoriteLoading={activeFavoriteId === preview.apartment.id}
           onFavoritePress={() => handleToggleFavorite(preview.apartment.id)}
           onViewDetails={() => handlePressApartment(preview.apartment.id)}
           onMouseEnter={handleKeepPreview}
-          onMouseLeave={dismissPreview}
+          onMouseLeave={handleLeaveCard}
         />
       )}
 

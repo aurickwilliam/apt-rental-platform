@@ -1,9 +1,11 @@
 import { useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 
 import { useProfile } from 'hooks/auth'
 import { usePassportDocuments } from '@/hooks/passport'
 import { useTenantApplications } from './useTenantApplications'
 import { evaluateApplicationReadiness } from '@repo/passport'
+import { fetchHasActiveRentalAsTenant } from '@/service/applications/activeRentalService'
 
 /**
  * Live "can this tenant apply to this apartment?" state: account verified,
@@ -17,6 +19,12 @@ export function useApplicationReadiness(
   const { profile, loading: profileLoading } = useProfile()
   const { documents, loading: passportLoading } = usePassportDocuments()
   const { applications, loading: applicationsLoading } = useTenantApplications()
+  const tenantId = profile?.id ?? null
+  const { data: hasActiveTenancy = false, isLoading: tenancyLoading } = useQuery({
+    queryKey: ['tenant-active-rental', tenantId],
+    queryFn: () => fetchHasActiveRentalAsTenant(tenantId as string),
+    enabled: tenantId !== null,
+  })
 
   const readiness = useMemo(
     () =>
@@ -28,14 +36,15 @@ export function useApplicationReadiness(
           (application) =>
             application.apartment_id === apartmentId && application.status === 'pending'
         ),
+        hasActiveTenancy,
         passportDocs: documents,
         employmentType,
       }),
-    [profile, landlordId, applications, apartmentId, documents, employmentType]
+    [profile, landlordId, applications, apartmentId, documents, employmentType, hasActiveTenancy]
   )
 
   return {
     ...readiness,
-    loading: profileLoading || passportLoading || applicationsLoading,
+    loading: profileLoading || passportLoading || applicationsLoading || tenancyLoading,
   }
 }

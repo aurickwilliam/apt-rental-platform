@@ -30,6 +30,7 @@ import {
 import ErrorBanner from "@/app/components/display/ErrorBanner";
 import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { formatDate, REVIEW_SORT_KEYS, enumLabel } from "@repo/i18n";
+import EmptyState from "@/app/components/display/EmptyState";
 
 const SORT_OPTIONS: ReviewSortOption[] = [
   "Most Recent",
@@ -192,19 +193,12 @@ export default function ApartmentRatingsView() {
             </Card>
           ) : (
             <Card className="min-w-0 rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
-              <div className="flex flex-col items-center gap-3 px-2 py-6 text-center">
-                <span className="flex size-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                  <IconStar size={28} aria-hidden="true" />
-                </span>
-                <div className="space-y-1">
-                  <p className="font-nunito text-base font-semibold text-card-foreground">
-                    {t("reviews.noneTitle")}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {t("reviews.noneBody")}
-                  </p>
-                </div>
-              </div>
+              <EmptyState
+                className="py-6"
+                icon={IconStar}
+                title={t("reviews.noneTitle")}
+                description={t("reviews.noneBody")}
+              />
             </Card>
           )}
         </aside>
@@ -265,17 +259,12 @@ export default function ApartmentRatingsView() {
           ) : totalReviews === 0 ? (
             <Card className="rounded-3xl border border-border bg-card shadow-none">
               <Card.Content className="flex flex-col items-center gap-4 p-6 text-center sm:p-10">
-                <span className="rounded-full bg-muted p-5">
-                  <IconMessage size={36} className="text-muted-foreground" aria-hidden="true" />
-                </span>
-                <div className="space-y-1">
-                  <p className="font-nunito text-lg font-bold">
-                    {t("reviews.emptyTitle")}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {t("reviews.emptyBody")}
-                  </p>
-                </div>
+                <EmptyState
+                  className="py-0"
+                  icon={IconMessage}
+                  title={t("reviews.emptyTitle")}
+                  description={t("reviews.emptyBody")}
+                />
 
                 {showReviewButton && <Button onPress={handleWriteReview}>{t("reviews.write")}</Button>}
                 {showEditButton && <Button onPress={handleEditReview}>{t("reviews.edit")}</Button>}

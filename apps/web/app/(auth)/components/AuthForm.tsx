@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useCallback, useState } from 'react';
+import { startTransition, useActionState, useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import NextLink from 'next/link';
 
@@ -10,7 +10,12 @@ import { useAuth } from './AuthContext';
 import { signIn, type SignInFormState } from '../actions/sign-in';
 import { checkEmailAvailability } from '../actions/check-email-availability';
 import { useConfirmEmail } from '../hooks/use-confirm-email';
+import TurnstileWidget from '@/app/components/inputs/TurnstileWidget';
+import { useCaptcha } from '@/hooks/use-captcha';
+import { CAPTCHA_PENDING_MESSAGE, formatLockoutClock } from '@repo/utils';
+import { useAuthLockout } from '@/hooks/use-auth-lockout';
 import OtpModal from '../sign-up-form/components/OtpModal';
+import AuthLockoutModal from './AuthLockoutModal';
 
 import { Form, Input, Link, Button, TextField, FieldError, Label } from '@heroui/react'
 
@@ -31,8 +36,27 @@ export default function AuthForm({ next }: { next?: string }) {
   const [signUpEmailError, setSignUpEmailError] = useState<SignUpEmailError | null>(null);
   const [checkingEmail, setCheckingEmail] = useState(false);
 
-  const [state, formAction, isPending] = useActionState(signIn, initialState);
-  const confirmEmail = useConfirmEmail(email);
+  // Attempt limit on sign-in: the server reports the lock, the modal explains it
+  // and Sign in stays disabled (kept across refreshes) until it ends.
+  const signInLockout = useAuthLockout('signin', email);
+  const { lock: lockSignIn } = signInLockout;
+
+  const { attach: attachCaptcha, take: takeCaptcha } = useCaptcha();
+  const [state, formAction, isPending] = useActionState(
+    async (previous: SignInFormState, formData: FormData): Promise<SignInFormState> => {
+      const attempt = takeCaptcha();
+      if (attempt.pending) return { error: CAPTCHA_PENDING_MESSAGE };
+      if (attempt.token) formData.set('captchaToken', attempt.token);
+      const result = await signIn(previous, formData);
+      if (result.lockedForSeconds) {
+        const submittedEmail = formData.get('email');
+        lockSignIn(result.lockedForSeconds, typeof submittedEmail === 'string' ? submittedEmail : undefined);
+      }
+      return result;
+    },
+    initialState,
+  );
+  const confirmEmail = useConfirmEmail(email, takeCaptcha);
 
   const clearSignUpError = useCallback(() => {
     setSignUpError((current) => (current === null ? current : null));
@@ -49,7 +73,16 @@ export default function AuthForm({ next }: { next?: string }) {
 
   const onSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
-      // Sign-in posts through the server action; only sign-up is intercepted.
+      if (type === 'sign-in') {
+        // Dispatch the action ourselves instead of using the form's `action`: React
+        // resets a form after its action finishes, which wiped the email (and with
+        // it the sign-in lock, which is keyed by that email) after every attempt and
+        // made people retype. Same pattern as Complete Profile.
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        startTransition(() => formAction(formData));
+        return;
+      }
       if (type !== 'sign-up') return;
 
       e.preventDefault();
@@ -90,11 +123,15 @@ export default function AuthForm({ next }: { next?: string }) {
         setCheckingEmail(false);
       }
     },
-    [type, role, router, t],
+    [type, role, router, t, formAction],
   );
 
   const busy = isPending || checkingEmail;
-  const visibleError = type === 'sign-in' ? state.error : signUpError;
+  const signInLocked = type === 'sign-in' && signInLockout.isLocked;
+  // A lock is explained by the modal, never by a red banner that would outlive it.
+  const visibleError = type === 'sign-in'
+    ? (state.lockedForSeconds ? null : state.error)
+    : signUpError;
   const emailError = type === 'sign-up' && signUpEmailError?.email === email.trim()
     ? signUpEmailError
     : null;
@@ -138,13 +175,21 @@ export default function AuthForm({ next }: { next?: string }) {
           }}
           verifyLabel={t("auth.signIn.verifyEmail")}
           locked={confirmEmail.otpLocked}
+          lockoutSeconds={confirmEmail.lockoutSeconds}
+        />
+      )}
+
+      {type === 'sign-in' && (
+        <AuthLockoutModal
+          isOpen={signInLockout.modalOpen}
+          onOpenChange={signInLockout.setModalOpen}
+          secondsLeft={signInLockout.secondsLeft}
         />
       )}
 
       {/* Form */}
       <Form
         className={`${visibleError ? 'mt-4' : 'mt-[clamp(1.5rem,4vh,2rem)]'} flex flex-col gap-[clamp(0.75rem,2vh,1rem)]`}
-        action={type === 'sign-in' ? formAction : undefined}
         onSubmit={onSubmit}
       >
         {/* Hidden field to pass the role to the server action */}
@@ -219,16 +264,20 @@ export default function AuthForm({ next }: { next?: string }) {
           )
         }
 
+        {type === 'sign-in' && <TurnstileWidget ref={attachCaptcha} />}
+
         <Button
           className='w-full mt-[clamp(0.75rem,2vh,1.25rem)]'
           size='lg'
           type='submit'
           isPending={busy}
-          isDisabled={busy}
+          isDisabled={busy || signInLocked}
         >
-          {busy
-            ? (type === 'sign-up' ? t('auth.checkingEmail') : t('auth.signingIn'))
-            : (type === 'sign-up' ? t('auth.signUp.action') : t('auth.signIn.action'))
+          {signInLocked
+            ? `Try again in ${formatLockoutClock(signInLockout.secondsLeft)}`
+            : busy
+              ? (type === 'sign-up' ? t('auth.checkingEmail') : t('auth.signingIn'))
+              : (type === 'sign-up' ? t('auth.signUp.action') : t('auth.signIn.action'))
           }
         </Button>
       </Form>

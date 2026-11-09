@@ -131,6 +131,7 @@ for (const view of ["ApartmentReviewsPreview", "ApartmentRatingsView"]) {
         }),
       },
       "./RatingsPageSkeleton": defaultModule("RatingsPageSkeleton"),
+      "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
       "@/app/components/display/StatusChip": defaultModule("StatusChip"),
       "@/app/components/display/ErrorBanner": defaultModule("ErrorBanner"),
       "@/lib/status-tone": { statusToneFor() {} },

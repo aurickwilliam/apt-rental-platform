@@ -6,18 +6,20 @@
 //
 // MOCK MODE
 // While PAYMONGO_SECRET_KEY is unset the function returns PayMongo-shaped mock
-// responses so the client flow can be developed and tested end-to-end:
-//   - E-wallet (checkout session) status is derived from the reference id:
-//       ends with "-fail"    -> failed
-//       ends with "-expired" -> expired
-//       otherwise            -> paid
-//   - Card payments mirror PayMongo test-card behavior: card numbers ending in
-//     "0002" are declined, everything else succeeds.
+// responses so the client flow can be developed and tested end-to-end. The status of a
+// hosted checkout (every method, card included) is derived from the reference id:
+//   ends with "-fail"    -> failed
+//   ends with "-expired" -> expired
+//   otherwise            -> paid
 //
 // REAL MODE (PAYMONGO_SECRET_KEY set)
-//   - createCheckoutSession     - v2 hosted checkout session (GCash/Maya).
-//                                 Records a pending payment row, returns the
-//                                 session id + checkout_url.
+//   - createCheckoutSession     - v2 hosted checkout session for GCash, Maya, QR Ph,
+//                                 Bank Transfer (PayMongo direct online banking) and card.
+//                                 The tenant types their payment details on PayMongo's page
+//                                 (and any 3-D Secure step happens there), never in APT, so
+//                                 account, wallet and card numbers never reach this function.
+//                                 Records a pending payment row, returns the session id +
+//                                 checkout_url.
 //   - getCheckoutSessionStatus  - v1 session lookup (create is v2, retrieve is
 //                                 v1). Session status is only active/expired,
 //                                 so the outcome is derived from the embedded
@@ -25,17 +27,12 @@
 //                                 source of truth; the deep link only carries
 //                                 the session id (or reference id) — never an
 //                                 outcome.
-//   - createCardPayment         - create payment method -> payment intent ->
-//                                 attach. The intent is synchronous: succeeded
-//                                 -> payment row (status paid),
-//                                 awaiting_next_action (3DS) -> clear
-//                                 "not supported yet" error, failed -> decline
-//                                 reason.
+//   - cancelCheckoutSession     - closes a hosted session the tenant backed out of.
 // The acting user is resolved from the forwarded JWT and their tenancy is
 // verified server-side so no one can pay another tenant's rent.
 //
-// Future actions (refunds, recurring payments, payment verification) are added
-// as new cases in the dispatch switch below without restructuring.
+// Refunds and payouts do not exist in this simulation (their tables were
+// dropped). Future actions are added as new cases in the dispatch switch below.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
@@ -82,40 +79,62 @@ const mockStatusForReference = (referenceId: string): CheckoutSessionStatus =>
       ? 'failed'
       : 'paid'
 
+// PayMongo's name for each method the app offers (Maya is `paymaya` there, and
+// Bank Transfer is `dob`, direct online banking; card is typed on PayMongo's page).
+const CHECKOUT_PAYMENT_METHOD_TYPES = {
+  gcash: 'gcash',
+  maya: 'paymaya',
+  qrph: 'qrph',
+  bank_transfer: 'dob',
+  card: 'card',
+} as const
+
+type CheckoutMethod = keyof typeof CHECKOUT_PAYMENT_METHOD_TYPES
+
+// Banks offered for Bank Transfer and their per-payment limits in pesos. Mirrors
+// BANK_TRANSFER_BANKS in packages/constants/src/bankTransfer.ts (an edge function
+// cannot import workspace packages); apps/web/lib/bank-transfer-sync.test.mjs
+// fails when the two drift. Simulation only: no fee is added.
+const BANK_TRANSFER_LIMITS: Record<string, { name: string; maxAmount: number }> = {
+  bpi: { name: 'BPI', maxAmount: 50000 },
+  ubp: { name: 'UnionBank', maxAmount: 100000 },
+}
+
+// PayMongo's hosted checkout takes one type per bank: plain `dob` is BPI Online (the page
+// lists no other bank for it), so UnionBank needs its own type. The bank the tenant picked
+// in the app decides which one is offered. Confirmed in test mode (2026-11-02): `dob` offers
+// BPI Online and `dob_ubp` offers UnionBank Online on PayMongo's hosted page.
+const BANK_TRANSFER_CHECKOUT_TYPES: Record<string, string> = {
+  bpi: 'dob',
+  ubp: 'dob_ubp',
+}
+
+const checkoutPaymentMethodType = (payload: CheckoutSessionPayload): string =>
+  payload.method === 'bank_transfer'
+    ? BANK_TRANSFER_CHECKOUT_TYPES[payload.bankCode ?? ''] ?? CHECKOUT_PAYMENT_METHOD_TYPES.bank_transfer
+    : CHECKOUT_PAYMENT_METHOD_TYPES[payload.method ?? 'gcash']
+
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  gcash: 'GCash',
+  maya: 'Maya',
+  qrph: 'QRPh',
+  bank_transfer: 'Bank Transfer',
+  card: 'Debit/Credit Card',
+  cash: 'Cash',
+}
+
 type CheckoutSessionPayload = {
+  renewalProposalId?: string
   referenceId: string
   amount: number
   description: string
   redirectBaseUrl: string
-  method?: 'gcash' | 'maya' | 'qrph'
+  method?: CheckoutMethod
+  bankCode?: string
   tenancyId?: string
   periodStart?: string | null
   periodEnd?: string | null
   dueDate?: string | null
-}
-
-type CardPaymentPayload = {
-  referenceId: string
-  amount: number
-  description: string
-  card: {
-    number: string
-    expMonth: number
-    expYear: number
-    cvc: string
-    name: string
-  }
-  tenancyId?: string
-  periodStart?: string | null
-  periodEnd?: string | null
-  dueDate?: string | null
-}
-
-type RefundPayload = {
-  paymentId: string
-  amount: number
-  reason?: 'duplicate' | 'fraudulent' | 'requested_by_customer' | 'others'
-  notes?: string
 }
 
 // --- Real PayMongo plumbing -------------------------------------------------
@@ -132,13 +151,25 @@ class PayMongoApiError extends Error {
   }
 }
 
+// APT runs on PayMongo test mode only (no real money). Every read of the secret
+// key goes through here, so a live key makes the function refuse to run instead
+// of charging real money. An unset key still means mock mode.
+function paymongoSecretKey(): string | undefined {
+  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
+  if (secretKey && !secretKey.startsWith('sk_test_')) {
+    console.error('paymongo: PAYMONGO_SECRET_KEY is not a test key (sk_test_...); refusing to run.')
+    throw new PayMongoApiError(500, 'configuration_error', 'Payments are only available in test mode right now.')
+  }
+  return secretKey
+}
+
 type PayMongoResource<T> = { data: { id: string; type: string; attributes: T } }
 
 // PayMongo uses HTTP Basic auth with the secret key as the username and an
 // empty password. Errors are returned in PayMongo's real shape
 // ({ errors: [{ detail }] }) so client-side reason parsing stays identical.
 async function paymongoFetch<T>(url: string, init: { method?: 'GET' | 'POST'; body?: unknown } = {}): Promise<PayMongoResource<T>> {
-  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
+  const secretKey = paymongoSecretKey()
   if (!secretKey) throw new PayMongoApiError(500, 'configuration_error', 'PayMongo is not configured.')
 
   const res = await fetch(url, {
@@ -235,10 +266,11 @@ async function resolveTenancy(req: Request, tenancyId?: string): Promise<{ tenan
 }
 
 type PaymentRecord = {
+  renewalProposalId?: string
   tenantId: string
   tenancy: TenancyContext
   referenceId: string
-  method: 'gcash' | 'maya' | 'qrph' | 'card'
+  method: CheckoutMethod
   amount: number
   periodStart?: string | null
   periodEnd?: string | null
@@ -250,6 +282,7 @@ type PaymentRecord = {
 // PayMongo call).
 async function recordPayment(params: PaymentRecord): Promise<string> {
   const { data, error } = await dbClient.from('payment').insert({
+    ...(params.renewalProposalId ? { renewal_proposal_id: params.renewalProposalId } : {}),
     tenant_id: params.tenantId,
     tenancy_id: params.tenancy.id,
     apartment_id: params.tenancy.apartment_id,
@@ -265,6 +298,9 @@ async function recordPayment(params: PaymentRecord): Promise<string> {
   }).select('id').single()
 
   if (error) {
+    // One unfinished online payment per tenancy and period (payment_one_pending_online_idx): a
+    // concurrent second attempt lands here instead of creating a duplicate.
+    if (error.code === '23505') throw paymentInProgress()
     throw new PayMongoApiError(409, 'billing_error', error.message)
   }
   return data.id
@@ -277,13 +313,113 @@ async function updatePayment(id: string, values: Record<string, unknown>): Promi
 
 // Reserve in the database BEFORE contacting the provider. The billing trigger
 // validates the total/period and serializes competing requests on the tenancy.
-async function reservePayment(req: Request, payload: CheckoutSessionPayload | CardPaymentPayload, method: PaymentRecord['method']): Promise<string> {
+async function reservePayment(req: Request, payload: CheckoutSessionPayload, method: PaymentRecord['method']): Promise<string> {
   if (!Number.isFinite(payload.amount) || payload.amount <= 0) {
     throw new PayMongoApiError(400, 'validation_error', 'Enter a valid payment amount.')
   }
+  if (method === 'bank_transfer') validateBankTransfer(payload)
   const { tenantId, tenancy } = await resolveTenancy(req, payload.tenancyId)
+  await assertLandlordAcceptsMethod(tenancy.landlord_id, method)
+  await closeUnfinishedOnlineAttempts(tenantId, tenancy.id, payload.periodStart)
   return recordPayment({ tenantId, tenancy, referenceId: payload.referenceId, method,
+    renewalProposalId: payload.renewalProposalId,
     amount: payload.amount, periodStart: payload.periodStart, periodEnd: payload.periodEnd, dueDate: payload.dueDate })
+}
+
+// The bank must be one we offer and the amount within its limit. Checked here as
+// well as in the app, so the client check is only feedback.
+function validateBankTransfer(payload: CheckoutSessionPayload) {
+  const bank = payload.bankCode ? BANK_TRANSFER_LIMITS[payload.bankCode] : undefined
+  if (!bank) throw new PayMongoApiError(400, 'validation_error', 'Choose a bank for Bank Transfer.')
+  if (payload.amount > bank.maxAmount) {
+    throw new PayMongoApiError(400, 'validation_error', `${bank.name} allows up to ₱${bank.maxAmount.toLocaleString('en-PH')} per payment.`)
+  }
+}
+
+// A landlord may turn payment methods off. No saved setting means all are allowed.
+// Client inserts are covered by a restrictive policy on payment; this edge function
+// writes as service role, which bypasses it, so it checks the same rule.
+async function assertLandlordAcceptsMethod(landlordId: string | null, method: string): Promise<void> {
+  if (!landlordId) return
+  const { data, error } = await dbClient
+    .from('landlord_payment_settings')
+    .select('accepted_methods')
+    .eq('landlord_id', landlordId)
+    .maybeSingle()
+  if (error) throw new PayMongoApiError(500, 'database_error', 'Could not check which payment methods your landlord accepts.')
+  if (data && !data.accepted_methods.includes(method)) {
+    throw new PayMongoApiError(409, 'method_not_accepted', `Your landlord does not accept ${PAYMENT_METHOD_LABELS[method] ?? method} payments. Choose another method.`)
+  }
+}
+
+const paymentInProgress = () =>
+  new PayMongoApiError(409, 'payment_in_progress', 'Your earlier payment is still being confirmed. Check it before paying again.')
+
+// A tenant who leaves PayMongo's page without paying (back button, app switch) leaves that attempt
+// `pending`, and nothing closes it. Before a new online attempt for the same tenancy and period,
+// close the unfinished one: expire its hosted session so it can no longer be paid, then settle the
+// row from PayMongo's own answer. If the old attempt turns out to be paid, refuse the new one so
+// the tenant is never charged twice. If its outcome cannot be established (no provider session, or
+// PayMongo still reports it open), refuse too: an uncertain reservation is never released on a
+// guess. Cash is never touched here.
+async function closeUnfinishedOnlineAttempts(tenantId: string, tenancyId: string, periodStart?: string | null): Promise<void> {
+  let query = dbClient
+    .from('payment')
+    .select('id, paymongo_session_id')
+    .eq('tenant_id', tenantId)
+    .eq('tenancy_id', tenancyId)
+    .eq('status', 'pending')
+    .neq('method', 'cash')
+  query = periodStart ? query.eq('period_start', periodStart) : query.is('period_start', null)
+  const { data, error } = await query
+  if (error) throw new PayMongoApiError(500, 'database_error', 'Could not check your earlier payments.')
+
+  for (const attempt of data ?? []) {
+    if (!attempt.paymongo_session_id) throw paymentInProgress()
+
+    if (!paymongoSecretKey()) {
+      // Mock sessions cannot be paid elsewhere, so closing one is safe.
+      if (!attempt.paymongo_session_id.startsWith('cs_mock_')) {
+        throw new PayMongoApiError(503, 'configuration_error', 'Online payment verification is unavailable. Your payment remains pending; do not pay again.')
+      }
+      await updatePayment(attempt.id, { status: 'failed' })
+      continue
+    }
+
+    // The session may already be paid or expired, which makes this call fail;
+    // the status lookup below is the verdict either way.
+    await paymongoFetch(`${PAYMONGO_API_V1}/checkout_sessions/${attempt.paymongo_session_id}/expire`, { method: 'POST' })
+      .catch((expireError) => console.error('paymongo: expire session failed:', expireError instanceof Error ? expireError.message : expireError))
+    const { status } = await settleRealCheckoutSession(attempt.paymongo_session_id, attempt.id)
+    if (status === 'paid') {
+      throw new PayMongoApiError(409, 'already_paid', 'This payment was already completed. Check your receipt before paying again.')
+    }
+    if (status === 'pending') throw paymentInProgress()
+  }
+}
+
+// Name, email and phone for PayMongo's hosted checkout form, so the tenant
+// does not retype them. Prefill is a convenience: any failure just leaves the
+// form empty and never blocks the payment. Never logged.
+async function loadBillingDetails(paymentId: string): Promise<{ name?: string; email?: string; phone?: string } | undefined> {
+  const { data: payment } = await dbClient.from('payment').select('tenant_id').eq('id', paymentId).maybeSingle()
+  if (!payment?.tenant_id) return undefined
+
+  const { data: user } = await dbClient
+    .from('users')
+    .select('first_name, last_name, email, mobile_number')
+    .eq('id', payment.tenant_id)
+    .maybeSingle()
+  if (!user) return undefined
+
+  const name = [user.first_name, user.last_name].filter(Boolean).join(' ')
+  // Profiles store the local 11-digit form (09XXXXXXXXX); PayMongo's form shows +63.
+  const phone = /^0\d{10}$/.test(user.mobile_number ?? '') ? `+63${user.mobile_number.slice(1)}` : undefined
+  return {
+    ...(name ? { name } : {}),
+    ...(user.email ? { email: user.email } : {}),
+    ...(phone ? { phone } : {}),
+  }
 }
 
 async function failDefiniteProviderRejection(id: string, error: unknown): Promise<never> {
@@ -304,7 +440,7 @@ async function createCheckoutSession(req: Request, payload: CheckoutSessionPaylo
     return badRequest('referenceId, amount, and redirectBaseUrl are required.')
   }
 
-  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
+  const secretKey = paymongoSecretKey()
   if (!secretKey) {
     // Mock — active only while PAYMONGO_SECRET_KEY is unset.
     const sessionId = `cs_mock_${referenceId}`
@@ -330,6 +466,7 @@ async function createRealCheckoutSession(req: Request, payload: CheckoutSessionP
   const { referenceId, amount, description, redirectBaseUrl } = payload
 
   const paymentId = await reservePayment(req, payload, payload.method ?? 'gcash')
+  const billing = await loadBillingDetails(paymentId)
 
   try {
   const { data: session } = await paymongoFetch<{
@@ -349,12 +486,18 @@ async function createRealCheckoutSession(req: Request, payload: CheckoutSessionP
               quantity: 1,
             },
           ],
-          payment_method_types: payload.method === 'qrph' ? ['qrph'] : ['gcash', 'paymaya'],
+          // Offer only the method (and, for Bank Transfer, the bank) the tenant picked:
+          // the hosted page would otherwise preselect the first listed one, while the
+          // payment row already records the chosen method.
+          payment_method_types: [checkoutPaymentMethodType(payload)],
+          ...(billing && Object.keys(billing).length > 0 ? { billing } : {}),
           // The deep link carries ONLY the reference id — never a payment
           // outcome. On return the client re-verifies with the backend, which
           // resolves the reference id (or the session id) to the session.
           success_url: `${redirectBaseUrl}?sessionId=${referenceId}`,
-          cancel_url: `${redirectBaseUrl}?sessionId=${referenceId}`,
+          // `cancelled=1` only picks which screen the app shows; the outcome is
+          // still read from the backend, never from this link.
+          cancel_url: `${redirectBaseUrl}?sessionId=${referenceId}&cancelled=1`,
           reference_number: referenceId,
         },
       },
@@ -396,7 +539,7 @@ async function getCheckoutSessionStatus(req: Request, { sessionId }: { sessionId
   // service-role endpoint, including while using mock online payments.
   if (payment.method === 'cash') return json({ data: { id: sessionId, attributes: { status: 'pending' } } })
 
-  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
+  const secretKey = paymongoSecretKey()
   if (!secretKey) {
     if (!payment.paymongo_session_id?.startsWith('cs_mock_')) {
       throw new PayMongoApiError(503, 'configuration_error', 'Online payment verification is unavailable. Your payment remains pending; do not pay again.')
@@ -428,7 +571,12 @@ async function getCheckoutSessionStatus(req: Request, { sessionId }: { sessionId
   return getRealCheckoutSessionStatus(payment.paymongo_session_id, payment.id)
 }
 
-async function getRealCheckoutSessionStatus(sessionId: string, paymentId: string): Promise<Response> {
+// Reads the hosted session from PayMongo, records the rail used, and settles the payment row
+// (paid, or failed when the session expired or was cancelled). PayMongo's answer decides.
+async function settleRealCheckoutSession(
+  sessionId: string,
+  paymentId: string,
+): Promise<{ id: string; status: CheckoutSessionStatus; checkoutUrl?: string }> {
   let paymongoId = sessionId
 
   // Deep links can carry the reference id instead of the session id (older
@@ -458,7 +606,7 @@ async function getRealCheckoutSessionStatus(sessionId: string, paymentId: string
   const hasPaidPayment = payments.some((payment) => payment.attributes?.status === 'paid')
 
   // FIX 1 — capture the PayMongo payment resource id + the exact rail used
-  // (payment method type) so refund eligibility metadata exists even when the
+  // (payment method type) so the rail is recorded even when the
   // webhook misses. Never clobber a value the webhook already captured.
   const firstPaid = payments.find((payment) => payment.attributes?.status === 'paid') ?? payments[0]
   if (firstPaid?.id?.startsWith('pay_')) {
@@ -485,366 +633,54 @@ async function getRealCheckoutSessionStatus(sessionId: string, paymentId: string
     await updatePayment(paymentId, { status: status === 'paid' ? 'paid' : 'failed' })
   }
 
+  return { id: session.id, status, checkoutUrl: status === 'pending' ? attrs.checkout_url : undefined }
+}
+
+async function getRealCheckoutSessionStatus(sessionId: string, paymentId: string): Promise<Response> {
+  const { id, status, checkoutUrl } = await settleRealCheckoutSession(sessionId, paymentId)
   return json({
     data: {
-      id: session.id,
+      id,
       type: 'checkout_session',
-      attributes: {
-        status,
-        checkout_url: status === 'pending' ? attrs.checkout_url : undefined,
-      },
+      attributes: { status, checkout_url: checkoutUrl },
     },
   })
 }
 
-async function createCardPayment(req: Request, payload: CardPaymentPayload) {
-  const { referenceId, card } = payload
-
-  if (!referenceId || !card?.number || !card?.expMonth || !card?.expYear || !card?.cvc) {
-    return badRequest('referenceId and complete card details are required.')
-  }
-
-  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
-  if (!secretKey) {
-    const paymentId = await reservePayment(req, payload, 'card')
-    // Mock — active only while PAYMONGO_SECRET_KEY is unset.
-    // Mirrors PayMongo test-card behavior: 4000 0000 0000 0002 is declined.
-    const isDeclined = card.number.replace(/\s/g, '').endsWith('0002')
-
-    if (isDeclined) {
-      await updatePayment(paymentId, { status: 'failed' })
-      return json({
-        data: {
-          type: 'payment_intent',
-          attributes: {
-            status: 'failed',
-            failure_reason: 'Your card was declined.',
-          },
-        },
-      })
-    }
-
-    await updatePayment(paymentId, { status: 'paid' })
-    return json({
-      data: {
-        type: 'payment_intent',
-        attributes: {
-          status: 'succeeded',
-          failure_reason: null,
-        },
-      },
-    })
-  }
-
-  return createRealCardPayment(req, payload)
-}
-
-async function createRealCardPayment(req: Request, payload: CardPaymentPayload): Promise<Response> {
-  const { amount, description, card } = payload
-
-  const paymentId = await reservePayment(req, payload, 'card')
-  let chargeAttempted = false
-
-  try {
-
-  // 1. Create the card payment method (replaces the deprecated /v1/tokens).
-  const { data: paymentMethod } = await paymongoFetch<{
-    type: string
-    details?: { card_number?: string; exp_month?: number; exp_year?: number; cvc?: string }
-  }>(`${PAYMONGO_API_V1}/payment_methods`, {
-    method: 'POST',
-    body: {
-      data: {
-        attributes: {
-          type: 'card',
-          details: {
-            card_number: card.number.replace(/\s/g, ''),
-            exp_month: card.expMonth,
-            exp_year: card.expYear,
-            cvc: card.cvc,
-          },
-        },
-      },
-    },
-  })
-
-  // 2. Create the payment intent.
-  const { data: intent } = await paymongoFetch<{
-    status: string
-    amount?: number
-    currency?: string
-    payment_method_allowed?: string[]
-    last_payment_error?: { message?: string; decline_code?: string } | null
-  }>(`${PAYMONGO_API_V1}/payment_intents`, {
-    method: 'POST',
-    body: {
-      data: {
-        attributes: {
-          amount: Math.round(amount * 100),
-          currency: 'PHP',
-          description,
-          payment_method_allowed: ['card'],
-          capture_type: 'automatic',
-        },
-      },
-    },
-  })
-  await updatePayment(paymentId, { paymongo_intent_id: intent.id })
-
-  // 3. Attach the payment method (completes the payment for non-3DS cards).
-  chargeAttempted = true
-  await paymongoFetch<{ status: string }>(`${PAYMONGO_API_V1}/payment_intents/${intent.id}/attach`, {
-    method: 'POST',
-    body: {
-      data: {
-        attributes: {
-          payment_method: paymentMethod.id,
-        },
-      },
-    },
-  })
-
-  // 4. Read the authoritative intent status.
-  const { data: final } = await paymongoFetch<{
-    status: string
-    last_payment_error?: { message?: string; decline_code?: string } | null
-  }>(`${PAYMONGO_API_V1}/payment_intents/${intent.id}`)
-
-  if (final.attributes.status === 'succeeded') {
-    await updatePayment(paymentId, { status: 'paid' })
-
-    return json({
-      data: {
-        type: 'payment_intent',
-        attributes: {
-          status: 'succeeded',
-          failure_reason: null,
-        },
-      },
-    })
-  }
-
-  if (final.attributes.status === 'awaiting_next_action') {
-    // 3-D Secure verification flow is a documented follow-up; never record the
-    // payment as paid until it completes.
-    return json({
-      data: {
-        type: 'payment_intent',
-        attributes: {
-          status: 'failed',
-          failure_reason: 'This card requires 3-D Secure verification, which is not supported yet. Your payment is awaiting verification; check its status before paying again.',
-        },
-      },
-    })
-  }
-
-  const lastError = final.attributes.last_payment_error
-  if (final.attributes.status === 'cancelled' || final.attributes.status === 'awaiting_payment_method') {
-    await updatePayment(paymentId, { status: 'failed' })
-  }
-  return json({
-    data: {
-      type: 'payment_intent',
-      attributes: {
-        status: 'failed',
-        failure_reason: lastError?.decline_code
-          ? `Your card was declined (${lastError.decline_code}).`
-          : lastError?.message ?? 'Your card was declined.',
-      },
-    },
-  })
-  } catch (error) {
-    if (chargeAttempted) throw error
-    return failDefiniteProviderRejection(paymentId, error)
-  }
-}
-
-// --- Refunds (tenant payouts) ------------------------------------------------
-//
-// FIX 1 — server-side eligibility, typed errors only (never a raw PayMongo
-// 4xx). Refundable rails are card + standard e-wallet checkout (gcash /
-// paymaya); QR Ph, direct online banking and OTC payments are refunded
-// manually. The pending refund row is inserted BEFORE calling PayMongo; the
-// one_active_refund_per_payment partial unique index closes the double-tap /
-// two-device race — the losing INSERT (23505) surfaces as REFUND_ALREADY_PENDING.
-
-async function createRefund(req: Request, payload: RefundPayload): Promise<Response> {
-  const { paymentId, amount, reason = 'requested_by_customer', notes } = payload
-
-  if (!paymentId || !amount) {
-    return badRequest('paymentId and amount are required.')
-  }
+// The tenant backed out of the hosted checkout (its cancel_url). Close the
+// session at PayMongo so it can no longer be paid, then settle the row from the
+// provider's own answer: expired -> failed, paid -> paid, anything else stays
+// pending. Never marks a row failed on the caller's word alone.
+async function cancelCheckoutSession(req: Request, { sessionId }: { sessionId: string }) {
+  if (!sessionId) return badRequest('sessionId is required.')
 
   const tenantId = await resolveTenantId(req)
-  if (!tenantId) {
-    throw new PayMongoApiError(401, 'authentication_error', 'You must be signed in to request a refund.')
-  }
+  if (!tenantId) throw new PayMongoApiError(401, 'authentication_error', 'You must be signed in to cancel a payment.')
+  let query = dbClient.from('payment').select('id, status, method, paymongo_session_id').eq('tenant_id', tenantId)
+  query = sessionId.startsWith('cs_') ? query.eq('paymongo_session_id', sessionId) : query.eq('reference_id', sessionId)
+  const { data: payment, error } = await query.maybeSingle()
+  if (error || !payment) throw new PayMongoApiError(404, 'not_found', 'Payment not found.')
 
-  const { data: paymentRow, error: paymentError } = await dbClient
-    .from('payment')
-    .select(
-      'id, tenant_id, status, amount, is_refundable, paymongo_payment_id'
-    )
-    .eq('id', paymentId)
-    .maybeSingle()
-  if (paymentError || !paymentRow) {
-    throw new PayMongoApiError(404, 'PAYMENT_NOT_FOUND', 'Payment not found.')
-  }
+  const respond = (status: CheckoutSessionStatus) => json({ data: { id: sessionId, attributes: { status } } })
+  if (payment.status !== 'pending') return respond(payment.status === 'paid' ? 'paid' : 'failed')
+  // Cash is settled by the landlord, never by the tenant's app.
+  if (payment.method === 'cash') return respond('pending')
+  if (!payment.paymongo_session_id) return respond('pending')
 
-  if (paymentRow.tenant_id !== tenantId) {
-    throw new PayMongoApiError(403, 'PAYMENT_NOT_OWNED', 'This payment does not belong to your account.')
-  }
-  if (paymentRow.status !== 'paid') {
-    throw new PayMongoApiError(400, 'PAYMENT_NOT_PAID', 'Only completed payments can be refunded.')
-  }
-  if (!paymentRow.is_refundable) {
-    throw new PayMongoApiError(
-      400,
-      'REFUND_NOT_SUPPORTED',
-      'This payment method cannot be refunded online. Cash, QR and over-the-counter payments are refunded manually.',
-    )
-  }
-  if (amount < 1) {
-    throw new PayMongoApiError(400, 'REFUND_INVALID_AMOUNT', 'The minimum refund is ₱1.00.')
-  }
-
-  const { data: refundRows } = await dbClient
-    .from('refund')
-    .select('amount')
-    .eq('payment_id', paymentId)
-    .in('status', ['pending', 'processing', 'succeeded'])
-
-  const refunded = (refundRows ?? []).reduce((sum, row) => sum + Number(row.amount), 0)
-  const remaining = Number(paymentRow.amount ?? 0) - refunded
-  if (amount > remaining) {
-    throw new PayMongoApiError(400, 'REFUND_EXCEEDS_AMOUNT', 'The refund amount exceeds what can be refunded for this payment.')
-  }
-
-  const { data: refundRow, error: insertError } = await dbClient
-    .from('refund')
-    .insert({
-      payment_id: paymentId,
-      user_id: tenantId,
-      amount,
-      reason,
-      created_by: tenantId,
-      status: 'pending',
-    })
-    .select('id')
-    .single()
-
-  if (insertError) {
-    if (insertError.code === '23505') {
-      throw new PayMongoApiError(409, 'REFUND_ALREADY_PENDING', 'A refund is already being processed for this payment.')
+  const secretKey = paymongoSecretKey()
+  if (!secretKey) {
+    if (!payment.paymongo_session_id.startsWith('cs_mock_')) {
+      throw new PayMongoApiError(503, 'configuration_error', 'Online payment verification is unavailable. Your payment remains pending; do not pay again.')
     }
-    console.error('createRefund insert:', insertError)
-    throw new PayMongoApiError(500, 'database_error', 'Could not record the refund.')
+    await updatePayment(payment.id, { status: 'failed' })
+    return respond('failed')
   }
 
-  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
-  if (!secretKey) {
-    // Mock — mirrors the other mock branches; payment ids ending in "-fail"
-    // produce a failed refund.
-    const mockSucceeded = !paymentId.endsWith('-fail')
-    const mockStatus = mockSucceeded ? 'succeeded' : 'failed'
-    await dbClient
-      .from('refund')
-      .update({
-        status: mockStatus,
-        ...(mockSucceeded
-          ? { completed_at: new Date().toISOString() }
-          : { failure_reason: 'Mock refund declined.' }),
-      })
-      .eq('id', refundRow.id)
-
-    return json({
-      data: {
-        id: refundRow.id,
-        type: 'refund',
-        attributes: { status: mockStatus, failure_reason: mockSucceeded ? null : 'Mock refund declined.' },
-      },
-    })
-  }
-
-  try {
-    const { data: refund } = await paymongoFetch<{
-      status: string
-      failure_reason?: string | null
-    }>(`${PAYMONGO_API_V1}/refunds`, {
-      method: 'POST',
-      body: {
-        data: {
-          attributes: {
-            amount: Math.round(amount * 100),
-            payment_id: paymentRow.paymongo_payment_id,
-            reason,
-            ...(notes ? { notes } : {}),
-          },
-        },
-      },
-    })
-
-    await dbClient
-      .from('refund')
-      .update({ status: 'processing', paymongo_refund_id: refund.id })
-      .eq('id', refundRow.id)
-
-    return json({
-      data: {
-        id: refund.id,
-        type: 'refund',
-        attributes: { status: 'processing' },
-      },
-    })
-  } catch (err) {
-    const detail = err instanceof PayMongoApiError
-      ? err.message
-      : 'Refund could not be processed.'
-    await dbClient
-      .from('refund')
-      .update({ status: 'failed', failure_reason: detail })
-      .eq('id', refundRow.id)
-    throw err instanceof PayMongoApiError
-      ? err
-      : new PayMongoApiError(500, 'refund_error', detail)
-  }
-}
-
-// --- Transfer status (fallback poll) -----------------------------------------
-//
-// The webhook (transfer.outward.*) is the primary settlement path; this
-// endpoint is the manual/fallback poll. PayMongo transfer event/status names
-// are verified against the dashboard catalog at go-live.
-
-function getTransferStatus({ transferId }: { transferId: string }) {
-  if (!transferId) return badRequest('transferId is required.')
-
-  const secretKey = Deno.env.get('PAYMONGO_SECRET_KEY')
-  if (!secretKey) {
-    return json({
-      data: {
-        id: transferId,
-        type: 'transfer',
-        attributes: { status: transferId.endsWith('-fail') ? 'failed' : 'successful' },
-      },
-    })
-  }
-
-  return getRealTransferStatus(transferId)
-}
-
-async function getRealTransferStatus(transferId: string): Promise<Response> {
-  const { data: transfer } = await paymongoFetch<{ status: string }>(
-    `${PAYMONGO_API_V2}/transfers/${transferId}`
-  )
-
-  return json({
-    data: {
-      id: transferId,
-      type: 'transfer',
-      attributes: { status: transfer.attributes.status },
-    },
-  })
+  // The session may already be paid or expired, which makes this call fail;
+  // the status lookup below is the verdict either way.
+  await paymongoFetch(`${PAYMONGO_API_V1}/checkout_sessions/${payment.paymongo_session_id}/expire`, { method: 'POST' })
+    .catch((error) => console.error('paymongo: expire session failed:', error instanceof Error ? error.message : error))
+  return getRealCheckoutSessionStatus(payment.paymongo_session_id, payment.id)
 }
 
 Deno.serve(async (req) => {
@@ -860,12 +696,8 @@ Deno.serve(async (req) => {
         return await createCheckoutSession(req, payload)
       case 'getCheckoutSessionStatus':
         return await getCheckoutSessionStatus(req, payload)
-      case 'createCardPayment':
-        return await createCardPayment(req, payload)
-      case 'createRefund':
-        return await createRefund(req, payload)
-      case 'getTransferStatus':
-        return getTransferStatus(payload)
+      case 'cancelCheckoutSession':
+        return await cancelCheckoutSession(req, payload)
       default:
         return badRequest(`Unknown action: ${action}`)
     }

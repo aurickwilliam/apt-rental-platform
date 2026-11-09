@@ -4,6 +4,8 @@ export const settings = {
   "settings.title": "Settings",
   "settings.close": "Close settings",
   "settings.sections": "Settings sections",
+  "settings.paymentMethods": "Payment Methods",
+  "settings.tutorial": "Tutorial",
   "settings.general": "General",
   "settings.security": "Security",
   "settings.notifications": "Notifications",
@@ -125,22 +127,22 @@ export const settings = {
   "settings.help.faq": "Frequently Asked Questions",
   "settings.help.faq.1.question": "How do I pay my rent?",
   "settings.help.faq.1.answer":
-    "You can pay your rent through the app by going to Rentals > Pay Rent and selecting your preferred payment method (GCash, Maya, or card).",
+    "Open My Rental and choose Pay now on your current bill, then pick your payment method. Online checkout currently runs in test mode and does not process real money, and cash payments stay pending until your property owner confirms them.",
   "settings.help.faq.2.question": "How do I submit a maintenance request?",
   "settings.help.faq.2.answer":
-    "Go to your Rentals page and click 'Request Maintenance'. Fill in the details of the issue and submit. Your landlord will be notified.",
+    "Open Maintenance from My Rental, choose Request Maintenance, describe the issue, and set how urgent it is. Your landlord can review and respond inside APT.",
   "settings.help.faq.3.question": "How do I view my lease agreement?",
   "settings.help.faq.3.answer":
-    "Go to your Rentals page and click 'View Lease'. You can view and download your lease agreement from there.",
+    "Once your landlord has uploaded it, open Signed lease in My Rental to view the current document and confirm that you have read it.",
   "settings.help.faq.4.question": "How do I contact my landlord?",
   "settings.help.faq.4.answer":
-    "You can message your landlord directly through the Chat page or by clicking 'Chat Landlord' in your Rentals quick actions.",
+    "Use Messages to contact your landlord. Apartment-related conversations keep questions and updates about that property in one thread.",
   "settings.help.faq.5.question": "How do I list my property?",
   "settings.help.faq.5.answer":
-    "As a landlord, go to the Units page and click the '+' button to add a new apartment listing. Fill in the required details across the steps.",
+    "From My Properties in the landlord portal, add a new listing with the CAMANAVA address, rent and deposit terms, amenities, and photos, then publish it for review.",
   "settings.help.faq.6.question": "How do I verify my account?",
   "settings.help.faq.6.answer":
-    "Go to your Profile page and click on 'Verify Account'. You will need to upload a valid government-issued ID and a selfie.",
+    "Open your profile and choose Verify Account. Phones and tablets capture your government ID and a selfie right in the browser; on a desktop you can scan a QR code to continue on your phone or use your webcam.",
   "settings.help.terms": "Terms of Service",
   "settings.help.terms.admin": "Terms and conditions",
   "settings.help.privacy": "Privacy Policy",

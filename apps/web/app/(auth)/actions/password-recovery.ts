@@ -13,16 +13,22 @@ import {
   RECOVERY_UPDATED_PATH,
 } from "@repo/supabase/password-recovery";
 import {
+  checkAuthThrottle,
+  clearAuthThrottle,
   describeAuthError,
   hasEmailPasswordIdentity,
+  isInvalidOtpError,
   isRecoveryCodeFormat,
   normalizeRecoveryEmail,
   PasswordError,
+  recordAuthFailure,
   type PasswordErrorReason,
   toPasswordError,
   toPasswordErrorReason,
 } from "@repo/utils";
 
+import { logAuthLockout } from "@/lib/auth-attempts";
+import { getAuthThrottleClient } from "@/lib/auth-throttle-server";
 import { PORTAL_COOKIE } from "@/lib/portal-preference";
 
 // Password recovery by 6-digit email code, mirroring mobile
@@ -40,8 +46,9 @@ type Supabase = Awaited<ReturnType<typeof createClient>>;
 
 export type RecoveryRequestResult = { error: PasswordErrorReason | null };
 export type RecoveryVerifyResult =
-  | { status: "ready" | "google_only"; error?: never }
-  | { status?: never; error: PasswordErrorReason };
+  | { status: "ready" | "google_only"; error?: never; retryAfterSeconds?: never }
+  // retryAfterSeconds: set with "rate_limited", how long the guess lock lasts.
+  | { status?: never; error: PasswordErrorReason; retryAfterSeconds?: number };
 
 function errorReason(error: unknown, context: string): PasswordErrorReason {
   if (error instanceof PasswordError) return error.reason;
@@ -74,12 +81,28 @@ async function endPasswordRecovery(supabase: Supabase, scope: "local" | "global"
 }
 
 // Sends (or resends) a recovery code. auth.resend() does not support recovery
-// codes, so resend calls this again. Unknown accounts get the same answer.
-export async function requestPasswordRecovery(email: string): Promise<RecoveryRequestResult> {
+// codes, so resend calls this again. Unknown and Google-only emails are refused
+// before any code is sent ("email_not_registered" / "google_account").
+export async function requestPasswordRecovery(
+  email: string,
+  captchaToken?: string,
+): Promise<RecoveryRequestResult> {
   try {
     const normalizedEmail = normalizeRecoveryEmail(email);
     const supabase = await createClient();
-    const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail);
+    // Only emails with a confirmed email/password account get a code. A failed
+    // lookup is an error, never a silent "send".
+    const { data: eligibility, error: lookupError } = await supabase.rpc(
+      "get_password_recovery_eligibility",
+      { p_email: normalizedEmail },
+    );
+    if (lookupError) return { error: errorReason(lookupError, "Password recovery lookup") };
+    if (eligibility === "google_only") return { error: "google_account" };
+    if (eligibility !== "eligible") return { error: "email_not_registered" };
+
+    const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+      captchaToken: captchaToken || undefined,
+    });
     if (!error || error.code === "user_not_found") return { error: null };
     return { error: errorReason(error, "Password recovery request") };
   } catch (error) {
@@ -103,6 +126,15 @@ export async function verifyPasswordRecoveryCode(
   if (!isRecoveryCodeFormat(token)) return { error: "invalid_or_expired_code" };
 
   const supabase = await createClient();
+  const throttle = getAuthThrottleClient();
+  // Guess limit per email, enforced here (server side, counters written with the
+  // service role) so a refreshed page does not reset it. Same answer for unknown
+  // accounts, so nothing is revealed.
+  const blockedFor = await checkAuthThrottle(throttle, "recovery_otp", normalizedEmail);
+  if (blockedFor > 0) {
+    logAuthLockout("recovery_otp");
+    return { error: "rate_limited", retryAfterSeconds: blockedFor };
+  }
   const cookieStore = await cookies();
   // Marked before verifying, so a session can never exist without the marker.
   cookieStore.set(
@@ -119,9 +151,19 @@ export async function verifyPasswordRecoveryCode(
     });
     if (error || !data.user || !data.session) {
       await expireCookie(RECOVERY_MARKER_COOKIE);
+      // Only a wrong or expired code counts, never a network or throttle error.
+      if (isInvalidOtpError(error)) {
+        // The failure that spends the window reports the lock right away.
+        const lockedFor = await recordAuthFailure(throttle, "recovery_otp", normalizedEmail);
+        if (lockedFor > 0) {
+          logAuthLockout("recovery_otp");
+          return { error: "rate_limited", retryAfterSeconds: lockedFor };
+        }
+      }
       return { error: errorReason(error, "Password recovery verification") };
     }
 
+    await clearAuthThrottle(throttle, "recovery_otp", normalizedEmail);
     if (!hasEmailPasswordIdentity(data.user)) {
       await endPasswordRecovery(supabase, "local");
       return { status: "google_only" };

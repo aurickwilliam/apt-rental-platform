@@ -1,6 +1,14 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "@repo/supabase";
-import { formatAddress, getMaintenanceFeeError, normalizeMaintenanceFeeStatus, type MaintenanceFeeStatus } from "@repo/utils";
+import {
+  fetchEffectiveLeaseTermsWith,
+  formatAddress,
+  getMaintenanceFeeError,
+  normalizeMaintenanceFeeStatus,
+  parseApplicationPreferenceSnapshot,
+  type ApplicationPreferenceSnapshot,
+  type MaintenanceFeeStatus,
+} from "@repo/utils";
 import { ApartmentStatus, VALID_APARTMENT_STATUSES } from "@repo/constants";
 
 import { resolvePrivateMediaUrls } from "@/service/media/privateMediaResolver";
@@ -19,6 +27,8 @@ export type LandlordUnitApartment = {
   city: string;
   status: ApartmentStatus;
   isVerified: boolean;
+  /** An admin hid the listing from public search; the landlord can still see it. */
+  isHiddenByAdmin: boolean;
   coverUrl: string | null;
   monthlyRent?: number;
 };
@@ -65,7 +75,7 @@ export async function fetchLandlordUnits(landlordId: string): Promise<LandlordUn
   const [apartmentsResult, monthlyProfit] = await Promise.all([
     supabase
       .from("apartments")
-      .select("id, name, barangay, city, status, is_verified, apartment_images (url, url_thumb, is_cover), monthly_rent")
+      .select("id, name, barangay, city, status, is_verified, is_hidden_by_admin, apartment_images (url, url_thumb, is_cover), monthly_rent")
       .eq("landlord_id", landlordId)
       .is("deleted_at", null)
       .order("created_at", { ascending: false }),
@@ -88,6 +98,7 @@ export async function fetchLandlordUnits(landlordId: string): Promise<LandlordUn
         ? (rawStatus as ApartmentStatus)
         : "available",
       isVerified: apt.is_verified ?? false,
+      isHiddenByAdmin: apt.is_hidden_by_admin ?? false,
       coverUrl: (cover?.url_thumb || cover?.url) ?? null,
       monthlyRent: apt.monthly_rent ?? undefined,
     };
@@ -174,6 +185,9 @@ export type LandlordTenant = {
   leaseStart: string;
   leaseEnd: string | null;
   tenancyId: string;
+  signedLeasePath: string | null;
+  signedLeaseUploadedAt: string | null;
+  tenantAcknowledgedAt: string | null;
 };
 
 export type LandlordTenancyMaintenanceRequest = {
@@ -209,6 +223,9 @@ export async function fetchLandlordTenancy(
         id,
         lease_start,
         lease_end,
+        signed_lease_path,
+        signed_lease_uploaded_at,
+        tenant_acknowledged_at,
         tenant:users!tenancies_tenant_id_fkey (
           id,
           first_name,
@@ -231,7 +248,7 @@ export async function fetchLandlordTenancy(
       .maybeSingle(),
     supabase
       .from("payment")
-      .select("id, amount, date, status, method, reference_id, due_date")
+      .select("id, amount, date, status, method, reference_id, due_date, billing_kind")
       .eq("apartment_id", apartmentId)
       .in("status", ["paid", "pending"])
       .order("date", { ascending: false })
@@ -248,6 +265,9 @@ export async function fetchLandlordTenancy(
         id: string;
         lease_start: string;
         lease_end: string | null;
+        signed_lease_path: string | null;
+        signed_lease_uploaded_at: string | null;
+        tenant_acknowledged_at: string | null;
         tenant: {
           id: string;
           first_name: string;
@@ -260,6 +280,7 @@ export async function fetchLandlordTenancy(
     | null;
 
   if (tenancyData?.tenant) {
+    const effectiveTerms=await fetchEffectiveLeaseTermsWith(supabase,tenancyData.id);
     const t = tenancyData.tenant;
     tenant = {
       id: t.id,
@@ -268,8 +289,11 @@ export async function fetchLandlordTenancy(
       mobileNumber: t.mobile_number,
       avatarUrl: t.avatar_url,
       leaseStart: tenancyData.lease_start,
-      leaseEnd: tenancyData.lease_end,
+      leaseEnd: effectiveTerms?effectiveTerms.leaseEnd:tenancyData.lease_end,
       tenancyId: tenancyData.id,
+      signedLeasePath: tenancyData.signed_lease_path ?? null,
+      signedLeaseUploadedAt: tenancyData.signed_lease_uploaded_at ?? null,
+      tenantAcknowledgedAt: tenancyData.tenant_acknowledged_at ?? null,
     };
   }
 
@@ -292,7 +316,7 @@ export async function fetchLandlordTenancy(
     const d = new Date(p.date);
     return {
       id: p.id,
-      month: periodMonthLabel(p.due_date ?? p.date),
+      month: p.billing_kind==='lease_renewal'?'Lease Renewal':periodMonthLabel(p.due_date ?? p.date),
       year: String(d.getFullYear()),
       amount: Number(p.amount ?? 0),
       paidDate: `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`,
@@ -483,6 +507,8 @@ export type LandlordApplication = {
   has_smoker: boolean;
   need_parking: boolean;
   message: string | null;
+  // details copied from the tenant's saved preferences when they applied; null when there were none
+  preferences: ApplicationPreferenceSnapshot | null;
   gov_id_url: string | null;
   gov_id_back_url: string | null;
   proof_of_income_url: string | null;
@@ -512,7 +538,7 @@ export async function fetchLandlordApplications(
       `id, status, created_at, rejected_reason, apartment_id, tenant_id,
       occupation, employer_name, monthly_income, employment_type,
       prev_landlord_name, prev_landlord_contact,
-      move_in_date, no_occupants, has_pets, has_smoker, need_parking, message,
+      move_in_date, no_occupants, has_pets, has_smoker, need_parking, message, tenant_preferences,
       gov_id_url, gov_id_back_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url,
       apartments!inner(name, monthly_rent, city, street_address, barangay, province, zip_code, status),
       users!rental_application_tenant_id_fkey(first_name, last_name, avatar_url, street_address, barangay, city, province, postal_code, email, mobile_number)`
@@ -549,6 +575,7 @@ export async function fetchLandlordApplications(
       has_smoker: Boolean(item.has_smoker),
       need_parking: Boolean(item.need_parking),
       message: (item.message as string | null) ?? null,
+      preferences: parseApplicationPreferenceSnapshot(item.tenant_preferences),
       gov_id_url: (item.gov_id_url as string | null) ?? null,
       gov_id_back_url: (item.gov_id_back_url as string | null) ?? null,
       proof_of_income_url: (item.proof_of_income_url as string | null) ?? null,
@@ -702,6 +729,7 @@ export type ManageApartmentDescription = {
   floor_level: string | null;
   max_occupants: number | null;
   lease_duration: string | null;
+  has_own_electricity_meter: boolean;
   amenities: string[];
   lease_agreement_url: string | null;
   landlord: {
@@ -740,7 +768,7 @@ export async function fetchManageApartmentDescription(
         street_address, barangay, city, province,
         no_bedrooms, no_bathrooms, area_sqm,
         furnished_type, floor_level, max_occupants,
-        lease_duration, amenities, lease_agreement_url,
+        lease_duration, has_own_electricity_meter, amenities, lease_agreement_url,
         security_deposit, advance_rent,
         landlord:landlord_id (
           first_name,

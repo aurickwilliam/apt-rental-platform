@@ -17,8 +17,9 @@ import {
   summarizeCollection,
   type CollectionMonthPoint,
 } from "@repo/utils";
+import EmptyState from "@/app/components/display/EmptyState";
+import { IconChartBar } from "@tabler/icons-react";
 
-import ChartEmptyState from "./ChartEmptyState";
 
 const collectionConfig = {
   collected: { label: "Collected", color: "var(--primary)" },
@@ -87,7 +88,8 @@ export default function CollectionHistoryChart({ data, className = "" }: Props) 
           </BarChart>
         </ChartContainer>
       ) : (
-        <ChartEmptyState
+        <EmptyState
+          icon={IconChartBar}
           title="No rent billed yet"
           description="Once rent comes due, collected and unpaid amounts show up here."
         />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { parseDate, type CalendarDate } from "@internationalized/date";
 import { Button, Calendar, Checkbox, CloseButton, DateField, DatePicker, FieldError, Label, Link, Modal, Spinner } from "@heroui/react";
 import { IconAlertTriangle, IconFileInfo, IconFileText, IconShieldCheck, IconUpload } from "@tabler/icons-react";
@@ -53,6 +53,7 @@ export default function PassportUploadForm({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<CalendarDate | null>(null);
+  const earliestExpiry = useMemo(() => parseDate(toExpiryDateString(new Date())), []);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isLegalOpen, setIsLegalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -197,7 +198,7 @@ export default function PassportUploadForm({
               className="flex w-full flex-col gap-1"
               value={expiresAt}
               onChange={setExpiresAt}
-              minValue={parseDate(toExpiryDateString(new Date()))}
+              minValue={earliestExpiry}
               isInvalid={!!expiryError}
               isDisabled={isUploading}
             >
@@ -230,7 +231,8 @@ export default function PassportUploadForm({
               </DateField.Group>
               <FieldError>{expiryError}</FieldError>
               <DatePicker.Popover>
-                <Calendar aria-label={t("passport.upload.calendarAria")}>
+                {/* Set here too: HeroUI's Calendar default limits override the DatePicker's. */}
+                <Calendar aria-label={t("passport.upload.calendarAria")} minValue={earliestExpiry}>
                   <Calendar.Header>
                     <Calendar.YearPickerTrigger className="cursor-pointer">
                       <Calendar.YearPickerTriggerHeading />

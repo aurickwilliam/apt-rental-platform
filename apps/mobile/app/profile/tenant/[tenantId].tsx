@@ -17,6 +17,8 @@ import { usePublicTenantProfile } from 'hooks/profiles'
 import { useCurrentUser } from 'hooks/auth'
 import { useTenantReviews } from '@/hooks/ratings'
 import { useColors } from 'hooks/useTheme'
+import { useReportDialog } from '@/hooks/reports'
+import ReportUserDialog from '@/app/(tabs)/components/chat/ReportUserDialog'
 
 import { formatStayRange } from '@repo/utils'
 
@@ -33,6 +35,7 @@ import {
   IconFlag,
   IconStarFilled,
 } from '@tabler/icons-react-native';
+import EmptyState from "@/components/display/EmptyState";
 
 export default function PublicTenantProfile() {
   const { tenantId, apartmentId } = useLocalSearchParams<{
@@ -114,10 +117,9 @@ export default function PublicTenantProfile() {
     toast.show({ variant: 'default', label: 'Reporting ratings is coming soon' })
   }
 
-  // TODO: Implement function to handle report tenant
-  const handleReportTenant = () => {
-    console.log("Report Tenant Pressed");
-  }
+  const report = useReportDialog(
+    resolvedTenantId ? { kind: 'profile', userId: resolvedTenantId, role: 'tenant' } : null,
+  );
 
   return (
     <ScreenWrapper
@@ -236,15 +238,11 @@ export default function PublicTenantProfile() {
             </SkeletonGroup>
           </View>
         ) : pastApartments.length === 0 ? (
-          <View className="items-center py-12 px-8 gap-3">
-            <IconHomeSearch size={64} color={colors.primary} />
-            <Text className="text-foreground text-xl font-nunitoBold text-center">
-              No rental history yet
-            </Text>
-            <Text className="text-gray-400 text-base font-inter text-center">
-              This tenant has no completed leases on the platform yet.
-            </Text>
-          </View>
+          <EmptyState
+            icon={IconHomeSearch}
+            title="No rental history yet"
+            description="This tenant has no completed leases on the platform yet."
+          />
         ) : (
           <View className="mt-3 gap-3">
             {pastApartments.map((apartment) => {
@@ -289,15 +287,11 @@ export default function PublicTenantProfile() {
         </Text>
 
         {landlordReviews.length === 0 ? (
-          <View className="items-center py-10 px-8 gap-3">
-            <IconStar size={48} color={colors.primary} />
-            <Text className="text-foreground text-lg font-nunitoBold text-center">
-              No landlord ratings yet
-            </Text>
-            <Text className="text-gray-400 text-base font-inter text-center">
-              Landlords can rate a tenant once their lease has ended.
-            </Text>
-          </View>
+          <EmptyState
+            icon={IconStar}
+            title="No landlord ratings yet"
+            description="Landlords can rate a tenant once their lease has ended."
+          />
         ) : (
           <View className="mt-3 gap-3">
             {landlordReviews.map((review) => (
@@ -331,14 +325,25 @@ export default function PublicTenantProfile() {
       </View>
 
       {/* Report Button */}
-      <View className="mt-12 mb-4 mx-5 flex items-center justify-center">
-        <Button variant="tertiary" size="md" onPress={handleReportTenant}>
-          <IconFlag size={20} color={colors.danger} />
-          <Button.Label className="text-danger font-nunitoSemiBold">
-            Report {firstName}
-          </Button.Label>
-        </Button>
-      </View>
+      {resolvedTenantId && resolvedTenantId !== viewerId ? (
+        <View className="mt-12 mb-4 mx-5 flex items-center justify-center">
+          <Button variant="tertiary" size="md" onPress={report.open}>
+            <IconFlag size={20} color={colors.danger} />
+            <Button.Label className="text-danger font-nunitoSemiBold">
+              Report {firstName}
+            </Button.Label>
+          </Button>
+        </View>
+      ) : null}
+
+      <ReportUserDialog
+        isOpen={report.isOpen}
+        name={profile?.fullName ?? 'this tenant'}
+        isSubmitting={report.isSubmitting}
+        errorMessage={report.errorMessage}
+        onClose={report.close}
+        onSubmit={(reason, details) => void report.submit(reason, details)}
+      />
 
       {resolvedTenantId && (
         <RateTenantSheet

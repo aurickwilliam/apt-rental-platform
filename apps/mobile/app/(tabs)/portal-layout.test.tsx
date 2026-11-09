@@ -26,6 +26,10 @@ jest.mock("@/components/ratings/ReviewUnlockGate", () => ({
   __esModule: true, default: (props: unknown) => mockReviewGate(props),
 }));
 
+jest.mock("@/components/tutorial/TutorialHost", () => ({
+  __esModule: true, default: () => null,
+}));
+
 describe("mobile portal tab guard", () => {
   beforeEach(() => {
     jest.clearAllMocks();

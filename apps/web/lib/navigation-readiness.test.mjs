@@ -211,6 +211,7 @@ test("Tenant application and maintenance history seeds skip hydration reads; own
   const historyResource = compile("hooks/use-async-resource.ts", { react: historyRuntime.react });
   const history = compile("hooks/use-maintenance-request-history.ts", {
     react: historyRuntime.react, "@/hooks/use-async-resource": historyResource,
+    "@/service/tenantMaintenanceService": {},
     "@/service/favoritesService": { getTenantContext: async () => { contexts++; return { tenantId: "owner-a" }; } },
     "@/service/maintenanceService": {
       fetchMaintenanceRequestHistory: async (apartmentId, ownerId, photos) => { historyReads++; assert.equal(ownerId, "owner-a"); assert.equal(photos, false); return [{ id: "new", status: "Pending" }]; },
@@ -326,7 +327,8 @@ test("server/client reads share exact mapping, owner/resource filters, ordering 
     let browserCreates = 0;
     const service = compile(`service/${file}.ts`, {
       "@repo/supabase/browser": { createClient: () => { browserCreates++; return browser.client; } },
-      "@repo/utils": { formatAddress: () => "Address", normalizeMaintenanceFeeStatus: value => value },
+      "@repo/utils": { formatAddress: () => "Address", normalizeMaintenanceFeeStatus: value => value, parseApplicationPreferenceSnapshot: () => null },
+      "@/lib/tenant-preferences": { parseTenantPreferences: () => null },
       "@/service/landlordApplicationsService": { getLandlordContext: () => assert.fail("Known owner must not re-resolve context") },
       "@/service/maintenanceService": { resolveMaintenanceImageUrls: () => assert.fail("Server/list presentation must not sign private photos") },
       "@/lib/application-documents": compile("lib/application-documents.ts", {}),

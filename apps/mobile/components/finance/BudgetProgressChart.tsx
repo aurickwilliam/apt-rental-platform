@@ -61,7 +61,7 @@ export default function BudgetProgressChart({
         />
         {expenses.length === 0 && (
           <EmptyState
-            icon={<IconTargetArrow size={32} color={colors.gray500} />}
+            icon={IconTargetArrow}
             title="No spending limits yet"
             description="Set spending limits for repairs, utilities and other property costs."
           />
@@ -99,7 +99,7 @@ export default function BudgetProgressChart({
         />
         {reserves.length === 0 && (
           <EmptyState
-            icon={<IconShieldCheck size={32} color={colors.gray500} />}
+            icon={IconShieldCheck}
             title="No reserve goals yet"
             description="Plan a buffer for unexpected repairs, late payments, vacancies or replacements."
           />

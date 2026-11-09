@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Button, Card, FieldError, Label, Modal, TextArea, TextField, useOverlayState } from "@heroui/react";
 import { IconArrowLeft as ArrowLeft, IconMail as Mail, IconMapPin as MapPin, IconPhone as Phone, IconFileText as FileText, IconEye as Eye, IconCheck as Check, IconX as X, IconShieldCheck as ShieldCheck, IconHome, IconUser, IconBriefcase, IconAdjustments, IconAddressBook, IconMessage, IconClipboardList } from "@tabler/icons-react";
 import Link from "next/link";
-import { formatDate, formatPesoDisplay, getInitials } from "@repo/utils";
+import { describeApplicationPreferences, formatDate, formatPesoDisplay, getInitials } from "@repo/utils";
 import StatusChip from "@/app/components/display/StatusChip";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import { useLandlordApplications } from "@/hooks/use-landlord-applications";
@@ -20,6 +20,7 @@ import { statusChipColor } from "../lib/application-status";
 import { applicationStatusLabel } from "../lib/application-list";
 import ApplicationDetailSection from "./components/ApplicationDetailSection";
 import ApplicationDetailSkeleton from "./components/ApplicationDetailSkeleton";
+import ApplicantRatingsSection from "./components/ApplicantRatingsSection";
 import { useAuthIdentity } from "@/hooks/use-auth-identity";
 
 function DetailField({ label, value }: { label: string; value?: string | null }) {
@@ -178,11 +179,20 @@ function ApplicationDetailContent({ applicationId }: { applicationId: string }) 
           </div>
         </ApplicationDetailSection>
         <ApplicationDetailSection title="Preferences" subtitle="Household preferences and parking needs." icon={IconAdjustments}>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <DetailField label="Has Pets" value={app.has_pets ? "Yes" : "No"} />
-            <DetailField label="Has Smoker" value={app.has_smoker ? "Yes" : "No"} />
-            <DetailField label="Needs Parking" value={app.need_parking ? "Yes" : "No"} />
-          </div>
+          {app.preferences ? (
+            // The details the tenant copied from their saved preferences when applying.
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {describeApplicationPreferences(app.preferences).map((line) => (
+                <DetailField key={line.label} label={line.label} value={line.value} />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <DetailField label="Has Pets" value={app.has_pets ? "Yes" : "No"} />
+              <DetailField label="Has Smoker" value={app.has_smoker ? "Yes" : "No"} />
+              <DetailField label="Needs Parking" value={app.need_parking ? "Yes" : "No"} />
+            </div>
+          )}
         </ApplicationDetailSection>
         <ApplicationDetailSection title="Previous Landlord" subtitle="Previous rental contact information, when provided." icon={IconAddressBook}>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -191,6 +201,8 @@ function ApplicationDetailContent({ applicationId }: { applicationId: string }) 
           </div>
         </ApplicationDetailSection>
       </div>
+
+      <ApplicantRatingsSection tenantId={app.tenant_id} tenantName={app.tenant_name} />
 
       <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
         <ApplicationDetailSection title="Documents" subtitle="Private supporting documents attached to this application." icon={FileText}>

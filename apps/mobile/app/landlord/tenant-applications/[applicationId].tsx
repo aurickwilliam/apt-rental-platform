@@ -12,13 +12,11 @@ import {
   IconFiles,
   IconFileDescription,
   IconListDetails,
-  IconMessage,
-} from '@tabler/icons-react-native';
+  IconMessage, IconFileText, IconStar } from '@tabler/icons-react-native';
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper';
 import StandardHeader from '@/components/layout/StandardHeader';
 import DetailField from '@/components/display/DetailField';
-import EmptyApplicationData from './components/EmptyApplicationData';
 import DocumentRow from '@/components/display/DocumentRow';
 import DetailSection from './components/DetailSection';
 import TenantSummaryCard from './components/TenantSummaryCard';
@@ -26,8 +24,9 @@ import ApplicationDecisionBar from './components/ApplicationDecisionBar';
 import TenantApplicationDetailsSkeleton from './components/TenantApplicationDetailsSkeleton';
 import ErrorDialog from '@/components/display/ErrorDialog';
 import RejectDialog from '../../../components/display/RejectDialog';
+import ApplicantRatings from '@/components/ratings/ApplicantRatings';
 
-import { formatPesoDisplay, formatDate } from '@repo/utils';
+import { describeApplicationPreferences, formatPesoDisplay, formatDate } from '@repo/utils';
 
 import { useColors } from '@/hooks/useTheme';
 import {
@@ -36,6 +35,7 @@ import {
   useApplicationActions
 } from '@/hooks/applications';
 import { usePassportVerifiedPaths } from '@/hooks/passport';
+import EmptyState from "@/components/display/EmptyState";
 
 
 const orDash = (value: string | null | undefined) =>
@@ -100,7 +100,12 @@ export default function TenantApplicationDetails() {
         scrollable
         className="p-5"
       >
-        <EmptyApplicationData />
+        <EmptyState
+      className="flex-1"
+      icon={IconFileText}
+      title="Application not found"
+      description="This application may have been removed."
+    />
       </ScreenWrapper>
     );
   }
@@ -186,14 +191,22 @@ export default function TenantApplicationDetails() {
           </DetailSection>
 
           <DetailSection title="Preferences" icon={IconListDetails}>
-            <View className="flex-row">
-              <DetailField label="Has Pets" value={application.has_pets ? 'Yes' : 'No'} />
-              <DetailField label="Has Smoker" value={application.has_smoker ? 'Yes' : 'No'} />
-            </View>
-            <DetailField
-              label="Needs Parking"
-              value={application.need_parking ? 'Yes' : 'No'}
-            />
+            {application.preferences ? (
+              describeApplicationPreferences(application.preferences).map((line) => (
+                <DetailField key={line.label} label={line.label} value={line.value} />
+              ))
+            ) : (
+              <>
+                <View className="flex-row">
+                  <DetailField label="Has Pets" value={application.has_pets ? 'Yes' : 'No'} />
+                  <DetailField label="Has Smoker" value={application.has_smoker ? 'Yes' : 'No'} />
+                </View>
+                <DetailField
+                  label="Needs Parking"
+                  value={application.need_parking ? 'Yes' : 'No'}
+                />
+              </>
+            )}
           </DetailSection>
 
           <DetailSection title="Previous Landlord" icon={IconBuildingCommunity}>
@@ -201,6 +214,13 @@ export default function TenantApplicationDetails() {
               <DetailField label="Name" value={orDash(application.prev_landlord_name)} />
               <DetailField label="Contact" value={orDash(application.prev_landlord_contact)} />
             </View>
+          </DetailSection>
+
+          <DetailSection title="Landlord Ratings" icon={IconStar}>
+            <ApplicantRatings
+              tenantId={application.tenant_id}
+              tenantName={application.tenant_name}
+            />
           </DetailSection>
 
           <DetailSection title="Documents" icon={IconFiles}>

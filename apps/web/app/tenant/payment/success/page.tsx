@@ -78,7 +78,23 @@ function SuccessContent() {
   }
 
   if (isLoading) {
-    return <PaymentStatusLoading message={payment ? "Confirming your payment…" : "Loading your receipt…"} />;
+    // An online payment that is still pending can take a while (or never settle):
+    // always leave a way out to where it can be checked or cancelled.
+    return (
+      <PaymentStatusLoading
+        message={payment ? "Confirming your payment…" : "Loading your receipt…"}
+        actions={payment ? (
+          <div className="flex flex-row flex-wrap justify-center gap-3">
+            <Button size="sm" onPress={() => router.replace("/tenant/payment")} className="rounded-full font-nunito bg-white text-primary">
+              Back to payment
+            </Button>
+            <Button size="sm" onPress={handleGoHome} className="rounded-full font-nunito bg-transparent border border-white text-white">
+              Go to Home
+            </Button>
+          </div>
+        ) : undefined}
+      />
+    );
   }
 
   if (!payment) {

@@ -132,6 +132,8 @@ export const PAYMENT_STATUS_KEYS: EnumKeyMap = {
   Paid: "enums.paymentStatus.paid",
   Pending: "enums.paymentStatus.pending",
   Unpaid: "enums.paymentStatus.unpaid",
+  Failed: "enums.paymentStatus.failed",
+  Rejected: "enums.paymentStatus.rejected",
 };
 
 /** Review sort options keep their stored English values; only labels translate. */

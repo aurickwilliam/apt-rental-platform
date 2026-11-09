@@ -11,14 +11,16 @@ import {
   isCamanavaZipForCity,
   getBarangaysByCity,
   getDescriptionError,
+  getOwnElectricityMeterError,
 } from "@repo/constants";
 import {
   pricingAmountFromMonths,
   validateApartmentPricing,
 } from "@repo/utils";
+import FormStepActions from "@/app/components/layout/FormStepActions";
+import FormStepper from "@/app/components/layout/FormStepper";
 import { useUser } from "@/hooks/use-user";
 import { APARTMENT_IMAGES_BUCKET, uploadApartmentImage } from "@/lib/apartment-image-upload";
-import { IconCircleCheck } from "@tabler/icons-react";
 
 
 import Step1Photos from "./components/Step1Photos";
@@ -41,6 +43,7 @@ export type ApartmentFormData = {
   max_occupants: number;
   floor_level: string;
   lease_duration: string;
+  has_own_electricity_meter: boolean;
   street_address: string;
   barangay: string;
   city: string;
@@ -72,6 +75,7 @@ const INITIAL_FORM: ApartmentFormData = {
   max_occupants: 1,
   floor_level: "",
   lease_duration: "",
+  has_own_electricity_meter: false,
   street_address: "",
   barangay: "",
   city: "",
@@ -255,6 +259,7 @@ export default function CreateApartmentPage() {
           furnished_type: formData.furnished_type,
           floor_level: formData.floor_level,
           lease_duration: formData.lease_duration,
+          has_own_electricity_meter: formData.has_own_electricity_meter,
           latitude: formData.latitude,
           longitude: formData.longitude,
           amenities: formData.amenities,
@@ -262,7 +267,7 @@ export default function CreateApartmentPage() {
         .select()
         .single();
 
-      if (aptError || !apartment) throw aptError;
+      if (aptError || !apartment) throw new Error(aptError?.message ?? "The listing could not be created. Please try again.");
 
 
       // Upload lease agreement and images
@@ -364,6 +369,8 @@ export default function CreateApartmentPage() {
       if (!data.furnished_type) errors.furnished_type = "Furnished type is required.";
       if (!data.floor_level) errors.floor_level = "Floor level is required.";
       if (!data.lease_duration) errors.lease_duration = "Lease duration is required.";
+      const meterError = getOwnElectricityMeterError(data.has_own_electricity_meter);
+      if (meterError) errors.has_own_electricity_meter = meterError;
       if (data.area_sqm <= 0) {
         errors.area_sqm = "Must be greater than 0.";
       } else if (areaLimits && (data.area_sqm < areaLimits.min || data.area_sqm > areaLimits.max)) {
@@ -426,66 +433,14 @@ export default function CreateApartmentPage() {
 
   return (
     <div className="create-listing-flow min-h-screen bg-background">
-      {/* Top progress bar */}
-      <nav aria-label="Listing progress" className="sticky top-14 md:top-0 z-30 bg-background border-b border-border px-6 py-4">
-        <div>
-          <ol className="flex items-center justify-between">
-            {STEPS.map((s, i) => {
-
-              const num = i + 1;
-              const isActive = step === num;
-              const isDone = step > num;
-
-              return (
-                <li key={s.short} className="relative flex-1 min-w-0">
-                  <div aria-hidden="true" className="absolute inset-x-0 top-6 -translate-y-1/2 flex items-center pointer-events-none">
-                    {/* line before */}
-                    <div
-                      className={`flex-1 h-0.5 transition-colors ${i === 0 ? "invisible" : isDone || isActive ? "bg-primary" : "bg-border"}`}
-                    />
-
-                    <div className="w-8 shrink-0" />
-                    {/* line after */}
-                    <div
-                      className={`flex-1 h-0.5 transition-colors ${i === STEPS.length - 1 ? "invisible" : isDone ? "bg-primary" : "bg-border"}`}
-                    />
-                  </div>
-
-                  <Button
-                    variant="ghost"
-                    className="create-listing-step"
-                    aria-label={`Step ${num}: ${s.label}`}
-                    aria-current={isActive ? "step" : undefined}
-                    isDisabled={num > furthestStep || isValidatingLocation || isSubmitting}
-                    onPress={() => handleStepSelect(num)}
-                  >
-                    <span
-                      aria-hidden="true"
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 transition-all ${
-                        isDone
-                          ? "bg-primary text-white"
-                          : isActive
-                          ? "bg-primary text-white ring-4 ring-primary/20"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {isDone ? <IconCircleCheck size={16} /> : num}
-                    </span>
-
-                    <span
-                      className={`text-xs hidden sm:block text-center transition-colors ${
-                        isActive ? "text-primary font-medium" : isDone ? "text-primary/60" : "text-muted-foreground"
-                      }`}
-                    >
-                      {s.short}
-                    </span>
-                  </Button>
-                </li>
-              );
-            })}
-          </ol>
-        </div>
-      </nav>
+      <FormStepper
+        steps={STEPS}
+        currentStep={step}
+        furthestStep={furthestStep}
+        isDisabled={isValidatingLocation || isSubmitting}
+        onStepSelect={handleStepSelect}
+        ariaLabel="Listing progress"
+      />
 
       {/* Step content */}
       <div className="px-6 py-8">
@@ -502,30 +457,15 @@ export default function CreateApartmentPage() {
           {step === 4 && <Step4Description formData={formData} updateForm={updateForm} errors={errors} />}
 
           {/* Navigation Buttons */}
-          <div className="create-listing-actions flex justify-between gap-4 mt-10 pt-6 border-t border-border">
-            <Button
-              variant={step === 1 ? "danger-soft" : "tertiary"}
-              onPress={step === 1 ? () => setIsCancelOpen(true) : handleBack}
-              isDisabled={isValidatingLocation || isSubmitting}
-            >
-              {step === 1 ? "Cancel" : "Back"}
-            </Button>
-            {step < 5 ? (
-              <Button
-                onPress={handleNext}
-                isPending={step === 2 && isValidatingLocation}
-                isDisabled={isValidatingLocation}
-              >
-                Continue
-              </Button>
-            ) : (
-              <Button
-                onPress={handleSubmitClick}
-              >
-                Submit Listing
-              </Button>
-            )}
-          </div>
+          <FormStepActions
+            isFirstStep={step === 1}
+            onBack={step === 1 ? () => setIsCancelOpen(true) : handleBack}
+            onContinue={step < 5 ? handleNext : handleSubmitClick}
+            continueLabel={step < 5 ? "Continue" : "Submit Listing"}
+            isBackDisabled={isValidatingLocation || isSubmitting}
+            isContinueDisabled={step < 5 && isValidatingLocation}
+            isContinuePending={step === 2 && isValidatingLocation}
+          />
         </div>
       </div>
 

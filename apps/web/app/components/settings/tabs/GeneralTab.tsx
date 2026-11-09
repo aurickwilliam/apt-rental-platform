@@ -13,7 +13,7 @@ import { useTheme } from "next-themes";
 
 import { ALLOW_FILIPINO, isLanguageCode } from "@repo/i18n";
 
-import { useTranslation } from "../../i18n/LocaleProvider";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import ComingSoonChip from "../ComingSoonChip";
 import SettingsRow from "../SettingsRow";
 import SettingsSelect from "../SettingsSelect";
@@ -26,11 +26,11 @@ import {
 
 type ThemeMode = "light" | "system" | "dark";
 
-const THEME_ICONS = {
-  light: IconSun,
-  system: IconDeviceDesktop,
-  dark: IconMoon,
-} as const;
+const THEME_OPTIONS = [
+  { value: "light", label: "Light", icon: IconSun },
+  { value: "system", label: "System", icon: IconDeviceDesktop },
+  { value: "dark", label: "Dark", icon: IconMoon },
+] as const;
 
 export default function GeneralTab() {
   const { language, setLanguage, t } = useTranslation();
@@ -48,13 +48,7 @@ export default function GeneralTab() {
 
   const activeTheme: ThemeMode = mounted && (theme === "dark" || theme === "system") ? theme : "light";
 
-  const ThemeIcon = THEME_ICONS[activeTheme];
-
-  const themeOptions = (["light", "system", "dark"] as const).map((value) => ({
-    value,
-    label: t(`settings.theme.${value}`),
-    icon: THEME_ICONS[value],
-  }));
+  const ThemeIcon = THEME_OPTIONS.find(({ value }) => value === activeTheme)!.icon;
 
   const languageOptions = [
     { value: "en" as const, label: t("languages.en") },
@@ -106,42 +100,37 @@ export default function GeneralTab() {
         </section>
       ) : null}
 
-      <section className="mt-5" aria-labelledby="settings-appearance-heading">
-        <h3
-          id="settings-appearance-heading"
-          className="px-4 font-nunito text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-        >
-          {t("settings.appearance.heading")}
-        </h3>
-        <div className="mt-2 divide-y divide-border">
-          <SettingsRow
-            icon={<ThemeIcon size={18} />}
-            title={t("settings.theme.title")}
-            description={t("settings.theme.description")}
-            suffix={
-              <SettingsSelect
-                label={t("settings.theme.label")}
-                value={activeTheme}
-                options={themeOptions}
-                onChange={setTheme}
-                isDisabled={!mounted}
-              />
-            }
-          />
-          <SettingsRow
-            icon={<IconPlayerPause size={18} />}
-            title={t("settings.reduceMotion.title")}
-            description={t("settings.reduceMotion.description")}
-            suffix={
-              <ToggleSwitch
-                isSelected={reduceMotion}
-                onValueChange={setReducedMotion}
-                aria-label={t("settings.reduceMotion.label")}
-              />
-            }
-          />
-        </div>
-      </section>
+      <div className="mt-3 divide-y divide-border">
+        <SettingsRow
+          icon={<ThemeIcon size={18} />}
+          title="Theme"
+          responsiveLayout="stack-control"
+          description={t("settings.theme.description")}
+          suffix={
+            <SettingsSelect
+              label={t("settings.theme.label")}
+              value={activeTheme}
+              options={THEME_OPTIONS.map(({ value, label, icon }) => ({ value: t(`settings.theme.${value}`), label, icon }))}
+              onChange={setTheme}
+              isDisabled={!mounted}
+              className="w-full min-w-0 sm:w-40"
+            />
+          }
+        />
+        <SettingsRow
+          icon={<IconPlayerPause size={18} />}
+          title="Reduce motion"
+          responsiveLayout="wrap"
+          description={t("settings.reduceMotion.description")}
+          suffix={
+            <ToggleSwitch
+              isSelected={reduceMotion}
+              onValueChange={setReducedMotion}
+              aria-label={t("settings.reduceMotion.label")}
+            />
+          }
+        />
+      </div>
     </>
   );
 }

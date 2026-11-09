@@ -31,6 +31,7 @@ describe("search preference sanitization", () => {
       city: "Caloocan",
       committedSearch: "  studio  ",
       filters: {
+        locations: ["Malabon", "Atlantis"],
         budget: [5000, 20000],
         unitTypes: ["Studio"],
         sortBy: "price_asc",
@@ -49,6 +50,7 @@ describe("search preference sanitization", () => {
     expect(saved?.city).toBe("Caloocan");
     expect(saved?.committedSearch).toBe("studio");
     expect(saved?.filters?.budget).toEqual([5000, 20000]);
+    expect(saved?.filters?.locations).toEqual(["Malabon"]);
     expect(saved?.isGridView).toBe(false);
   });
 
@@ -79,6 +81,7 @@ describe("search preference sanitization", () => {
     expect(saved?.filters?.bedrooms).toBe("Any");
     expect(saved?.filters?.amenities).toEqual([]);
     expect(saved?.filters?.verifiedOnly).toBe(false);
+    expect(saved?.filters?.locations).toEqual(["Caloocan", "Malabon", "Navotas", "Valenzuela"]);
     expect(saved?.isGridView).toBe(true);
   });
 

@@ -18,6 +18,7 @@ interface LegalSectionProps {
   title: string;
   emphasis: string;
   callout?: LegalCallout;
+  headingLevel?: 2 | 3;
   children: ReactNode;
 }
 
@@ -27,10 +28,12 @@ export default function LegalSection({
   title,
   emphasis,
   callout,
+  headingLevel = 2,
   children,
 }: LegalSectionProps) {
   const headingId = `${id}-heading`;
   const isWarning = callout?.kind === "warning";
+  const Heading = headingLevel === 3 ? "h3" : "h2";
 
   return (
     <section
@@ -53,13 +56,13 @@ export default function LegalSection({
             </Chip.Label>
           </Chip>
 
-          <h2
+          <Heading
             id={headingId}
             className="font-nunito text-xl font-bold leading-snug text-foreground sm:text-2xl"
           >
             {title ? `${title} ` : ""}
             <span className="text-brand">{emphasis}</span>
-          </h2>
+          </Heading>
         </Card.Header>
 
         <Card.Content className="gap-3 text-[15px] leading-6 text-foreground/80">

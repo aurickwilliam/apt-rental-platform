@@ -78,6 +78,7 @@ export const apply: Record<keyof typeof enApply, string> = {
   "apply.action.addToPassport": "Idagdag sa APT Passport",
   "apply.action.openPassport": "Buksan ang APT Passport",
   "apply.action.viewApplications": "Tingnan ang applications ko",
+  "apply.action.viewVerification": "Tingnan ang status ng verification",
 
   "apply.tenant.personalTitle": "Personal na Impormasyon",
   "apply.tenant.personalHintBefore":
@@ -209,4 +210,6 @@ export const apply: Record<keyof typeof enApply, string> = {
   "apply.error.hasPetsRequired": "Sabihin kung may alaga kang hayop.",
   "apply.error.smokerRequired": "Sabihin kung naninigarilyo ka.",
   "apply.error.parkingRequired": "Sabihin kung kailangan mo ng parking.",
+  "apply.error.vehicleKindsRequired": "Pumili ng uri ng mga sasakyan mo.",
+  "apply.error.disabilityRequired": "Sabihin kung may kapansanan ang sinuman sa sambahayan mo.",
 };

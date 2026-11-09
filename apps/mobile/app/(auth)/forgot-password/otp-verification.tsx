@@ -4,6 +4,7 @@ import { Redirect, useRouter } from "expo-router";
 
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import ErrorDialog from "@/components/display/ErrorDialog";
+import AuthLockoutDialog from "@/components/auth/AuthLockoutDialog";
 import CodeInput from "@/components/inputs/CodeInput";
 
 import {
@@ -16,11 +17,14 @@ import {
 
 import { IconBrandGoogle, IconChevronLeft } from "@tabler/icons-react-native";
 
+import { useAuthLockout } from "@/hooks/auth/useAuthLockout";
+import { useCaptcha } from "@/hooks/auth/useCaptcha";
 import { useColors } from "@/hooks/useTheme";
 import { useCountdown } from "@/hooks/auth";
 import { useTranslation } from "@/hooks/i18n";
 import { usePasswordRecoveryStore } from "@/stores/usePasswordRecoveryStore";
 import {
+  RecoveryRateLimitedError,
   requestPasswordRecovery,
   verifyPasswordRecoveryCode,
 } from "@/service/auth/passwordRecoveryService";
@@ -29,12 +33,15 @@ import {
   passwordErrorMessage,
   RECOVERY_CODE_LENGTH,
   RECOVERY_RESEND_COOLDOWN_SECONDS,
+  CAPTCHA_PENDING_MESSAGE,
+  formatLockoutClock,
 } from "@repo/utils";
 
 // Errors shown under the code input; anything else opens the error dialog.
 const INLINE_CODE_ERRORS = new Set(["invalid_or_expired_code", "rate_limited"]);
 
 export default function RecoveryCodeVerification() {
+  const { widget: captchaWidget, take: takeCaptcha } = useCaptcha();
   const router = useRouter();
   const { colors } = useColors();
   const { language, t } = useTranslation();
@@ -51,6 +58,11 @@ export default function RecoveryCodeVerification() {
   const [googleOnly, setGoogleOnly] = useState(false);
 
   const codeRef = useRef<InputOTPRef>(null);
+
+  // Attempt limit: the server counts wrong codes (shared with the website) and
+  // reports a lock, which the dialog and the disabled button show. A reminder on
+  // the device keeps it visible after the app is closed.
+  const lockout = useAuthLockout("recovery_otp", email);
 
   // A code was just sent, so resend starts on the server's cooldown.
   const { countdown, reset: resetCountdown } = useCountdown({
@@ -78,7 +90,7 @@ export default function RecoveryCodeVerification() {
   };
 
   const handleVerify = async (value: string = code) => {
-    if (verifying || value.length < RECOVERY_CODE_LENGTH) return;
+    if (verifying || lockout.isLocked || value.length < RECOVERY_CODE_LENGTH) return;
     // Close the keyboard before this screen may navigate away, so no focused
     // field is unmounted while the keyboard is still attached to it.
     Keyboard.dismiss();
@@ -88,6 +100,7 @@ export default function RecoveryCodeVerification() {
     setResendNotice(null);
     try {
       const result = await verifyPasswordRecoveryCode(email, value);
+      void lockout.clear();
       if (result === "google_only") {
         setGoogleOnly(true);
         return;
@@ -95,6 +108,10 @@ export default function RecoveryCodeVerification() {
       router.replace("/forgot-password/reset-password");
     } catch (err) {
       clearCode();
+      if (err instanceof RecoveryRateLimitedError) {
+        lockout.lockFor(err.retryAfterSeconds);
+        return;
+      }
       showError(err);
     } finally {
       setVerifying(false);
@@ -104,11 +121,17 @@ export default function RecoveryCodeVerification() {
   const handleResend = async () => {
     if (resending || countdown > 0) return;
 
+    const captcha = takeCaptcha();
+    if (captcha.pending) {
+      setCodeError(CAPTCHA_PENDING_MESSAGE);
+      return;
+    }
+
     setResending(true);
     setCodeError(null);
     setResendNotice(null);
     try {
-      await requestPasswordRecovery(email);
+      await requestPasswordRecovery(email, captcha.token);
       clearCode();
       setResendNotice(t("auth.recovery.newCodeSent"));
     } catch (err) {
@@ -189,7 +212,7 @@ export default function RecoveryCodeVerification() {
           onComplete={handleVerify}
           length={RECOVERY_CODE_LENGTH}
           isInvalid={!!codeError}
-          isDisabled={verifying}
+          isDisabled={verifying || lockout.isLocked}
         />
 
         {!!codeError && (
@@ -203,6 +226,8 @@ export default function RecoveryCodeVerification() {
           </Text>
         )}
       </View>
+
+      {captchaWidget}
 
       <View className="flex-row items-center">
         <Text className="text-muted text-base">
@@ -231,11 +256,15 @@ export default function RecoveryCodeVerification() {
 
       <Button
         onPress={() => handleVerify()}
-        isDisabled={verifying || code.length < RECOVERY_CODE_LENGTH}
+        isDisabled={verifying || lockout.isLocked || code.length < RECOVERY_CODE_LENGTH}
         className="mt-8"
       >
         <Button.Label className="font-nunitoSemiBold">
-          {verifying ? t("auth.otp.verifying") : t("auth.otp.verifyCode")}
+          {lockout.isLocked
+            ? `Try again in ${formatLockoutClock(lockout.secondsLeft)}`
+            : verifying
+              ? t("auth.otp.verifying")
+              : t("auth.otp.verifyCode")}
         </Button.Label>
         {verifying && <Spinner size="sm" color={colors.white} className="ml-2" />}
       </Button>
@@ -244,6 +273,12 @@ export default function RecoveryCodeVerification() {
         isOpen={!!error}
         onClose={() => setError(null)}
         message={error}
+      />
+
+      <AuthLockoutDialog
+        isOpen={lockout.dialogOpen}
+        onOpenChange={lockout.setDialogOpen}
+        secondsLeft={lockout.secondsLeft}
       />
     </ScreenWrapper>
   );

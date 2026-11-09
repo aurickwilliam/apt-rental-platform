@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import {
   APARTMENT_TYPES,
+  CAMANAVA_CITIES,
   CAMANAVA_FILTER_OPTIONS,
   FLOOR_LEVELS,
   FURNISHED_TYPES,
@@ -82,6 +83,7 @@ function sanitizeFilters(value: unknown): FilterState | null {
     : [];
 
   return {
+    locations: sanitizeStringArray(value.locations, CAMANAVA_CITIES),
     budget,
     unitTypes: sanitizeStringArray(value.unitTypes, APARTMENT_TYPES),
     sortBy,

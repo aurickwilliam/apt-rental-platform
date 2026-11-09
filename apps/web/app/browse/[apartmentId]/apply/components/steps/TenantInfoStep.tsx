@@ -1,15 +1,24 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Button, Card, FieldError, Input, Label, ListBox, Select, Separator, TextField } from "@heroui/react";
+import { FieldError, Input, Label, ListBox, Select, Separator, TextField } from "@heroui/react";
 
 import { handlePesoChange } from "@repo/utils";
-import { EMPLOYMENT_TYPES, REQUIRES_OCCUPATION_TYPES, requiresProofOfIncome, type EmploymentType } from "@repo/constants";
+import {
+  EMPLOYMENT_TYPES,
+  PH_MOBILE_MAX_INPUT_LENGTH,
+  REQUIRES_OCCUPATION_TYPES,
+  formatPHMobileInput,
+  requiresProofOfIncome,
+  type EmploymentType,
+} from "@repo/constants";
+
 import { EMPLOYMENT_TYPE_KEYS, enumLabel, formatDate, type TranslationKey } from "@repo/i18n";
-
 import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+import FormStepActions from "@/app/components/layout/FormStepActions";
 
-import { employmentRules } from "../../lib/validate-application";
+import { employmentRules, validatePHMobile } from "../../lib/validate-application";
 import type { ApplicationStepProps } from "../../types";
 
 const INPUT_CLASS = "bg-card border-border text-card-foreground placeholder:text-muted-foreground";
@@ -34,6 +43,11 @@ const PERSONAL_FIELDS: {
   },
 ];
 
+function formatBirthDate(value: string, language: "en" | "fil"): string {
+  if (!value) return "";
+  return formatDate(`${value}T00:00:00`, "long", language);
+}
+
 interface TenantInfoStepProps extends ApplicationStepProps {
   onBack: () => void;
   onNext: () => void;
@@ -42,12 +56,16 @@ interface TenantInfoStepProps extends ApplicationStepProps {
 export default function TenantInfoStep({ form, errors, onChange, clearError, onBack, onNext }: TenantInfoStepProps) {
   const { language, t } = useTranslation();
   const { isNoIncomeType, requiresOccupation, requiresCompany } = employmentRules(form.employmentType);
-
-  const birthDate = form.dateOfBirth ? formatDate(`${form.dateOfBirth}T00:00:00`, "long", language) : "";
+  // Like Complete Profile, the number is checked once the field is left and
+  // the message then follows the typing. Blank passes: the field is optional.
+  const [contactTouched, setContactTouched] = useState(false);
+  const contactError =
+    errors.prevLandlordContact ??
+    (contactTouched ? validatePHMobile(form.prevLandlordContact).errorMessage : undefined);
 
   return (
-    <Card className="border border-border bg-card p-5 text-card-foreground shadow-none md:p-8">
-      <h2 className="text-lg font-semibold text-card-foreground">{t("apply.tenant.personalTitle")}</h2>
+    <div>
+      <h2 className="font-nunito text-lg font-semibold text-foreground">{t("apply.tenant.personalTitle")}</h2>
       <p className="mb-5 text-xs text-muted-foreground">
         {t("apply.tenant.personalHintBefore")}{" "}
         <Link href="/tenant/profile" className="font-medium text-primary hover:underline">
@@ -62,7 +80,7 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
             isReadOnly
             isRequired
             isInvalid={!!errors[key]}
-            value={key === "dateOfBirth" ? birthDate : form[key]}
+            value={key === "dateOfBirth" ? formatBirthDate(form.dateOfBirth, language) : form[key]}
             className={wide ? "md:col-span-2" : undefined}
           >
             <Label>{t(labelKey)}</Label>
@@ -73,7 +91,7 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
       </div>
 
       <Separator className="my-6" />
-      <h3 className="mb-4 text-base font-semibold text-card-foreground">{t("apply.tenant.employmentTitle")}</h3>
+      <h2 className="mb-4 font-nunito text-lg font-semibold text-foreground">{t("apply.tenant.employmentTitle")}</h2>
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <Select
           isRequired
@@ -101,8 +119,8 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
           <Select.Popover>
             <ListBox>
               {EMPLOYMENT_TYPES.map((type) => (
-                <ListBox.Item key={type} id={type} textValue={type}>
-                  {EMPLOYMENT_TYPE_KEYS[type] ? enumLabel(language, EMPLOYMENT_TYPE_KEYS, type) : type}
+                <ListBox.Item key={type} id={type} textValue={enumLabel(language, EMPLOYMENT_TYPE_KEYS, type)}>
+                  {enumLabel(language, EMPLOYMENT_TYPE_KEYS, type)}
                 </ListBox.Item>
               ))}
             </ListBox>
@@ -135,14 +153,7 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
           }}
         >
           <Label>{t("apply.tenant.company")}</Label>
-          <Input
-            placeholder={
-              isNoIncomeType
-                ? t("apply.tenant.companyNotApplicable")
-                : t("apply.tenant.companyPlaceholder")
-            }
-            className={INPUT_CLASS}
-          />
+          <Input placeholder={isNoIncomeType ? t("apply.tenant.companyNotApplicable") : t("apply.tenant.companyPlaceholder")} className={INPUT_CLASS} />
           <FieldError>{errors.companyName}</FieldError>
         </TextField>
 
@@ -159,11 +170,7 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
         >
           <Label>{t("apply.tenant.income")}</Label>
           <Input
-            placeholder={
-              isNoIncomeType
-                ? t("apply.tenant.incomePlaceholderNoIncome")
-                : t("apply.tenant.incomePlaceholder")
-            }
+            placeholder={isNoIncomeType ? t("apply.tenant.incomePlaceholderNoIncome") : t("apply.tenant.incomePlaceholder")}
             inputMode="decimal"
             className={INPUT_CLASS}
           />
@@ -172,7 +179,7 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
       </div>
 
       <Separator className="my-6" />
-      <h3 className="text-base font-semibold text-card-foreground">{t("apply.tenant.referencesTitle")}</h3>
+      <h2 className="font-nunito text-lg font-semibold text-foreground">{t("apply.tenant.referencesTitle")}</h2>
       <p className="mb-4 text-xs text-muted-foreground">{t("apply.tenant.referencesHint")}</p>
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <TextField
@@ -188,27 +195,27 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
           <FieldError>{errors.prevLandlordName}</FieldError>
         </TextField>
         <TextField
-          isInvalid={!!errors.prevLandlordContact}
+          isInvalid={!!contactError}
           value={form.prevLandlordContact}
           onChange={(value: string) => {
-            onChange({ prevLandlordContact: value });
+            // Same live formatting as Complete Profile: "0917 123 4567".
+            onChange({ prevLandlordContact: formatPHMobileInput(value) });
             clearError("prevLandlordContact");
           }}
+          onBlur={() => setContactTouched(true)}
         >
           <Label>{t("apply.tenant.prevLandlordContact")}</Label>
-          <Input placeholder="09XX XXX XXXX" className={INPUT_CLASS} />
-          <FieldError>{errors.prevLandlordContact}</FieldError>
+          <Input
+            inputMode="tel"
+            placeholder="09XX XXX XXXX"
+            maxLength={PH_MOBILE_MAX_INPUT_LENGTH}
+            className={INPUT_CLASS}
+          />
+          <FieldError>{contactError}</FieldError>
         </TextField>
       </div>
 
-      <div className="mt-8 flex gap-3">
-        <Button variant="outline" className="flex-1" onPress={onBack}>
-          {t("apply.back")}
-        </Button>
-        <Button className="flex-1" onPress={onNext}>
-          {t("apply.next")}
-        </Button>
-      </div>
-    </Card>
+      <FormStepActions isFirstStep onBack={onBack} onContinue={onNext} />
+    </div>
   );
 }

@@ -116,7 +116,7 @@ test("public card and rental hero preserve source selection, geometry, null fall
   for (const file of ["app/components/passport/ValidIdCard.tsx", "app/components/passport/PassportDocumentThumbnail.tsx"]) {
     assert.match(source(file), /unoptimized/); assert.doesNotMatch(source(file), /public-apartment-image/);
   }
-  assert.match(source("app/browse/lib/fetch-browse-results.ts"), /url_thumb/);
+  assert.match(source("app/browse/lib/browse-apartment.ts"), /url_thumb/);
   assert.match(source("service/favoritesService.ts"), /url_thumb/);
 });
 
@@ -141,6 +141,7 @@ test("Settings and Notifications download no unopened UI and retain their mounte
       react: runtime.react, "react/jsx-runtime": jsxRuntime, "next/dynamic": { default: lazy.dynamic },
       "next/navigation": { useSearchParams: () => query },
       "@/app/components/i18n/LocaleProvider": locale,
+      "@/lib/tutorial-controller": { requestTutorialReplay() {} },
     };
     for (const name of kind === "settings" ? ["SettingsModal", "ChangePasswordModal", "ChangeEmailModal"] : ["NotificationDrawer"]) {
       Object.defineProperty(modules, `./${name}`, { enumerable: true, get: () => { imports++; return { default: name }; } });

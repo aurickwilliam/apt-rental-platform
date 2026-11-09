@@ -8,13 +8,16 @@ import ComingSoonChip from 'components/display/ComingSoonChip'
 
 import { ListGroup, Separator, Chip } from 'heroui-native'
 
-import { IconKey, IconMail, IconGlobe, IconBell, IconMoonStars, IconAlertCircle, IconHelpCircle, IconFileText, IconShieldCheck, IconUsersGroup, IconChevronRight, IconAdjustments } from '@tabler/icons-react-native';
+import { IconKey, IconMail, IconBell, IconMoonStars, IconAlertCircle, IconHelpCircle, IconFileText, IconShieldCheck, IconUsersGroup, IconGlobe, IconChevronRight, IconAdjustments, IconCreditCard, IconRoute } from '@tabler/icons-react-native';
 import type { Icon } from '@tabler/icons-react-native';
 
 import { useColors, useThemePreference } from '@/hooks/useTheme'
 import { useNotificationPreferences } from '@/hooks/notifications'
 import { useUserPreferences } from '@/hooks/preferences/useUserPreferences'
 import { useEmailChangeEligibility, usePasswordSignInStatus } from '@/hooks/auth'
+import { usePortalStore } from '@/stores/usePortalStore'
+import { useTutorialStore } from '@/stores/useTutorialStore'
+import { portalHome } from '@/service/auth/portalPreference'
 
 import { ALLOW_FILIPINO } from '@repo/i18n'
 import { useTranslation } from '@/hooks/i18n/useTranslation'
@@ -54,6 +57,8 @@ export default function Index() {
   const { preferences: rentalPrefs, hasPrefs } = useUserPreferences();
   const { data: passwordSignInStatus } = usePasswordSignInStatus();
   const { data: emailChangeEligibility } = useEmailChangeEligibility();
+  const portal = usePortalStore((state) => state.portal);
+  const isLandlordPortal = portal === 'landlord';
 
   // Both masters on → "On", both off → "Off", mixed → "Partial".
   const notificationSummary =
@@ -151,6 +156,12 @@ export default function Index() {
             <ComingSoonChip />
           ),
         },
+        ...(isLandlordPortal ? [{
+          icon: IconCreditCard,
+          title: 'Payment Methods',
+          onPress: () => router.push('/landlord/payment-methods'),
+          suffix: <IconChevronRight size={16} color={colors.gray500} />,
+        }] : []),
         {
           icon: IconBell,
           title: t('settings.notifications'),
@@ -179,6 +190,23 @@ export default function Index() {
         },
       ],
     },
+    ...(portal
+      ? [{
+          title: 'Getting Started',
+          items: [
+            {
+              icon: IconRoute,
+              title: 'Tutorial',
+              onPress: () => {
+                // Back to the portal's tabs first; the tour starts over them.
+                router.navigate(portalHome(portal));
+                useTutorialStore.getState().start(portal, 'replay');
+              },
+              suffix: <IconChevronRight size={16} color={colors.gray500} />,
+            },
+          ],
+        }]
+      : []),
     {
       title: t('settings.help'),
       items: [

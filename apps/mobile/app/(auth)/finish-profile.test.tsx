@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 
 import FinishProfile from "./finish-profile";
+import { readAndCloseRegistrationPolicy } from "@/tests/support/registrationPolicy";
 
 const mockParams: Record<string, string> = {};
 const mockFinishProfile = jest.fn();
@@ -84,6 +85,7 @@ describe("FinishProfile screen", () => {
     render(<FinishProfile />);
 
     fireEvent.changeText(screen.getByPlaceholderText("Enter your street address"), "1 Main St");
+    readAndCloseRegistrationPolicy("Privacy Policy");
 
     expect(screen.getByDisplayValue("1 Main St")).toBeTruthy();
   });
@@ -92,6 +94,10 @@ describe("FinishProfile screen", () => {
     setParams({ email: "a@example.test" });
     render(<FinishProfile />);
 
+    readAndCloseRegistrationPolicy("Privacy Policy");
+    readAndCloseRegistrationPolicy("Terms and Conditions");
+    fireEvent.press(screen.getByLabelText("I have read and agree to the Privacy Policy"));
+    fireEvent.press(screen.getByLabelText("I have read and agree to the Terms and Conditions"));
     fireEvent.press(screen.getByText("Submit"));
 
     await waitFor(() => expect(screen.getAllByText("This field is required").length).toBeGreaterThan(0));

@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { Pagination, Spinner } from "@heroui/react";
 import ActivityTable from "./components/ActivityTable";
 import ActivityCardList from "./components/ActivityCardList";
-import ActivityEmptyState from "./components/ActivityEmptyState";
 import type { AdminActivityEvent } from "./lib/activity-display";
+import EmptyState from "@/app/components/display/EmptyState";
+import { IconHistory } from "@tabler/icons-react";
 
 interface ActivityClientProps {
   events: AdminActivityEvent[];
@@ -63,7 +64,11 @@ export default function ActivityClient({
                 <ActivityCardList events={events} />
               </>
             ) : (
-              <ActivityEmptyState />
+              <EmptyState
+      icon={IconHistory}
+      title="No activity yet"
+      description="Account access, moderation, and review history will appear here."
+    />
             )}
           </div>
 

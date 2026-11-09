@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { View, Text } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import Animated from 'react-native-reanimated';
@@ -19,12 +20,19 @@ import {
   useToast,
 } from "heroui-native";
 
-import { calcMoveInCost, formatDate, formatPesoDisplay } from '@repo/utils'
+import {
+  buildDeclaredApplicationPreferenceSnapshot,
+  calcMoveInCost,
+  describeApplicationPreferences,
+  formatDate,
+  formatPesoDisplay,
+} from '@repo/utils'
 
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 
 import { useApplicationReadiness, useSubmitApplication } from '@/hooks/applications'
 import { useApartmentDetails } from '@/hooks/apartments'
+import { toApplicationPreferenceSource } from '@/service/applications/applicationFormPreferences'
 import { APPLICATION_SLOT_LABELS } from '@repo/passport'
 
 export default function ReviewInformation() {
@@ -46,6 +54,15 @@ export default function ReviewInformation() {
   );
 
   const { submit, isSubmitting } = useSubmitApplication();
+
+  // The pet, parking, smoking and disability details the landlord will see.
+  const preferenceLines = useMemo(
+    () =>
+      describeApplicationPreferences(
+        buildDeclaredApplicationPreferenceSnapshot(toApplicationPreferenceSource(rentalPreferences)),
+      ),
+    [rentalPreferences],
+  );
 
   const totalMoveInCost = calcMoveInCost(
     apartmentContext.monthlyRent,
@@ -188,11 +205,13 @@ export default function ReviewInformation() {
             your application. Make sure all details are accurate.
           </Text>
 
-          <Animated.View
-            layout={AccordionLayoutTransition}
-            className="bg-surface rounded-3xl mt-5 overflow-hidden"
-          >
-            <Accordion selectionMode="single" defaultValue="tenant">
+          <Animated.View layout={AccordionLayoutTransition} className="mt-5">
+            <Accordion
+              selectionMode="single"
+              defaultValue="tenant"
+              hideSeparator
+              className="gap-3"
+            >
               <ReviewAccordionItem value="tenant" title="Tenant Information">
                 <DetailField
                   label="Full Name"
@@ -266,22 +285,17 @@ export default function ReviewInformation() {
                   label="Number of Occupants"
                   value={`${rentalPreferences.noOccupants} Person`}
                 />
-                <DetailField
-                  label="Are there Pets?"
-                  value={rentalPreferences.hasPets ? "Yes" : "No"}
-                />
-                <DetailField
-                  label="Is Smoker?"
-                  value={rentalPreferences.isSmoker ? "Yes" : "No"}
-                />
-                <DetailField
-                  label="Need Parking?"
-                  value={rentalPreferences.needParking ? "Yes" : "No"}
-                />
+                {preferenceLines.map((line) => (
+                  <DetailField key={line.label} label={line.label} value={line.value} />
+                ))}
                 <DetailField
                   label="Additional Notes"
                   value={rentalPreferences.additionalNotes || "—"}
                 />
+
+                <Text className="text-xs font-inter text-muted mt-2">
+                  The landlord sees these details with your application.
+                </Text>
               </ReviewAccordionItem>
 
               <ReviewAccordionItem value="documents" title="APT Passport Documents">

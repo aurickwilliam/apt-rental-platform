@@ -10,22 +10,35 @@ import {
   verifyPasswordRecoveryCode,
 } from "./passwordRecoveryService";
 import { PasswordError } from "@repo/utils";
+import { RecoveryRateLimitedError } from "./passwordRecoveryService";
 
+const mockRpc = jest.fn();
 const mockResetPasswordForEmail = jest.fn();
 const mockVerifyOtp = jest.fn();
 const mockUpdateUser = jest.fn();
 const mockSignOut = jest.fn();
 const mockGetSession = jest.fn();
+const mockSetSession = jest.fn();
+// "" runs the direct-Supabase path (local development); a URL runs the server route.
+let mockBaseUrl = "";
+const mockFetch = jest.fn();
 
 jest.mock("@repo/supabase", () => ({
   supabase: {
+    rpc: (...args: unknown[]) => mockRpc(...args),
     auth: {
       resetPasswordForEmail: (...args: unknown[]) => mockResetPasswordForEmail(...args),
       verifyOtp: (...args: unknown[]) => mockVerifyOtp(...args),
       updateUser: (...args: unknown[]) => mockUpdateUser(...args),
       signOut: (...args: unknown[]) => mockSignOut(...args),
       getSession: (...args: unknown[]) => mockGetSession(...args),
+      setSession: (...args: unknown[]) => mockSetSession(...args),
     },
+  },
+}));
+jest.mock("@/constants/serverAuth", () => ({
+  get SERVER_AUTH_BASE_URL() {
+    return mockBaseUrl;
   },
 }));
 
@@ -57,6 +70,8 @@ describe("passwordRecoveryService", () => {
     await AsyncStorage.clear();
     consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
     mockSignOut.mockResolvedValue({ error: null });
+    mockBaseUrl = "";
+    mockRpc.mockResolvedValue({ data: "eligible", error: null });
   });
 
   afterEach(() => consoleError.mockRestore());
@@ -73,12 +88,33 @@ describe("passwordRecoveryService", () => {
       expect(mockResetPasswordForEmail).not.toHaveBeenCalled();
     });
 
-    it("resolves the same way for an unknown account", async () => {
-      mockResetPasswordForEmail.mockResolvedValueOnce({
-        data: null,
-        error: authError({ code: "user_not_found", status: 404 }),
+    it("checks the account can reset a password before sending a code", async () => {
+      mockResetPasswordForEmail.mockResolvedValueOnce({ data: {}, error: null });
+      await requestPasswordRecovery(EMAIL);
+      expect(mockRpc).toHaveBeenCalledWith("get_password_recovery_eligibility", {
+        p_email: EMAIL,
       });
-      await expect(requestPasswordRecovery(EMAIL)).resolves.toBeUndefined();
+    });
+
+    it("refuses an unknown email without sending a code", async () => {
+      mockRpc.mockResolvedValueOnce({ data: "unknown", error: null });
+      await expectReason(requestPasswordRecovery(EMAIL), "email_not_registered");
+      expect(mockResetPasswordForEmail).not.toHaveBeenCalled();
+    });
+
+    it("refuses a Google-only email without sending a code", async () => {
+      mockRpc.mockResolvedValueOnce({ data: "google_only", error: null });
+      await expectReason(requestPasswordRecovery(EMAIL), "google_account");
+      expect(mockResetPasswordForEmail).not.toHaveBeenCalled();
+    });
+
+    it("sends nothing when the lookup fails", async () => {
+      mockRpc.mockResolvedValueOnce({
+        data: null,
+        error: authError({ name: "AuthRetryableFetchError", status: 0 }),
+      });
+      await expectReason(requestPasswordRecovery(EMAIL), "network");
+      expect(mockResetPasswordForEmail).not.toHaveBeenCalled();
     });
 
     it("surfaces the email rate limit (also used for resend)", async () => {
@@ -161,6 +197,61 @@ describe("passwordRecoveryService", () => {
     it("treats a missing session as an unexpected failure", async () => {
       mockVerifyOtp.mockResolvedValueOnce({ data: { user: emailUser, session: null }, error: null });
       await expectReason(verifyPasswordRecoveryCode(EMAIL, CODE), "unknown");
+    });
+  });
+
+  describe("verifyPasswordRecoveryCode through the web server", () => {
+    const TOKENS = { access_token: "access-tok", refresh_token: "refresh-tok" };
+    const reply = (status: number, body: unknown) => ({ status, json: async () => body }) as Response;
+
+    beforeEach(() => {
+      mockBaseUrl = "https://apt.test";
+      global.fetch = mockFetch as unknown as typeof fetch;
+      mockSetSession.mockResolvedValue({ data: { user: emailUser }, error: null });
+    });
+
+    it("sends the code to the server and keeps the session it returns", async () => {
+      mockFetch.mockResolvedValueOnce(reply(200, { ok: true, status: "ready", session: TOKENS }));
+
+      await expect(verifyPasswordRecoveryCode(EMAIL, CODE)).resolves.toBe("ready");
+
+      expect(mockFetch.mock.calls[0][0]).toBe("https://apt.test/api/auth/mobile/verify-code");
+      expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toEqual({ email: EMAIL, code: CODE, flow: "recovery" });
+      expect(mockSetSession).toHaveBeenCalledWith(TOKENS);
+      expect(mockVerifyOtp).not.toHaveBeenCalled();
+      expect(await isPasswordRecoveryInProgress()).toBe(true);
+    });
+
+    it("reports a lock with its seconds and ends the in-progress marker", async () => {
+      mockFetch.mockResolvedValueOnce(
+        reply(429, { ok: false, error: { code: "auth_locked", message: "Too many attempts." }, retryAfterSeconds: 700 }),
+      );
+
+      const attempt = verifyPasswordRecoveryCode(EMAIL, CODE);
+
+      await expect(attempt).rejects.toBeInstanceOf(RecoveryRateLimitedError);
+      await expect(attempt).rejects.toMatchObject({ reason: "rate_limited", retryAfterSeconds: 700 });
+      expect(await isPasswordRecoveryInProgress()).toBe(false);
+      expect(mockSetSession).not.toHaveBeenCalled();
+    });
+
+    it("maps a wrong code and a network failure", async () => {
+      mockFetch.mockResolvedValueOnce(
+        reply(401, { ok: false, error: { code: "otp_expired", message: "Token has expired or is invalid" } }),
+      );
+      await expectReason(verifyPasswordRecoveryCode(EMAIL, CODE), "invalid_or_expired_code");
+
+      mockFetch.mockRejectedValueOnce(new Error("offline"));
+      await expectReason(verifyPasswordRecoveryCode(EMAIL, CODE), "network");
+    });
+
+    it("never receives tokens for a Google-only account", async () => {
+      mockFetch.mockResolvedValueOnce(reply(200, { ok: true, status: "google_only" }));
+
+      await expect(verifyPasswordRecoveryCode(EMAIL, CODE)).resolves.toBe("google_only");
+
+      expect(mockSetSession).not.toHaveBeenCalled();
+      expect(await isPasswordRecoveryInProgress()).toBe(false);
     });
   });
 

@@ -16,6 +16,8 @@ import {
 
 import { useLandlordStats } from 'hooks/landlord'
 import { useLandlordReviewsPage, type LandlordReviewSort } from 'hooks/ratings'
+import EmptyState from "@/components/display/EmptyState";
+import { IconStar } from "@tabler/icons-react-native";
 
 const SORT_OPTIONS: LandlordReviewSort[] = [
   'Most Recent',
@@ -56,8 +58,12 @@ export default function LandlordReviewsPage() {
   }
 
   return (
-    <ScreenWrapper header={<StandardHeader title="Reviews" />}>
+    <ScreenWrapper
+      header={<StandardHeader title="Reviews" />}
+      dismissKeyboardOnTouch={false}
+    >
       <FlatList
+        style={{ flex: 1 }}
         data={reviews}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: 20, gap: 12, paddingBottom: 32 }}
@@ -103,15 +109,11 @@ export default function LandlordReviewsPage() {
           </>
         }
         ListEmptyComponent={
-          <View className="items-center justify-center py-16 gap-1">
-            <Text className="text-foreground text-base font-nunitoSemiBold">
-              No reviews yet
-            </Text>
-            <Text className="text-muted text-sm font-inter text-center">
-              Reviews from tenants who rented this landlord&apos;s apartments will
-              appear here.
-            </Text>
-          </View>
+          <EmptyState
+            icon={IconStar}
+            title="No reviews yet"
+            description="Reviews from tenants who rented this landlord's apartments will appear here."
+          />
         }
         ListFooterComponent={
           loadingMore ? (

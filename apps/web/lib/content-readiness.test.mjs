@@ -14,7 +14,7 @@ test("discovery needs one RPC and no count; count-dependent callers retain their
     rpc: async (name, args) => {
       rpcs++;
       assert.equal(name, "get_search_sections");
-      assert.deepEqual(plain(args), { p_city: "CAMANAVA", p_limit: 8 });
+      assert.deepEqual(plain(args), { p_city: "CAMANAVA", p_limit: 15 });
       return { data: { sections: [raw, { id: "empty", apartments: [] }] }, error: null };
     },
     from(table) {
@@ -26,7 +26,11 @@ test("discovery needs one RPC and no count; count-dependent callers retain their
       return query;
     },
   };
-  const h = compile("app/browse/lib/fetch-browse-sections.ts", { "@repo/supabase/server": {} });
+  const h = compile("app/browse/lib/fetch-browse-sections.ts", {
+    "@repo/supabase/server": {},
+    "@repo/utils": { BROWSE_ROW_LIMIT: 15 },
+    "./browse-apartment": compile("app/browse/lib/browse-apartment.ts", {}),
+  });
   const sections = await h.fetchDiscoverySections(client, "/tenant/browse");
   assert.equal(rpcs, 1); assert.equal(counts, 0);
   assert.equal(sections.length, 1);
@@ -91,6 +95,7 @@ test("rental maintenance summary reuses scoped identity and skips signing, while
   const resource = compile("hooks/use-async-resource.ts", { react: runtime.react });
   const { useMaintenanceRequestHistory } = compile("hooks/use-maintenance-request-history.ts", {
     react: runtime.react,
+    "@/service/tenantMaintenanceService": {},
     "@/hooks/use-async-resource": resource,
     "@/service/favoritesService": { getTenantContext: async () => { contexts++; return { tenantId: "tenant-a" }; } },
     "@/service/maintenanceService": {
@@ -219,6 +224,7 @@ test("admin shell returns after authorization without awaiting any region, and d
     "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
     react: { Suspense: "Suspense" },
     "next/link": { default: "Link" },
+    "@/app/components/display/EmptyState": { default: "EmptyState" },
     "@/components/ui/skeleton": { Skeleton: "Skeleton" },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "../_lib/require-admin": { requireAdmin: async () => { if (!allowed) throw new Error("Denied"); return { first_name: "Admin" }; } },

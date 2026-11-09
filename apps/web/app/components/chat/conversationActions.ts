@@ -45,6 +45,19 @@ export async function setUserBlocked(supabase: SupabaseClient, otherUserId: stri
   if (error) throw error;
 }
 
+export interface BlockStatus {
+  blockedByMe: boolean;
+  blockedMe: boolean;
+}
+
+/** Block state between the caller and one other user, in both directions (mobile's `getBlockStatus`). */
+export async function getBlockStatus(supabase: SupabaseClient, otherUserId: string): Promise<BlockStatus> {
+  const { data, error } = await supabase.rpc("get_block_status", { p_other_user_id: otherUserId });
+  if (error) throw error;
+  const row = Array.isArray(data) ? data[0] : data;
+  return { blockedByMe: Boolean(row?.blocked_by_me), blockedMe: Boolean(row?.blocked_me) };
+}
+
 export async function reportUser(
   supabase: SupabaseClient,
   params: { target: ConversationTarget; reason: UserReportReason; details: string }

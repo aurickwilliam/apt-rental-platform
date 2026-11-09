@@ -4,11 +4,12 @@ import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Button, ScrollShadow } from "@heroui/react";
 import {
   IconArrowDown,
-  IconMessage,
-} from "@tabler/icons-react";
+  IconMessage, IconMessageCircle } from "@tabler/icons-react";
 
 import ErrorBanner from "@/app/components/display/ErrorBanner";
 import MessageInput from "@/app/components/chat/MessageInput";
+import ChatBlockedNotice from "@/app/components/chat/ChatBlockedNotice";
+import useBlockStatus from "@/app/components/chat/useBlockStatus";
 import type { ConversationContact } from "@/lib/conversation-contacts";
 import ConversationHeader from "@/app/components/chat/ConversationHeader";
 import ConversationThreadSkeleton from "@/app/components/chat/ConversationThreadSkeleton";
@@ -23,11 +24,13 @@ import { canCopyImageMessage, copyChatImage } from "@/app/components/chat/copyIm
 import MessageBubble from "@/app/components/chat/MessageBubble";
 import useConversation from "@/app/components/chat/useConversation";
 import useConversationRealtime from "@/app/components/chat/useConversationRealtime";
+import useConversationReadSync from "@/app/components/chat/useConversationReadSync";
 import useReplyNavigation from "@/app/components/chat/useReplyNavigation";
 import useScrollToLatestOnOpen from "@/app/components/chat/useScrollToLatestOnOpen";
 import type { ChatMessage } from "@/app/components/chat/types";
 import { formatMessageMenuDate, latestOutgoingMessageId } from "@/lib/chat-message-presentation";
 import { formatChatDayLabel, isSameChatDay } from "@repo/utils";
+import EmptyState from "@/app/components/display/EmptyState";
 
 interface ConversationViewProps {
   /** Which portal this thread is in: sets the apartment link and the contact-context lookup. */
@@ -40,6 +43,11 @@ interface ConversationViewProps {
   onBack?: () => void;
   /** Layout overrides, used for the mobile master-detail swap. */
   className?: string;
+  /**
+   * Renders the thread as a floating chat window: a slim header with a close
+   * button and the apartment under the name, and no separate apartment row.
+   */
+  onClose?: () => void;
 }
 
 /**
@@ -101,11 +109,18 @@ export default function ConversationView({
   apartmentId,
   onBack,
   className = "",
+  onClose,
 }: ConversationViewProps) {
   const [sendError, setSendError] = useState<{ key: string; message: string } | null>(null);
   const [unsendTargetId, setUnsendTargetId] = useState<string | null>(null);
   const { context, loading: contextLoading } = useConversationContext(activeContact?.id ?? null, activeContact?.apartmentId ?? null, portal, currentUserId);
   const apartment = conversationApartmentPresentation(activeContact?.apartmentId ?? null, context.apartment, portal);
+
+  const { blockedByMe, blockedMe, revalidate: revalidateBlockStatus } = useBlockStatus(
+    activeContact?.id ?? null
+  );
+
+  const isBlocked = blockedByMe || blockedMe;
 
   const {
     supabase,
@@ -133,8 +148,23 @@ export default function ConversationView({
     otherUserId: activeContact?.id ?? null,
     apartmentId,
     onConversationRead,
-    onSendError: (message) =>
-      setSendError({ key: activeContact?.conversationKey ?? "", message }),
+    onSendError: (message) => {
+      setSendError({ key: activeContact?.conversationKey ?? "", message });
+      // A refused send may mean a block started while this thread was open.
+      void revalidateBlockStatus();
+    },
+  });
+
+  // Viewing the thread (tab visible) reads its incoming messages and the same
+  // thread's message notifications; see useConversationReadSync.
+  const { syncNotificationsUpTo } = useConversationReadSync({
+    supabase,
+    portal,
+    currentUserId,
+    contactId: activeContact?.id ?? null,
+    apartmentId: apartmentId ?? null,
+    conversationKey: activeContact?.conversationKey ?? null,
+    onConversationRead,
   });
 
   // Realtime: incoming messages, read receipts for sent ones, the contact's
@@ -150,6 +180,7 @@ export default function ConversationView({
     setMessages,
     refreshMessages,
     onConversationRead,
+    onIncomingMessageRead: syncNotificationsUpTo,
   });
 
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -169,33 +200,6 @@ export default function ConversationView({
     pauseFollowing: () => { nearBottomRef.current = false; setIsNearBottom(false); },
   });
 
-
-  // Mark incoming messages as read when this conversation is opened
-  useEffect(() => {
-    if (!activeContact) return;
-
-    const markAsRead = async () => {
-      let query = supabase
-        .from("chat")
-        .update({ is_read: true, read_at: new Date().toISOString() })
-        .select("id")
-        .eq("sender_id", activeContact.id)
-        .eq("receiver_id", currentUserId)
-        .eq("is_read", false);
-
-      if (apartmentId) {
-        query = query.eq("apartment_id", apartmentId);
-      }
-
-      const { data, error } = await query;
-
-      if (!error && (data?.length ?? 0) > 0) {
-        onConversationRead?.(activeContact.conversationKey);
-      }
-    };
-
-    void markAsRead();
-  }, [activeContact, apartmentId, currentUserId, onConversationRead, supabase]);
 
   /**
    * Owns the "follow the bottom" flag. Sampled on scroll, and again
@@ -348,8 +352,12 @@ export default function ConversationView({
           empty right end of this row on the messages route — pinned and never
           draggable, so it cannot cover the thread; `data-fab-clearance` still
           keeps it off this row on routes that offer no dock. */}
-      <ConversationHeader contact={activeContact} onBack={onBack} />
-      <ConversationApartmentRow apartment={apartment} hasApartmentId={Boolean(activeContact.apartmentId)} loading={contextLoading} />
+      <ConversationHeader
+        contact={activeContact}
+        onBack={onBack}
+        popup={onClose ? { subtitle: apartment?.title ?? activeContact.apartment, subtitleHref: apartment?.href, onClose } : undefined}
+      />
+      {onClose ? null : <ConversationApartmentRow apartment={apartment} hasApartmentId={Boolean(activeContact.apartmentId)} loading={contextLoading} />}
 
       {/* Chat History */}
       {/* The jump control stays within the history pane, above the composer. */}
@@ -358,7 +366,7 @@ export default function ConversationView({
         ref={scrollRef}
         data-chat-scroll
         onScroll={handleThreadScroll}
-        className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-background/50 px-3 py-4"
+        className={`min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-background/50 px-3 py-4 ${isBlocked ? "pb-32" : ""}`}
         visibility="none"
       >
         {hasEarlierMessages && (
@@ -381,12 +389,12 @@ export default function ConversationView({
           <div data-message-timeline className="flex w-full min-w-0 flex-col">
             {!hasEarlierMessages ? <ConversationIntroduction contact={activeContact} verified={context.verified} apartment={apartment} /> : null}
             {messages.length === 0 ? (
-              <div className="flex-col items-center justify-center gap-2 py-4 text-center text-muted-foreground">
-                <p className="text-sm font-medium text-foreground">No messages yet</p>
-                <p className="text-xs text-default-500">
-                  Say hi to start the conversation.
-                </p>
-              </div>
+              <EmptyState
+                className="py-4"
+                icon={IconMessageCircle}
+                title="No messages yet"
+                description="Say hi to start the conversation."
+              />
             ) : (
               messages.map((msg, index) => (
                 <Fragment key={msg.id}>
@@ -433,37 +441,40 @@ export default function ConversationView({
           variant="ghost"
           onClick={jumpToLatest}
           aria-label="Jump to latest messages"
-          className="button--bare absolute bottom-4 left-1/2 z-20 flex size-10 -translate-x-1/2 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-md transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className={`button--bare absolute ${isBlocked ? "bottom-32" : "bottom-4"} left-1/2 z-20 flex size-10 -translate-x-1/2 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-md transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
         >
           <IconArrowDown size={20} aria-hidden="true" />
         </Button>
       )}
+      {isBlocked ? <ChatBlockedNotice otherUserName={activeContact.name} blockedByMe={blockedByMe} /> : null}
       </div>
 
-      {sendError?.key === activeContact.conversationKey ? (
+      {sendError?.key === activeContact.conversationKey && !isBlocked ? (
         <div className="px-4">
           <ErrorBanner message={sendError.message} />
         </div>
       ) : null}
 
-      <MessageInput
-        onSend={handleSend}
-        onTypingChange={handleTypingChange}
-        onSendAttachments={sendAttachments}
-        onSendGif={sendGif}
-        onError={(message) =>
-          setSendError({ key: activeContact?.conversationKey ?? "", message })
-        }
-        replyTarget={replyTarget}
-        replyLabel={
-          replyTarget
-            ? replyTarget.sender_id === currentUserId
-              ? "yourself"
-              : activeContact.name
-            : undefined
-        }
-        onClearReply={clearReply}
-      />
+      {isBlocked ? null : (
+        <MessageInput
+          onSend={handleSend}
+          onTypingChange={handleTypingChange}
+          onSendAttachments={sendAttachments}
+          onSendGif={sendGif}
+          onError={(message) =>
+            setSendError({ key: activeContact?.conversationKey ?? "", message })
+          }
+          replyTarget={replyTarget}
+          replyLabel={
+            replyTarget
+              ? replyTarget.sender_id === currentUserId
+                ? "yourself"
+                : activeContact.name
+              : undefined
+          }
+          onClearReply={clearReply}
+        />
+      )}
 
       {contextMenu && (
         <MessageContextMenu

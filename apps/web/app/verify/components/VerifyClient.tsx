@@ -1,7 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useVerificationDevice } from "@/hooks/use-verification-device";
+import { mobileVerificationHref } from "@/lib/mobile-verification-navigation";
+import PhoneVerificationMethods from "./PhoneVerificationMethods";
 
 import QRCode from "react-qr-code";
 import { Button, Card, Spinner, toast } from "@heroui/react";
@@ -36,6 +39,7 @@ type VerifyClientProps = {
   accountStatus: string | null;
   hasPending: boolean;
   onCompleted?: () => void;
+  onNavigate?: () => void;
   // When true, renders without the outer Card wrapper so a parent container
   // (e.g. Modal.Dialog) is the only card. Default false keeps the /verify
   // page output unchanged.
@@ -278,10 +282,13 @@ function EmbeddedMethodPicker({
 // Desktop side of the QR handoff: issues a 10-minute session, renders the QR
 // (token only, no PII), then polls until the phone submits or it expires.
 // The raw token lives in memory only -- never logged or persisted.
-export default function VerifyClient({ siteUrl, accountStatus, hasPending, onCompleted, embedded = false }: VerifyClientProps) {
+export default function VerifyClient({ siteUrl, accountStatus, hasPending, onCompleted, onNavigate, embedded = false }: VerifyClientProps) {
   const router = useRouter();
+  const device = useVerificationDevice();
+  const isPhone = device !== null && device !== "desktop";
   const [phase, setPhase] = useState<Phase>({ name: "idle" });
   const [isWorking, setIsWorking] = useState(false);
+  const [isNavigating, startNavigation] = useTransition();
   const [now, setNow] = useState(() => Date.now());
   const [desktopStep, setDesktopStep] = useState<DesktopWizardStep>("id");
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -289,13 +296,14 @@ export default function VerifyClient({ siteUrl, accountStatus, hasPending, onCom
   // modal picker is visible (never on page load); the click path reuses it
   // when still fresh and falls back to a live request otherwise.
   const prefetchedRef = useRef<Promise<SessionResult> | null>(null);
+  const startingRef = useRef(false);
 
   useEffect(() => {
-    if (!embedded || phase.name !== "idle" || prefetchedRef.current) return;
+    if (!embedded || device !== "desktop" || accountStatus === "verified" || accountStatus === "pending" || hasPending || phase.name !== "idle" || prefetchedRef.current) return;
     prefetchedRef.current = createVerificationSession().catch(
       (): SessionResult => ({ ok: false, error: "prefetch" }),
     );
-  }, [embedded, phase.name]);
+  }, [embedded, device, accountStatus, hasPending, phase.name]);
 
   const handleDesktopStepChange = useCallback((step: DesktopWizardStep) => {
     setDesktopStep(step);
@@ -322,7 +330,9 @@ export default function VerifyClient({ siteUrl, accountStatus, hasPending, onCom
     return () => clearInterval(timer);
   }, [phase.name]);
 
-  const startSession = useCallback(async () => {
+  const startSession = useCallback(async (method: "qr" | "phone" = "qr") => {
+    if (startingRef.current) return;
+    startingRef.current = true;
     setIsWorking(true);
     try {
       // Prefer the prefetch when it resolved to a session with ample life
@@ -347,12 +357,26 @@ export default function VerifyClient({ siteUrl, accountStatus, hasPending, onCom
         }
         return;
       }
+      if (method === "phone") {
+        const returnTo = new URL(window.location.href).searchParams.get("returnTo");
+        startNavigation(() => {
+          // Retire the source dialog before leaving, so Back cannot restore
+          // an open modal or its submission lock from the router cache.
+          onNavigate?.();
+          router.push(mobileVerificationHref(result.token, returnTo));
+        });
+        return;
+      }
       setPhase({ name: "active", token: result.token, expiresAt: result.expiresAt });
       setNow(Date.now());
+    } catch {
+      console.error("Could not start identity verification.");
+      toast.danger("Couldn't start verification. Please try again.", { timeout: 0 });
     } finally {
+      startingRef.current = false;
       setIsWorking(false);
     }
-  }, []);
+  }, [router, onNavigate]);
 
   // Poll session status; claim-free -- the phone consumes on submit.
   useEffect(() => {
@@ -441,6 +465,10 @@ export default function VerifyClient({ siteUrl, accountStatus, hasPending, onCom
     );
   }
 
+  if (device === null) {
+    return <div className="flex items-center justify-center gap-3 p-6" role="status"><Spinner aria-hidden="true" /><span className="text-sm text-muted-foreground">Loading verification…</span></div>;
+  }
+
   // Narrowed once here (narrowing does not cross into inline callbacks).
   const activeSession = phase.name === "active" ? phase : null;
   const activeQrValue = activeSession ? qrValue(siteUrl, activeSession.token) : null;
@@ -459,7 +487,7 @@ export default function VerifyClient({ siteUrl, accountStatus, hasPending, onCom
       ? DESKTOP_HEADER_COPY[desktopStep]
       : {
           title: "Verify your identity",
-          sub: "Choose how you'd like to verify your identity using your phone.",
+          sub: isPhone ? "Use your phone's camera to capture your ID and selfie securely." : "Choose how you'd like to verify your identity using your phone.",
         };
 
   // Session states (active/expired/unavailable/completed) render their own
@@ -470,7 +498,7 @@ export default function VerifyClient({ siteUrl, accountStatus, hasPending, onCom
 
   const main = (
     <>
-      {embedded ? (
+      {embedded || isPhone ? (
         <div className="flex flex-col text-left">
           <span className="flex items-center gap-2">
             <IconShieldCheck size={20} className="text-primary" aria-hidden="true" />
@@ -505,7 +533,13 @@ export default function VerifyClient({ siteUrl, accountStatus, hasPending, onCom
       )}
 
       {phase.name === "idle" &&
-        (embedded ? (
+        (isPhone ? (
+          <PhoneVerificationMethods
+            isWorking={isWorking || isNavigating}
+            onContinue={() => void startSession("phone")}
+            androidApkUrl={device === "android" ? validApkDownloadUrl(resolveApkUrl()) : null}
+          />
+        ) : embedded ? (
           <div className="flex flex-col gap-4">
             <EmbeddedMethodPicker
               apkReady={validApkDownloadUrl(resolveApkUrl()) !== null}

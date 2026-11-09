@@ -1,3 +1,5 @@
+import { REGISTRATION_POLICIES } from "@/lib/registration-policies";
+
 export const BRAND = {
   email: "support@apt-rental.ph",
   address: "109 Samson Road corner Caimito Road, Caloocan, Philippines",
@@ -5,9 +7,9 @@ export const BRAND = {
 };
 
 export const LEGAL_META = {
-  lastUpdated: "January 15, 2026",
+  lastUpdated: REGISTRATION_POLICIES.terms.lastUpdated,
   jurisdiction: "Effective in the Philippines",
-  version: "1.0",
+  version: REGISTRATION_POLICIES.terms.version,
 };
 
 export type Callout = { kind: "info" | "warning"; label: string; text: string };
@@ -39,7 +41,7 @@ export const TOC: { id: string; label: string }[] = [
   { id: "s13", label: "Reviews & Ratings" },
   { id: "s14", label: "Prohibited Activities" },
   { id: "s15", label: "Intellectual Property" },
-  { id: "s16", label: "Privacy" },
+  { id: "s16", label: "Privacy and Data Protection" },
   { id: "s17", label: "Suspension & Termination" },
   { id: "s18", label: "Disclaimer" },
   { id: "s19", label: "Limitation of Liability" },
@@ -55,7 +57,7 @@ export const SECTIONS: Section[] = [
     title: "Acceptance of",
     emphasis: "Terms",
     body: [
-      `Welcome to APT (A Place to Thrive). These Terms of Service ("Terms") govern your access to and use of the APT website and mobile application ("Platform"). By creating an account, accessing, or using the Platform, you acknowledge that you have read, understood, and agree to comply with these Terms.`,
+      `Welcome to APT (A Place to Thrive). These Terms and Conditions ("Terms") govern your access to and use of the APT website and mobile application ("Platform"). By creating an account, accessing, or using the Platform, you acknowledge that you have read, understood, and agree to comply with these Terms.`,
     ],
     callout: {
       kind: "info",
@@ -88,15 +90,16 @@ export const SECTIONS: Section[] = [
     num: "Section 03",
     title: "",
     emphasis: "Eligibility",
-    intro: "To use APT, you must:",
+    intro: "To use APT, users must meet the following requirements:",
     list: [
-      "Be at least eighteen (18) years old",
-      "Provide accurate and truthful information",
-      "Complete identity verification when required",
-      "Have the legal capacity to enter into rental agreements",
+      "Be at least eighteen (18) years old.",
+      "Provide accurate, complete, and truthful personal information.",
+      "Complete the required identity verification process.",
+      "Have the legal capacity to enter into rental agreements.",
+      "Comply with applicable Philippine laws and platform policies.",
     ],
     body: [
-      "Users who provide false information may have their accounts suspended or permanently removed.",
+      "Users who provide false information or fraudulent documents may have their accounts suspended or permanently terminated.",
     ],
   },
   {
@@ -209,7 +212,10 @@ export const SECTIONS: Section[] = [
     title: "Rental",
     emphasis: "Agreements",
     body: [
-      "Rental contracts entered into through APT are agreements between the tenants and rental owners. APT does not become a party to any lease agreement and assumes no responsibility for disputes arising from such agreements.",
+      "Rental agreements made through APT are solely between the tenant and the rental owner.",
+      "APT's Terms and Conditions govern the use of the platform and are separate from the rental agreement established between the tenant and rental owner.",
+      "Both parties are responsible for understanding and following the terms of their rental agreement, including rental duration, monthly payments, security deposits, and other agreed conditions.",
+      "APT serves as a platform for facilitating rental transactions and is not a party to the rental agreement. Disputes regarding rental agreements shall be resolved between the parties involved, subject to applicable laws.",
     ],
   },
   {
@@ -217,13 +223,15 @@ export const SECTIONS: Section[] = [
     num: "Section 11",
     title: "",
     emphasis: "Payments",
-    intro: "APT may facilitate online rent payments through supported payment providers. Users acknowledge that:",
+    intro: "APT allows tenants and rental owners to monitor rental payments and may facilitate online transactions through supported payment providers. Users acknowledge that:",
     list: [
-      "Payment processing may involve third-party services",
-      "Payment confirmation may require processing time",
-      "Refund requests are subject to the agreements between tenants and rental owners",
+      "Monthly rental payments must follow the agreed payment schedule stated in the rental agreement.",
+      "Rental amounts, payment deadlines, and any applicable penalties must be clearly communicated by the rental owner.",
+      "Security deposit amounts, permitted deductions, and refund conditions must be specified in the rental agreement and comply with applicable Philippine laws.",
+      "Payment confirmation may require processing time, depending on the selected payment method.",
+      "Refund requests and payment disputes shall be handled according to the rental agreement and applicable laws.",
+      "APT is not responsible for delays caused by third-party payment providers or banking services, except where responsibility is imposed by law.",
     ],
-    body: ["APT is not liable for payment gateway outages or banking delays."],
   },
   {
     id: "s12",
@@ -283,22 +291,21 @@ export const SECTIONS: Section[] = [
   {
     id: "s16",
     num: "Section 16",
-    title: "",
-    emphasis: "Privacy",
-    intro: "APT collects personal information necessary for:",
+    title: "Privacy and",
+    emphasis: "Data Protection",
+    intro: "APT collects and processes personal information necessary for the operation of the platform, including:",
     list: [
-      "Account registration",
-      "Identity verification",
-      "Rental applications",
-      "Payment processing",
-      "Communication",
-      "Platform security",
+      "Account registration and management.",
+      "Identity verification.",
+      "Rental applications and document submissions.",
+      "Payment processing and monitoring.",
+      "Communication between tenants and rental owners.",
+      "Platform security and fraud prevention.",
     ],
-    callout: {
-      kind: "info",
-      label: "Your data",
-      text: "The collection and processing of personal data is governed by the APT Privacy Policy and applicable Philippine privacy laws, including the Data Privacy Act of 2012 (RA 10173).",
-    },
+    body: [
+      "Personal information and uploaded documents shall be handled in accordance with the APT Privacy Policy and applicable Philippine data protection laws.",
+      "Users are encouraged to review the Privacy Policy to understand how their personal information is collected, used, stored, shared, and protected.",
+    ],
   },
   {
     id: "s17",
@@ -365,7 +372,9 @@ export const SECTIONS: Section[] = [
     title: "Changes to These",
     emphasis: "Terms",
     body: [
-      "APT may revise these Terms at any time. Users will be notified of significant changes. Continued use of the Platform constitutes acceptance of the revised Terms.",
+      "APT reserves the right to update or modify these Terms and Conditions when necessary to reflect changes in platform features, policies, or applicable laws.",
+      "Users will be informed of significant changes through appropriate communication methods, such as platform notifications, email, or announcements on the website or mobile application.",
+      "The updated Terms and Conditions will indicate their effective date. Continued use of the platform after the effective date may constitute acceptance of the revised Terms, subject to applicable laws.",
     ],
   },
   {

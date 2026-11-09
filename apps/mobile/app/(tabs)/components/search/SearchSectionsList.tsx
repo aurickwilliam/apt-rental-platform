@@ -1,4 +1,5 @@
-import { View, FlatList } from "react-native";
+import { View, FlatList, Text } from "react-native";
+import { useTabScreenScroll } from "@/components/layout/TabBarVisibilityContext";
 import { Button } from "heroui-native";
 import { IconAlertCircle, IconSearchOff } from "@tabler/icons-react-native";
 import EmptyState from "components/display/EmptyState";
@@ -6,7 +7,6 @@ import {
   PullToRefreshControl,
   PullToRefreshIndicator,
 } from "components/display/PullToRefresh";
-import { useColors } from "hooks/useTheme";
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/components/layout/CustomTabBar";
 import SearchSection, { SearchSectionSkeleton } from "./SearchSection";
 import type { SearchSection as SearchSectionType } from "@/hooks/search/useSearchSections";
@@ -21,6 +21,9 @@ type Props = {
   onToggleFavorite: (id: string) => void | Promise<void>;
   onPressApartment: (id: string) => void;
   cityLabel?: string;
+  /** Saved preferences are set but Recommended for You has nothing to show. */
+  showRecommendationNotice?: boolean;
+  onUpdatePreferences?: () => void;
 };
 
 export default function SearchSectionsList({
@@ -33,8 +36,10 @@ export default function SearchSectionsList({
   onToggleFavorite,
   onPressApartment,
   cityLabel = "CAMANAVA",
+  showRecommendationNotice = false,
+  onUpdatePreferences,
 }: Props) {
-  const { colors } = useColors();
+  const { ref: listRef, onScroll: onTabBarScroll } = useTabScreenScroll<FlatList>();
 
   if (isLoading) {
     return (
@@ -50,8 +55,7 @@ export default function SearchSectionsList({
     return (
       <View className="flex-1 px-5">
         <EmptyState
-          variant="tenant"
-          icon={<IconAlertCircle size={64} color={colors.primary} />}
+          icon={IconAlertCircle}
           title="Something went wrong"
           description={error}
           action={
@@ -68,8 +72,7 @@ export default function SearchSectionsList({
     return (
       <View className="flex-1 px-5">
         <EmptyState
-          variant="tenant"
-          icon={<IconSearchOff size={64} color={colors.primary} />}
+          icon={IconSearchOff}
           title="No apartments available"
           description="We couldn't find any listings. Pull to refresh or try another city."
           action={
@@ -84,6 +87,9 @@ export default function SearchSectionsList({
 
   return (
     <FlatList
+      ref={listRef}
+      onScroll={onTabBarScroll}
+      scrollEventThrottle={16}
       data={sections}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
@@ -113,8 +119,28 @@ export default function SearchSectionsList({
           onRefresh={onRefresh}
         />
       }
+      // Only while refreshing: even an empty header gets a wrapper view, and the
+      // list's gap would then put 16pt of space above the first section.
       ListHeaderComponent={
-        <PullToRefreshIndicator refreshing={isFetching && !isLoading} />
+        isFetching && !isLoading || showRecommendationNotice ? (
+          <>
+            {isFetching && !isLoading ? <PullToRefreshIndicator refreshing /> : null}
+            {showRecommendationNotice ? (
+              <View className="mx-5 rounded-xl border border-border bg-surface p-4">
+                <Text className="text-foreground font-nunitoSemiBold text-base">No recommendations right now</Text>
+                <Text className="mt-1 text-muted font-inter text-[13px]">
+                  Nothing fits your saved city, budget, household size and smoking choices at the moment. Update your
+                  preferences to widen the search.
+                </Text>
+                {onUpdatePreferences ? (
+                  <Button className="mt-3 self-start" size="sm" variant="secondary" onPress={onUpdatePreferences}>
+                    <Button.Label>Update preferences</Button.Label>
+                  </Button>
+                ) : null}
+              </View>
+            ) : null}
+          </>
+        ) : null
       }
     />
   );

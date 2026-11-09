@@ -27,6 +27,7 @@ import BudgetProgressRow from "../components/BudgetProgressRow";
 import FinanceMoneyRow from "../components/FinanceMoneyRow";
 import PlanBudgetDrawer from "../components/PlanBudgetDrawer";
 import BudgetCategorySkeleton from "./BudgetCategorySkeleton";
+import EmptyState from "@/app/components/display/EmptyState";
 
 const KIND_TITLES = {
   expense: "Spending limits",
@@ -203,22 +204,16 @@ function BudgetCategory({
               ),
             )}
             {!rows.length ? (
-              <div className="space-y-1 py-8 text-center" role="alert">
-                <IconTargetArrow
-                  size={32}
-                  className="mx-auto text-muted-foreground"
-                  aria-hidden
-                />
-                <h2 className="font-nunito font-bold">
-                  {params.kind === "reserve"
+              <EmptyState
+                className="py-8"
+                icon={IconTargetArrow}
+                title={
+                  params.kind === "reserve"
                     ? "No reserve goals in this category"
-                    : "No spending limits in this category"}
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  Nothing planned for {financeMonthLabel(params.month)}
-                  {selectedProperty ? ` for ${selectedProperty.name}` : ""}.
-                </p>
-              </div>
+                    : "No spending limits in this category"
+                }
+                description={`Nothing planned for ${financeMonthLabel(params.month)}${selectedProperty ? ` for ${selectedProperty.name}` : ""}.`}
+              />
             ) : null}
           </div>
         </>

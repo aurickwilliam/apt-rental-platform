@@ -46,9 +46,21 @@ const PORTAL_ROUTE_PREFIX: Record<ProfileViewerPortal, string> = {
   landlord: "/landlord",
 };
 
-/** Where a landlord's profile lives for a viewer: public browse, the tenant portal or the landlord portal. */
-export function landlordProfileHref(portal: ProfileViewerPortal, landlordId: string): string {
-  return `${PORTAL_ROUTE_PREFIX[portal]}/landlords/${encodeURIComponent(landlordId)}`;
+/**
+ * Where a landlord's profile lives for a viewer: public browse, the tenant portal or the landlord portal.
+ * `apartmentId` is the listing the visitor came from; the profile's Message button then continues that
+ * apartment's conversation instead of starting a general inquiry (mobile's `apartmentId` route param).
+ */
+export function landlordProfileHref(portal: ProfileViewerPortal, landlordId: string, apartmentId?: string | null): string {
+  const base = `${PORTAL_ROUTE_PREFIX[portal]}/landlords/${encodeURIComponent(landlordId)}`;
+  return apartmentId ? `${base}?apartmentId=${encodeURIComponent(apartmentId)}` : base;
+}
+
+const PROFILE_APARTMENT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** The `?apartmentId=` of a profile URL, or null when it is missing, repeated or not a UUID. */
+export function parseProfileApartmentId(value: string | string[] | undefined): string | null {
+  return typeof value === "string" && PROFILE_APARTMENT_ID_PATTERN.test(value) ? value : null;
 }
 
 /** The landlord's full reviews page inside the same portal shell. */

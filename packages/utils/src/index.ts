@@ -1,4 +1,8 @@
 export { getRelativeTime } from './getRelativeTime';
+export * from './leaseRenewal';
+export {fetchEffectiveLeaseTermsWith,type EffectiveLeaseTerms} from './effectiveLeaseTerms';
+export { emptyHistoryFilters, filterMaintenanceHistory, historyFilterCount, HISTORY_DATE_OPTIONS } from './maintenanceHistoryFilters';
+export type { HistoryDateFilter, MaintenanceHistoryFilters } from './maintenanceHistoryFilters';
 export { isReviewStayEligible } from './reviewEligibility';
 export { formatReviewStayLabel, formatStayRange } from './reviewStayLabel';
 export {
@@ -9,6 +13,8 @@ export {
   validateTenantReview,
   hasTenantReviewErrors,
   summarizeTenantReviews,
+  describeTenantRatingSummary,
+  APPLICANT_RATINGS_PREVIEW_LIMIT,
   prepareTenantReview,
   toTenantReviewRecords,
 } from './tenantReview';
@@ -30,12 +36,56 @@ export {
 } from './chatAttachments';
 export { isSameChatDay, getChatDayKey, formatChatDayLabel } from './chatDay';
 export { getReplyCaption } from './replyCaption';
-export { USER_REPORT_REASONS, USER_REPORT_DETAILS_MAX_LENGTH, type UserReportReason } from './userReport';
+export {
+  USER_REPORT_REASONS,
+  USER_REPORT_DETAILS_MAX_LENGTH,
+  APARTMENT_REPORT_REASONS,
+  USER_REPORT_TARGET_LABELS,
+  type UserReportReason,
+  type ApartmentReportReason,
+  type UserReportTargetType,
+} from './userReport';
+export { getErrorMessage } from './getErrorMessage';
+export * from './listingReview';
+export { canChangeListingVisibility, propertyStatusLabel, nextListingVisibilityStatus } from './listingVisibility';
+export type { ListingVisibilityStatus } from './listingVisibility';
 export * from './landlordFinance';
 export * from './landlordPayments';
+export { filterPaymentHistory } from './paymentHistory';
 export * from './landlordReceipt';
 export { formatDate } from './formatDate';
-export { parseResendWaitSeconds, emailCodeRequestErrorMessage, otpAttemptErrorMessage, MAX_OTP_ATTEMPTS } from './otpErrors';
+export {
+  AUTH_THROTTLE_MESSAGE,
+  CAPTCHA_FAILED_MESSAGE,
+  CAPTCHA_PENDING_MESSAGE,
+  isCaptchaError,
+  checkAuthThrottle,
+  clearAuthThrottle,
+  isAuthRateLimitError,
+  isInvalidOtpError,
+  recordAuthFailure,
+} from './authThrottle';
+export type { AuthThrottleClient, AuthThrottlePurpose } from './authThrottle';
+export {
+  AUTH_LOCKOUT_MAX_ATTEMPTS,
+  AUTH_LOCKOUT_TITLE,
+  formatLockoutWait,
+  formatLockoutClock,
+  lockoutDescription,
+  lockoutKeyHash,
+  lockoutReminderFor,
+  lockoutReminderSecondsLeft,
+  parseLockoutReminder,
+  type LockoutReminder,
+} from './authLockout';
+export {
+  parseResendWaitSeconds,
+  emailCodeRequestErrorMessage,
+  otpAttemptErrorMessage,
+  getEmailCodeRequestError,
+  getOtpAttemptError,
+  MAX_OTP_ATTEMPTS,
+} from './otpErrors';
 export {
   MINIMUM_AGE,
   MAXIMUM_AGE,
@@ -46,17 +96,20 @@ export {
 } from './birthDate';
 export {
   PAYMENT_METHOD_TYPES,
-  EMPTY_PAYMENT_METHOD_PREFERENCES,
   type PaymentMethod,
-  type PaymentMethodPreference,
-  type PaymentPreferenceRow,
   isPaymentMethod,
   paymentMethodLabel,
-  normalizePaymentMethodPreferences,
-  paymentMethodPreferencesFromRow,
-  paymentMethodPreferencesToRow,
-  togglePreferredPaymentMethod,
-} from './paymentMethodPreferences';
+} from './paymentMethods';
+export { findPendingOnlinePayment, type PendingOnlinePaymentCandidate } from './pendingOnlinePayment';
+export {
+  ACCEPTED_METHODS_REQUIRED_MESSAGE,
+  ACCEPTED_METHOD_VALUES,
+  acceptedMethodsToRow,
+  isMethodAccepted,
+  normalizeAcceptedMethods,
+  toggleAcceptedMethod,
+  validateAcceptedMethods,
+} from './acceptedPaymentMethods';
 export {
   type MaintenanceFeeStatus,
   normalizeMaintenanceFeeStatus,
@@ -76,6 +129,12 @@ export {
   extractRawNumber
 } from './formatCurrencyInput';
 export { formatPesoCompact } from './formatPesoCompact';
+export {
+  buildApartmentShareText,
+  buildApartmentShareMessage,
+  getApartmentSharePath,
+} from './apartmentShare';
+export type { ApartmentShareInput } from './apartmentShare';
 export {
   EMPTY_ATTENTION,
   TREND_TIMEFRAMES,
@@ -133,15 +192,6 @@ export {
   validateApartmentPricing,
 } from './apartmentPricing';
 export * from './authErrors';
-export {
-  formatCardNumber,
-  luhnCheck,
-  validateCardNumber,
-  formatExpiryDate,
-  isValidExpiryDate,
-  type CardFormErrors,
-  validateCardInfo,
-} from './validateCardNumber';
 export {
   type PasswordErrorReason,
   PasswordError,
@@ -282,6 +332,9 @@ export {
   countAiSearchFilters,
   parseSearchKeywords,
   aiFiltersToBrowseParams,
+  mergeAiFilters,
+  isBrowseExpressible,
+  wantsAnyArea,
 } from './aiSearch';
 export {
   AVA_RESULT_LIMIT,
@@ -294,6 +347,7 @@ export {
   AVA_LOOSEN_QUICK_REPLIES,
   type AvaSource,
   type AvaTurn,
+  type AvaSearchState,
   type AvaAnswer,
   type AvaReply,
   hasAvaQuestion,
@@ -301,4 +355,98 @@ export {
   readAvaResponse,
   shouldSearchForAva,
   composeAvaReply,
+  avaSourceNote,
+  shouldAskAvaModel,
+  wantsMoreResults,
+  avaConversationLanguage,
 } from './avaChat';
+export { detectMessageLanguage, detectReplyLanguage, detectConversationLanguage, type AvaLanguage } from './avaLanguage';
+export { AVA_STRINGS, type AvaStrings } from './avaStrings';
+export {
+  resolveLandmark,
+  targetFromKey,
+  type LandmarkResolution,
+  type LandmarkTarget,
+} from './avaLandmarks';
+export {
+  AVA_NEAR_KM,
+  AVA_NEARBY_KM,
+  haversineKm,
+  rankByProximity,
+  formatDistance,
+  type ProximityScenario,
+} from './avaProximity';
+export { smallTalkKind, type AvaSmallTalkKind } from './avaSmallTalk';
+export {
+  asksAboutPreferences,
+  describePreferences,
+  hasAvaPreferences,
+  preferencesToFilters,
+  type AvaPreferences,
+  type AvaPreferenceIntent,
+} from './avaPreferences';
+export {
+  AVA_PROXIMITY_POOL,
+  answerAva,
+  buildAvaRequest,
+  describeListing,
+  deriveAvaContext,
+  type AvaCandidate,
+  type AvaFound,
+  type AvaFetchRequest,
+  type AvaListingFetcher,
+  type AvaOutcome,
+} from './avaSearch';
+export {
+  AVA_MAX_SAVED_CHATS,
+  AVA_MAX_SAVED_MESSAGES,
+  avaChatTitle,
+  upsertAvaChat,
+  removeAvaChat,
+  parseSavedAvaChats,
+  groupAvaChatsByAge,
+  type AvaSavedChat,
+  type AvaSavedMessage,
+  type AvaHistoryGroup,
+  type AvaHistoryGroupLabel,
+} from './avaHistory';
+export * from './browseRows';
+export * from './rangeInput';
+export * from './applicationPreferences';
+export {
+  type ActivePortal,
+  type AudienceNotification,
+  type ChatRecipientAudience,
+  type NotificationApartmentOwner,
+  type PortalAudience,
+  type UnreadNotification,
+  getExplicitChatRecipientPortal,
+  getLegacyChatApartmentIds,
+  getNotificationAudience,
+  getVisibleUnreadIds,
+  isChatNotification,
+  isNotificationVisibleInPortal,
+  resolveChatAudiencesWith,
+  resolveChatNotificationAudiences,
+} from './notificationAudience';
+export {
+  trimPetKinds,
+  sortVehicles,
+  trimVehicles,
+  spotsForVehicles,
+} from './preferenceLinking';
+export {
+  TUTORIAL_TARGETS,
+  getTutorialSteps,
+  hasFinishedTutorial,
+  shouldAutoStartTutorial,
+} from './tutorial';
+export type {
+  TutorialPortal,
+  TutorialPlatform,
+  TutorialStep,
+  TutorialStepId,
+  TutorialContext,
+  TutorialProgressRow,
+  AutoStartInput,
+} from './tutorial';

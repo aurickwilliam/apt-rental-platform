@@ -50,6 +50,19 @@ it("keeps rent details and history when paid, without a pay button", () => {
   expect(screen.queryByText(/^Due /)).toBeNull();
 });
 
+it("expands the history button into an icon with a label when paid, and keeps it icon-only while a payment is due", () => {
+  const history = jest.fn();
+  const { rerender } = render(<PaymentSummaryCard status="Paid" totalRent={80000} onViewHistoryPress={history} />);
+
+  expect(screen.getByText("Payment history")).toBeTruthy();
+  fireEvent.press(screen.getByText("Payment history"));
+  expect(history).toHaveBeenCalledTimes(1);
+
+  rerender(<PaymentSummaryCard status="Pending" totalRent={80000} onViewHistoryPress={history} />);
+  expect(screen.queryByText("Payment history")).toBeNull();
+  expect(screen.getByLabelText("View payment history")).toBeTruthy();
+});
+
 it("shows only the move-in total, keeping the due date and actions", () => {
   const pay = jest.fn();
   const history = jest.fn();
@@ -95,4 +108,29 @@ it("keeps a maintenance-only bill payable after rent is covered", () => {
   expect(screen.getByText("Pending")).toBeTruthy();
   fireEvent.press(screen.getByText("Pay Now"));
   expect(pay).toHaveBeenCalledTimes(1);
+});
+
+it("says how much of the pending amount is maintenance fees, without listing them", () => {
+  render(<PaymentSummaryCard periodMonth="December" periodYear="2026" totalRent={80100} feesTotal={100} dueDate="Dec 5, 2026" />);
+  expect(screen.getByText(formatPesoDisplay(80100))).toBeTruthy();
+  expect(screen.getByText(`Includes ${formatPesoDisplay(100)} in maintenance fees`)).toBeTruthy();
+});
+
+it("shows no fee note when there are no fees, when paid, or when the whole bill is fees", () => {
+  const { rerender } = render(<PaymentSummaryCard periodMonth="December" periodYear="2026" totalRent={80000} />);
+  expect(screen.queryByText(/maintenance fees/)).toBeNull();
+  rerender(<PaymentSummaryCard status="Paid" periodMonth="December" periodYear="2026" totalRent={80000} feesTotal={100} />);
+  expect(screen.queryByText(/maintenance fees/)).toBeNull();
+  rerender(<PaymentSummaryCard bill={{ ...MOVE_IN_BILL, kind: "fees", rentDue: 0, securityDeposit: 0, advanceRent: 0, totalDue: 100, fees: [{ id: "fee-1", title: "Repair fee", amount: 100 }] }} totalRent={80000} feesTotal={100} />);
+  expect(screen.getByText("Maintenance fees")).toBeTruthy();
+  expect(screen.queryByText(/Includes/)).toBeNull();
+});
+
+it("tells the tenant an unfinished payment is waiting while the amount is pending", () => {
+  const { rerender } = render(<PaymentSummaryCard periodMonth="December" periodYear="2026" totalRent={80000} hasPendingPayment dueDate="Dec 5, 2026" />);
+  expect(screen.getByText("A payment is waiting for confirmation. Tap Pay Now to check it.")).toBeTruthy();
+  rerender(<PaymentSummaryCard status="Paid" periodMonth="December" periodYear="2026" totalRent={80000} hasPendingPayment />);
+  expect(screen.queryByText(/waiting for confirmation/)).toBeNull();
+  rerender(<PaymentSummaryCard periodMonth="December" periodYear="2026" totalRent={80000} />);
+  expect(screen.queryByText(/waiting for confirmation/)).toBeNull();
 });

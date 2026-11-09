@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import * as policyRules from "./registration-policies.ts";
+const accepted = { ...policyRules.emptyRegistrationAcceptance(), termsAccepted: true, privacyAccepted: true };
 import test from "node:test";
 import { jsx, jsxs } from "react/jsx-runtime";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -14,15 +16,13 @@ const plain = value => JSON.parse(JSON.stringify(value));
 const nodes = value => !value || typeof value !== "object" ? [] : [value, ...[value.props?.children].flat(Infinity).flatMap(nodes)];
 const jsxRuntime = { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) };
 const ui = {
-  FieldError: "FieldError", Input: "Input", Label: "Label", TextField: "TextField", Button: "Button", Form: "Form", Separator: "Separator", Spinner: "Spinner",
+  FieldError: "FieldError", Input: "Input", Label: "Label", TextField: "TextField", Form: "Form", Separator: "Separator", Spinner: "Spinner",
   Select: Object.assign(() => {}, { Trigger: "Trigger", Value: "Value", Indicator: "Indicator", Popover: "Popover" }),
   ListBox: Object.assign(() => {}, { Item: "Item", ItemIndicator: "ItemIndicator" }),
   DatePicker: Object.assign(() => {}, { Popover: "DatePopover", Trigger: "DateTrigger", TriggerIndicator: "DateTriggerIndicator" }),
   DateField: { Group: "Group", Input: "DateInput", Suffix: "Suffix" },
   Calendar: Object.assign(() => {}, Object.fromEntries(["Header", "YearPickerTrigger", "YearPickerTriggerHeading", "YearPickerTriggerIndicator", "NavButton", "Grid", "GridHeader", "GridBody", "YearPickerGrid", "YearPickerGridBody"].map(key => [key, key]))),
   ComboBox: Object.assign(() => {}, { InputGroup: "ComboBoxInputGroup", Trigger: "ComboBoxTrigger", Popover: "ComboBoxPopover" }),
-  InputGroup: Object.assign(() => {}, { Input: "InputGroupInput", Suffix: "InputGroupSuffix" }),
-  Tooltip: Object.assign(() => {}, { Trigger: "TooltipTrigger", Content: "TooltipContent" }),
   useOverlayState: () => ({ isOpen: false, open() {}, close() {} }),
 };
 const { validatePHMobile, formatPHMobileInput } = compile("../../packages/constants/src/user/ph-mobile.ts");
@@ -167,20 +167,24 @@ test("a well-formed ZIP we do not recognize for the city is a warning, not an er
   assert.equal(addressRules.getRegistrationZipWarning({ ...validAddress, postalCode: "14a5" }), null);
 });
 
-test("an unrecognized ZIP shows an info icon whose tooltip carries the note, not text under the field", () => {
+test("an unrecognized ZIP shows the note as a gray description under the field, not a tooltip", () => {
   const warning = `This ZIP isn't one we recognize for ${validAddress.city}. Double-check it.`;
   const h = fieldHarness({ ...validAddress, postalCode: "9999" });
   const parts = nodes(h.field("postalCode"));
-  assert.equal(parts.find(node => node.type === "TooltipContent")?.props.children, warning);
-  assert.ok(parts.some(node => node.type === "InputGroupSuffix"));
-  assert.equal(parts.some(node => node.type === "p"), false);
+  const note = parts.find(node => node.type === "span" && node.props?.role === "status");
+  assert.equal(note?.props.children, warning);
+  assert.match(note?.props.className, /text-xs/);
+  assert.match(note?.props.className, /text-muted-foreground/);
+  assert.ok(parts.some(node => node.type === "Input"));
+  assert.equal(parts.some(node => node.props?.ariaLabel === "About this postal code"), false);
   const recognized = nodes(fieldHarness(validAddress).field("postalCode"));
-  assert.equal(recognized.some(node => node.type === "TooltipContent" || node.type === "InputGroupSuffix"), false);
+  assert.equal(recognized.some(node => node.props?.role === "status"), false);
   const html = renderToStaticMarkup(compile("app/(auth)/components/RegistrationAddressFields.tsx", {
     "react/jsx-runtime": { jsx, jsxs }, "@heroui/react": HeroUI, "@tabler/icons-react": icons, "@repo/constants": constants, "@/lib/registration-address": addressRules,
     "@/app/components/i18n/LocaleProvider": locale,
   }).default({ value: { ...validAddress, postalCode: "9999" }, onChange() {} }));
-  assert.match(html, /aria-label="About this postal code"/);
+  assert.match(html, /role="status"/);
+  assert.match(html, /text-muted-foreground/);
 });
 
 test("street and ZIP remain editable, user-entered valid ZIPs are not auto-replaced, and geographic coverage stays nationwide", () => {
@@ -224,10 +228,12 @@ test("installed HeroUI provides input error association and disabled dependent s
 function formHarness(kind, role, initialAddress = undefined) {
   const runtime = hookRuntime();
   const shared = {
-    react: { ...runtime.react, useActionState: () => [{}, () => {}, false] },
+    react: { ...runtime.react, startTransition: callback => callback(), useActionState: () => [{}, () => {}, false] },
     "react/jsx-runtime": jsxRuntime, "@heroui/react": ui, "@repo/constants": constants,
     "@/lib/registration-address": addressRules, "@/lib/birth-date": { validateBirthDate },
     "@/app/components/i18n/LocaleProvider": locale, "@repo/i18n": i18n,
+    "@/lib/registration-policies": policyRules,
+    "../../components/RegistrationPolicyAcceptance": { default: "RegistrationPolicyAcceptance" },
     "../../components/RegistrationAddressFields": { default: "RegistrationAddressFields" },
     "../../components/RegistrationBirthDateField": { default: "RegistrationBirthDateField" },
     "next/link": { default: "Link" },
@@ -238,11 +244,12 @@ function formHarness(kind, role, initialAddress = undefined) {
   } : {
     ...shared, "../../components/AuthContext": { useAuth: () => ({ role, email: "test@example.com" }) },
     "@/app/components/inputs/PasswordField": { default: "PasswordField" },
+    "@/app/components/inputs/TurnstileWidget": { default: "TurnstileWidget" }, "@/hooks/use-captcha": { useCaptcha: () => ({ attach() {}, take: () => ({ pending: false }) }) }, "@repo/utils": { CAPTCHA_PENDING_MESSAGE: "pending" },
     "@/app/components/inputs/PasswordRequirementList": { default: "PasswordRequirementList" },
     "./OtpModal": { default: "OtpModal" }, "./SuccessModal": { default: "SuccessModal" }, "./ErrorModal": { default: "ErrorModal" },
     "../hooks/useOtpFlow": { useOtpFlow: () => ({}) }, "../utils": { validateSignUpForm: () => null },
     "../../actions/send-otp": { sendEmailOtp: async () => ({}) },
-  }, { FormData: class { get() { return "2000-01-01"; } } }).default;
+  }, { FormData: class { get(name) { return name === "birth_date" ? "2000-01-01" : null; } } }).default;
   const render = () => runtime.render(() => component({ email: "test@example.com", firstName: "Test", lastName: "User", role, initialAddress }));
   const addressNode = () => nodes(render()).find(node => node.type === "RegistrationAddressFields");
   return { render, addressNode, fields: () => fields(addressNode().props),
@@ -282,6 +289,7 @@ const serverConstants = constants;
 const year = new Date().getFullYear() - 25;
 function submission(address = validAddress, role = "tenant") {
   const data = new FormData();
+  policyRules.writeRegistrationAcceptance(data, accepted);
   for (const [key, value] of Object.entries({ first_name: "Test", last_name: "User", birth_date: `${year}-01-01`, gender: GENDERS[0], mobile_number: "09171234567", role,
     province: address.province, city: address.city, barangay: address.barangay, street_address: address.streetAddress, postal_code: address.postalCode, user_id: "attacker" })) data.set(key, value);
   return data;
@@ -301,7 +309,17 @@ function actionHarness(options = {}) {
   const { completeProfile } = compile("app/(auth)/actions/complete-profile.ts", {
     "next/navigation": { redirect: path => { throw new Error(`redirect:${path}`); } }, "next/headers": { cookies: async () => ({ set() {} }) },
     "@repo/supabase/server": { createClient: async () => client }, "@/lib/portal-preference": { PORTAL_COOKIE: "apt_portal" },
-    "@repo/constants": serverConstants, "@/lib/birth-date": { validateBirthDate }, "@/lib/registration-address": addressRules,
+    "@repo/constants": serverConstants, "@/lib/birth-date": { validateBirthDate, getBirthDateDatabaseError: () => null }, "@/lib/registration-address": addressRules,
+    "@/lib/registration-policies": policyRules,
+    "@/service/registrationService": { completeWebRegistration: async (client, details, role, acceptance, source) => {
+      // Eligibility is transaction-owned so completed requests can be retried.
+      // Model its rejection here; actual RLS/replay behavior has a DB suite.
+      if (profile && (profile.roles.includes("admin") || profile.mobile_number || profile.account_status !== "unverified")) {
+        rpcs.push(["complete_web_registration", { role, acceptance, source }]);
+        return { error: { code: "P0001", message: "Profile setup is no longer available for this account." } };
+      }
+      writes.push(details); rpcs.push(["complete_web_registration", { role, acceptance, source }]); return { error: null };
+    } },
   }, { process: { env: { NODE_ENV: "test" } } });
   return { completeProfile, writes, selects, rpcs };
 }
@@ -326,8 +344,11 @@ test("valid Tenant/Landlord payloads retain existing column names, caller owners
     assert.equal(row.province, validAddress.province); assert.equal(row.city, validAddress.city); assert.equal(row.barangay, validAddress.barangay);
     assert.equal(row.street_address, validAddress.streetAddress); assert.equal(row.postal_code, 1485);
     assert.equal(row.stateProvince, undefined); assert.equal(row.streetAddress, undefined);
-    if (!profile) { assert.equal(row.user_id, "caller"); assert.equal(row.email, "caller@example.com"); assert.deepEqual(plain(row.roles), [role]); }
-    else { assert.ok(h.selects.some(([column, value]) => column === "user_id" && value === "caller")); assert.equal(h.rpcs[0][0], "set_onboarding_role"); }
+    assert.equal(row.user_id, undefined); assert.equal(row.email, undefined); assert.equal(row.roles, undefined);
+    const registration = h.rpcs.find(([name]) => name === "complete_web_registration");
+    assert.equal(registration[1].role, role);
+    assert.deepEqual(plain(registration[1].acceptance), accepted);
+    assert.ok(h.selects.some(([column, value]) => column === "user_id" && value === "caller"));
   }
 });
 

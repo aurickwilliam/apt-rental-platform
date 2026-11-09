@@ -77,6 +77,7 @@ export const apply = {
   "apply.action.addToPassport": "Add to APT Passport",
   "apply.action.openPassport": "Open APT Passport",
   "apply.action.viewApplications": "View my applications",
+  "apply.action.viewVerification": "View verification status",
 
   "apply.tenant.personalTitle": "Personal Information",
   "apply.tenant.personalHintBefore":
@@ -197,4 +198,6 @@ export const apply = {
   "apply.error.hasPetsRequired": "Please indicate if you have pets.",
   "apply.error.smokerRequired": "Please indicate if you are a smoker.",
   "apply.error.parkingRequired": "Please indicate if you need parking.",
+  "apply.error.vehicleKindsRequired": "Please select the kinds of vehicles you have.",
+  "apply.error.disabilityRequired": "Please indicate if anyone in your household has a disability.",
 };

@@ -293,7 +293,8 @@ test("Our Team renders the four real members with circular portraits and approve
   assert(all.filter(node => node.type === "a").every(node => node.props.target === "_blank" && node.props.rel === "noopener noreferrer"));
 
   const source = readFileSync(new URL("../app/(main)/components/TeamSection.tsx", import.meta.url), "utf8");
-  const data = readFileSync(new URL("../app/(main)/about/data/AboutData.ts", import.meta.url), "utf8");
+  // Team copy is shared with mobile, so the names live in @repo/constants.
+  const data = readFileSync(new URL("../../../packages/constants/src/aboutTeam.ts", import.meta.url), "utf8");
   assert.doesNotMatch(source, /member\.bio/);
   assert.match(source, /from "\.\.\/about\/data\/AboutData"/);
   for (const member of teamMembers) assert(data.includes(member.name), `${member.name} must come from AboutData`);
@@ -340,12 +341,12 @@ test("Contact uses only the verified office address, Facebook page, and the FAQ 
   assert.doesNotMatch(source, /support@apt-rental\.ph|Monday|9:00 AM|contact form/i);
 });
 
-test("the shared footer points FAQ and Contact at the landing sections instead of dead routes", () => {
+test("the shared footer points FAQ and Contact at the dedicated FAQ page, not at the signed-in landing redirect", () => {
   const footer = readFileSync(new URL("../app/components/layout/Footer.tsx", import.meta.url), "utf8");
-  assert.equal((footer.match(/href="\/#faqs"/g) ?? []).length, 2);
-  assert.equal((footer.match(/href="\/#contact"/g) ?? []).length, 2);
-  assert.doesNotMatch(footer, /href="\/faq"/);
-  assert.doesNotMatch(footer, /href="\/contact"/);
+  assert.equal((footer.match(/href="\/faq"/g) ?? []).length, 2);
+  assert.equal((footer.match(/href="\/faq#contact"/g) ?? []).length, 2);
+  assert.doesNotMatch(footer, /href="\/#faqs"/);
+  assert.doesNotMatch(footer, /href="\/#contact"/);
 });
 
 test("APT Mobile streams the Android download action behind a skeleton", () => {
@@ -580,7 +581,15 @@ test("landing anchors still close the menu before measuring and scrolling the se
 test("only the landing menu gets a dynamic viewport cap and non-shrinking scrollable controls", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
   assert.match(css, /\.public-navbar \.landing-mobile-menu\s*\{\s*max-height: calc\(100dvh - 5rem - 1px\);\s*overflow-y: auto;\s*overscroll-behavior-y: contain;/);
+  assert.match(css, /@media \(min-width: 768px\) \{\s*\.public-navbar \.landing-mobile-menu\s*\{\s*max-height: calc\(100dvh - 72px - 1px\);/);
   assert.match(css, /\.public-navbar \.landing-mobile-menu > \*\s*\{\s*flex-shrink: 0;/);
+});
+
+test("desktop public navbar trims only its height, keeps its content width and stays lightly glassy", () => {
+  const navbar = readFileSync(new URL("../app/components/layout/AppNavbar.tsx", import.meta.url), "utf8");
+  assert.match(navbar, /mx-auto max-w-7xl px-6/);
+  assert.match(navbar, /flex min-h-20 items-center justify-between gap-3 md:min-h-\[72px\]/);
+  assert.match(navbar, /bg-background\/80 backdrop-blur-lg backdrop-saturate-150/);
 });
 
 for (const [options, state] of [[{ empty: true }, "empty"], [{ error: new Error("query failed") }, "error"]]) {
@@ -618,7 +627,17 @@ test("hero keeps its approved content and coordinates short, low-distance entran
 test("landing typography uses the loaded Nunito Bold and stays local without changing motion", () => {
   const css = readFileSync(new URL("../app/(main)/components/landing-design.module.css", import.meta.url), "utf8");
   const root = readFileSync(new URL("../app/layout.tsx", import.meta.url), "utf8");
-  assert.match(root, /weight: \["400", "500", "600", "700"\]/);
+  // Fonts are self-hosted from the mobile-bundled latin subsets: the root
+  // layout loads every weight the styles use through next/font/local,
+  // including Nunito Bold, and never fetches Google fonts at build time.
+  assert.match(root, /import localFont from "next\/font\/local";/);
+  assert.doesNotMatch(root, /next\/font\/google/);
+  assert.match(root, /nunito-regular\.woff2", weight: "400"/);
+  assert.match(root, /nunito-medium\.woff2", weight: "500"/);
+  assert.match(root, /nunito-semibold\.woff2", weight: "600"/);
+  assert.match(root, /nunito-bold\.woff2", weight: "700"/);
+  assert.match(root, /variable: "--font-nunito-face"/);
+  assert.match(root, /variable: "--font-inter-face"/);
   assert.match(css, /font-weight: 700;/);
   assert.match(css, /font-synthesis: none;/);
   assert.doesNotMatch(css, /font-weight: (800|900);|@font-face|@import/);
@@ -666,7 +685,7 @@ test("only listings suspend; the root route reuses public chrome without the sha
   assert.equal(region.props.children.type, "FeaturedApartments");
   const layout = readFileSync(new URL("../app/(landing)/layout.tsx", import.meta.url), "utf8");
   assert.match(layout, /import AppNavbar from "\.\.\/components\/layout\/AppNavbar"/);
-  assert.match(layout, /box-content h-20 border-b border-transparent/);
+  assert.match(layout, /box-content h-20 md:h-\[72px\] border-b border-transparent/);
   assert.match(layout, /<Footer \/>/);
   assert.match(layout, /<SettingsOverlay \/>/);
   const rootPage = readFileSync(new URL("../app/(landing)/page.tsx", import.meta.url), "utf8");

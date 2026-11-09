@@ -9,5 +9,7 @@ export function usePaymentStatusStyles(): Record<PaymentStatus, StatusChipStyle>
     Paid: status.success,
     Pending: status.warning,
     Unpaid: status.danger,
+    Failed: status.danger,
+    Rejected: status.danger,
   };
 }

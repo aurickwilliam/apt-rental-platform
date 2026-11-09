@@ -3,7 +3,7 @@
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Drawer, Skeleton, useOverlayState } from "@heroui/react";
-import { IconBell, IconX } from "@tabler/icons-react";
+import { IconBell, IconX, IconBellCheck, IconBellOff } from "@tabler/icons-react";
 import {
   groupNotificationFeed,
   groupNotificationsByLocalDate,
@@ -22,6 +22,7 @@ import type { FeedNotification } from "@/service/notificationService";
 import { FAB_PLACEMENT_RESET_EVENT } from "./DraggableNotificationBell";
 import NotificationGroupRow from "./NotificationGroupRow";
 import NotificationRow from "./NotificationRow";
+import EmptyState from "@/app/components/display/EmptyState";
 
 type Filter = "all" | "unread";
 
@@ -63,6 +64,8 @@ export default function NotificationDrawer({
   const [filter, setFilter] = useState<Filter>("all");
   // Keyed by group identity (conversation + sender + oldest member), so a
   // realtime arrival keeps an already-expanded group open.
+  // Notices with no page to open (a warning, a suspension) expand in place instead.
+  const [expandedNotices, setExpandedNotices] = useState<ReadonlySet<string>>(() => new Set());
   const [expandedGroups, setExpandedGroups] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
@@ -72,10 +75,16 @@ export default function NotificationDrawer({
   if (previousPortal !== activePortal) {
     setPreviousPortal(activePortal);
     setExpandedGroups(new Set());
+    setExpandedNotices(new Set());
     setFilter("all");
   }
   const { notifications, unreadCount, loading, error, markOneRead, markManyRead, markVisibleRead } =
     useNotifications(activePortal);
+  // Where each row leads, worked out once per feed or portal change instead of on every render and press.
+  const targets = useMemo(
+    () => new Map(notifications.map((item) => [item.id, resolveNotificationTarget(item.data, activePortal)])),
+    [notifications, activePortal],
+  );
 
   // Keyboard-accessible bell-position reset (the bell itself also resets on
   // double-click). External store per repo convention — no effects.
@@ -131,11 +140,18 @@ export default function NotificationDrawer({
   // resolved route when the payload addresses one.
   const openNotification = (notification: FeedNotification) => {
     void markOneRead(notification.id);
-    const { href } = resolveNotificationTarget(notification.data, activePortal);
+    const { href } = targets.get(notification.id) ?? resolveNotificationTarget(notification.data, activePortal);
     if (href) {
       onClose();
       router.push(href);
+      return;
     }
+    setExpandedNotices((previous) => {
+      const next = new Set(previous);
+      if (next.has(notification.id)) next.delete(notification.id);
+      else next.add(notification.id);
+      return next;
+    });
   };
 
   // A group acknowledges its unread records in one batch, but only when the
@@ -231,11 +247,15 @@ export default function NotificationDrawer({
                   {error}
                 </p>
               ) : shown.length === 0 ? (
-                <p className="mt-10 px-4 text-center font-inter text-sm text-muted-foreground">
-                  {filter === "unread"
-                    ? t("notifications.caughtUp")
-                    : t("notifications.empty")}
-                </p>
+                <EmptyState
+                  icon={filter === "unread" ? IconBellCheck : IconBellOff}
+                  title={
+                    filter === "unread"
+                      ? t("notifications.mobile.caughtUpTitle")
+                      : t("notifications.mobile.emptyTitle")
+                  }
+                  description={filter === "unread" ? "You have no unread notifications." : "Updates about your account will appear here."}
+                />
               ) : (
                 groups.map((group) => (
                   <section key={group.key} aria-label={group.label} className="mb-2">
@@ -250,6 +270,8 @@ export default function NotificationDrawer({
                             notification={unit.notification}
                             language={language}
                             onOpen={() => openNotification(unit.notification)}
+                            expanded={expandedNotices.has(unit.notification.id)}
+                            expandable={!targets.get(unit.notification.id)?.href}
                           />
                         ) : (
                           <NotificationGroupRow

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { Button, Card, buttonVariants } from "@heroui/react";
 import { IconFileCheck, IconLock } from "@tabler/icons-react";
@@ -8,6 +8,7 @@ import { IconFileCheck, IconLock } from "@tabler/icons-react";
 import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import VerifyDialog from "@/app/verify/components/VerifyDialog";
 import { preloadVerificationPageState } from "@/app/verify/components/verificationPageStateCache";
+import { useProfileVerificationIntent } from "@/hooks/use-profile-verification-intent";
 
 interface PassportProfileCardProps {
   /** Server-managed account status; the authoritative immediate state. */
@@ -44,7 +45,7 @@ export default function PassportProfileCard({
   // The trigger keeps account_status in sync with the latest submission, so
   // the immediate card never waits for the secondary timeline query.
   const isRejected = !isVerified && !isPending && accountStatus === "rejected";
-  const [verifyOpen, setVerifyOpen] = useState(false);
+  const { open: verifyOpen, setOpen: setVerifyOpen, returnTo } = useProfileVerificationIntent(accountStatus);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   // Warm the modal's entry state while the user reads the page, so the
@@ -106,6 +107,11 @@ export default function PassportProfileCard({
           ) : null}
 
           {!isVerified ? verificationSlot : null}
+          {returnTo ? (
+            <Link href={returnTo} className={buttonVariants({ variant: "outline", size: "sm", className: "w-full" })}>
+              Return to apartment
+            </Link>
+          ) : null}
         </Card.Content>
       </Card>
       <VerifyDialog open={verifyOpen} onClose={handleClose} />

@@ -7,6 +7,7 @@ import {
 import { Button, Spinner } from 'heroui-native';
 import { SearchGridSkeleton } from './SearchSection';
 
+import { useTabScreenScroll } from '@/components/layout/TabBarVisibilityContext';
 import ApartmentCard, { type ApartmentCardProps } from 'components/cards/ApartmentCard';
 import EmptyState from 'components/display/EmptyState';
 import {
@@ -57,6 +58,7 @@ export default function ApartmentsList({
   activeFilterCount = 0,
   onClearAll,
 }: ApartmentsListProps) {
+  const { ref: listRef, onScroll: onTabBarScroll } = useTabScreenScroll<FlatList>();
   const { colors } = useColors();
 
   const renderApartmentCard = ({ item }: { item: ApartmentCardProps }) => (
@@ -75,8 +77,7 @@ export default function ApartmentsList({
     if (error) {
       return (
         <EmptyState
-          variant="tenant"
-          icon={<IconAlertCircle size={64} color={colors.primary} />}
+          icon={IconAlertCircle}
           title="Something went wrong"
           description={error}
           action={
@@ -101,8 +102,7 @@ export default function ApartmentsList({
 
       return (
         <EmptyState
-          variant="tenant"
-          icon={<IconSearchOff size={64} color={colors.primary} />}
+          icon={IconSearchOff}
           title="No results found"
           description={description}
           action={
@@ -118,8 +118,7 @@ export default function ApartmentsList({
 
     return (
       <EmptyState
-        variant="tenant"
-        icon={<IconSearchOff size={64} color={colors.primary} />}
+        icon={IconSearchOff}
         title="No apartments available"
         description="We couldn't find any listings. Pull to refresh or try another city."
         action={
@@ -151,6 +150,9 @@ export default function ApartmentsList({
 
   return (
     <FlatList
+      ref={listRef}
+      onScroll={onTabBarScroll}
+      scrollEventThrottle={16}
       key={isGridView ? 'grid' : 'list'}
       style={{ flex: 1 }}
       data={apartments}

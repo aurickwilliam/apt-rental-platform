@@ -21,6 +21,11 @@ interface PaymentSummaryCardProps {
   periodYear?: string;
   status?: "Pending" | "Paid";
   totalRent?: number;
+  // Maintenance fees inside the amount shown (a server bill's fees, or a legacy tenancy's
+  // pending ones), so the tenant can see how much of it is not rent.
+  feesTotal?: number;
+  // An online checkout the tenant started but has not finished; Pay Now opens it for checking.
+  hasPendingPayment?: boolean;
   dueDate?: string | null;
   onPayNowPress?: () => void;
   onViewHistoryPress?: () => void;
@@ -32,6 +37,8 @@ export default function PaymentSummaryCard({
   periodYear = "Year",
   status = "Pending",
   totalRent = 0,
+  feesTotal = 0,
+  hasPendingPayment = false,
   dueDate,
   onPayNowPress,
   onViewHistoryPress,
@@ -74,6 +81,16 @@ export default function PaymentSummaryCard({
           {periodMonth} {periodYear}
           {dueDate ? ` · Due ${dueDate}` : ""}
         </Text>
+        {isPending && hasPendingPayment ? (
+          <Text className="text-white/80 text-sm font-inter">
+            A payment is waiting for confirmation. Tap Pay Now to check it.
+          </Text>
+        ) : null}
+        {isPending && !isFeesOnly && feesTotal > 0 ? (
+          <Text className="text-white/80 text-sm font-inter">
+            Includes {formatPesoDisplay(feesTotal)} in maintenance fees
+          </Text>
+        ) : null}
       </View>
 
       <View className="flex-row items-center gap-4 mt-2">
@@ -92,16 +109,36 @@ export default function PaymentSummaryCard({
           </Button>
         )}
 
-        <Button
-          isIconOnly
-          variant="ghost"
-          size="md"
-          onPress={onViewHistoryPress}
-          className="size-11 rounded-full bg-white/15"
-          accessibilityLabel="View payment history"
-        >
-          <IconHistory size={22} color="#FFFFFF" strokeWidth={2} />
-        </Button>
+        {/* Pending: the history shortcut stays a compact icon beside Pay Now.
+            Paid: nothing else competes for the row, so it expands into an
+            icon-and-label button. */}
+        <View className={isPending ? undefined : "flex-1"}>
+          {isPending ? (
+            <Button
+              isIconOnly
+              variant="ghost"
+              size="md"
+              onPress={onViewHistoryPress}
+              className="size-11 rounded-full bg-white/15"
+              accessibilityLabel="View payment history"
+            >
+              <IconHistory size={22} color="#FFFFFF" strokeWidth={2} />
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="md"
+              onPress={onViewHistoryPress}
+              className="h-11 rounded-full bg-white/15"
+              accessibilityLabel="View payment history"
+            >
+              <IconHistory size={20} color="#FFFFFF" strokeWidth={2} />
+              <Button.Label className="text-white font-nunitoSemiBold">
+                Payment history
+              </Button.Label>
+            </Button>
+          )}
+        </View>
       </View>
     </View>
   );

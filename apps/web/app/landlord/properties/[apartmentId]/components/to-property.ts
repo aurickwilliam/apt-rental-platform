@@ -9,6 +9,7 @@ export function toProperty(apartment: LandlordUnitApartment): Property {
     apartment.apartment_images.find((img) => img.is_cover) ?? apartment.apartment_images[0];
   return {
     id: apartment.id,
+    is_hidden_by_admin: apartment.is_hidden_by_admin,
     name: apartment.name,
     description: apartment.description,
     monthly_rent: apartment.monthly_rent,
@@ -30,6 +31,7 @@ export function toProperty(apartment: LandlordUnitApartment): Property {
     furnished_type: apartment.furnished_type,
     floor_level: apartment.floor_level,
     lease_duration: apartment.lease_duration,
+    has_own_electricity_meter: apartment.has_own_electricity_meter,
     latitude: null,
     longitude: null,
     amenities: apartment.amenities,

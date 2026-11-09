@@ -2,7 +2,7 @@
 
 import { useImperativeHandle, useState, forwardRef } from "react";
 import type { ReactNode } from "react";
-import { InputGroup, Label, Button } from "@heroui/react";
+import { InputGroup, Label, Button, Slider } from "@heroui/react";
 import { IconCheck } from "@tabler/icons-react";
 
 import {
@@ -10,6 +10,7 @@ import {
   BUDGET_PRESETS,
   PREFERENCE_BUDGET_MAX,
   PREFERENCE_BUDGET_MIN,
+  PREFERENCE_BUDGET_STEP,
   matchBudgetPreset,
   orderBudgetRange,
   parseBudgetDraftAmount,
@@ -87,12 +88,12 @@ interface BudgetRangeFieldProps {
   /**
    * "cards" renders the full preset-card grid (onboarding). "compact"
    * renders the current value plus a preset dropdown, revealing the custom
-   * inputs only for custom ranges. Same values, same commit semantics.
+    * slider and typing inputs only for custom ranges. Same values, same commit semantics.
    */
   layout?: "cards" | "compact";
 }
 
-// Budget preset cards + Custom Range numeric inputs. Drafts stay local while
+// Budget preset cards + a Custom Range slider (with numeric inputs in Settings). Drafts stay local while
 // typing and commit (step-snapped + clamped) on blur or Enter, so partial
 // input is never clobbered. Out-of-range sides resolve against each other,
 // so the minimum can never exceed the maximum.
@@ -163,6 +164,34 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
       setBudgetSel(BUDGET_NONE_ID);
       onRangeChange(PREFERENCE_BUDGET_MIN, PREFERENCE_BUDGET_MAX);
     };
+
+    const customSlider = (
+      <Slider
+        className="preference-budget-slider"
+        minValue={PREFERENCE_BUDGET_MIN}
+        maxValue={PREFERENCE_BUDGET_MAX}
+        step={PREFERENCE_BUDGET_STEP}
+        value={[budgetMin, budgetMax]}
+        formatOptions={{ style: "currency", currency: "PHP", maximumFractionDigits: 0 }}
+        onChange={(values) => {
+          if (!Array.isArray(values) || values.length !== 2) return;
+          setMinDraft(null);
+          setMaxDraft(null);
+          setBudgetError(null);
+          onRangeChange(values[0], values[1]);
+        }}
+      >
+        <Label>Monthly rent</Label>
+        <Slider.Output>
+          {() => `₱${budgetMin.toLocaleString("en-PH")} – ₱${budgetMax.toLocaleString("en-PH")}`}
+        </Slider.Output>
+        <Slider.Track>
+          <Slider.Fill />
+          <Slider.Thumb index={0} aria-label="Minimum monthly rent" />
+          <Slider.Thumb index={1} aria-label="Maximum monthly rent" />
+        </Slider.Track>
+      </Slider>
+    );
 
     const customInputs = (
       <>
@@ -258,7 +287,12 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
               }}
             />
           </div>
-          {showCustomInputs && customInputs}
+          {showCustomInputs && (
+            <>
+              {customSlider}
+              {customInputs}
+            </>
+          )}
         </div>
       );
     }
@@ -307,7 +341,7 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
             />
           </div>
         </div>
-        {showCustomInputs && customInputs}
+        {showCustomInputs && customSlider}
       </div>
     );
   },

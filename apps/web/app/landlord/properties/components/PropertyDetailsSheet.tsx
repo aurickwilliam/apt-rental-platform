@@ -16,12 +16,14 @@ import StatusChip from "@/app/components/display/StatusChip";
 import { IconDots as MoreHorizontal, IconPencil as Pencil, IconTrash as Trash2, IconFileText as FileText } from "@tabler/icons-react";
 
 import { createClient as createBrowserClient } from "@repo/supabase/browser";
+import { OWN_ELECTRICITY_METER_DETAIL, OWN_ELECTRICITY_METER_FIELD_LABEL } from "@repo/constants";
 import ApartmentImagesModal from "./modals/ApartmentImagesModal";
 import LeaseAgreementModal from "./modals/LeaseAgreementModal";
 
 import { PERKS } from "../../../components/inputs/perks";
 
 import { STATUS_COLOR } from "./propertyConstants";
+import HiddenListingChip from "./HiddenListingChip";
 import type { Property } from "./propertyTypes";
 import AmenitiesModal from "./modals/AmenitiesModal";
 import DescriptionModal from "./modals/DescriptionModal";
@@ -29,6 +31,7 @@ import EditPropertyModal from "./modals/EditPropertyModal";
 import DeletePropertyModal from "./modals/DeletePropertyModal";
 import { SubmitApartmentVerificationButton } from "./SubmitApartmentVerificationButton";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
+import { propertyStatusLabel } from "@/lib/property-listing-visibility";
 
 type ApartmentImage = {
   id: string;
@@ -96,10 +99,15 @@ export default function PropertyDetailsSheet({
   const [viewingLease, setViewingLease] = useState(false);
 
   const [editModalOpen, setEditModalOpen] = useState(openEditMode);
+  // The drawer's overlay layer owns any dialog opened from inside it. React
+  // sets this once the layer is in the DOM, so the nested dialog never mounts
+  // in the same commit as the drawer (see EditPropertyModal.portalContainer).
+  const [drawerOverlay, setDrawerOverlay] = useState<HTMLDivElement | null>(null);
   const [descriptionModalOpen, setDescriptionModalOpen] = useState(false);
   const [amenitiesModalOpen, setAmenitiesModalOpen] = useState(false);
 
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [verification, setVerification] = useState<{ status: string; rejection_reason: string | null } | null>(null);
 
   const drawerState = useOverlayState({
@@ -134,9 +142,11 @@ export default function PropertyDetailsSheet({
     };
   }, [selected.id]);
 
-  const handleDelete = async () => {
-    if (!selected || deleting) return;
+  /** Resolves true when the property was deleted; false leaves the modal open with the reason. */
+  const handleDelete = async (): Promise<boolean> => {
+    if (!selected || deleting) return false;
     setDeleting(true);
+    setDeleteError(null);
     const supabase = createBrowserClient();
 
     const { error } = await supabase
@@ -148,9 +158,13 @@ export default function PropertyDetailsSheet({
       onDelete(selected.id);
     } else {
       console.error(error);
+      // The database message is user-facing (for example "End the active tenancy
+      // before deleting this property."), so show it as-is.
+      setDeleteError(error.message || "Could not delete this property.");
     }
 
     setDeleting(false);
+    return !error;
   };
 
   const handleEditImages = async (selectedId: string) => {
@@ -220,7 +234,11 @@ export default function PropertyDetailsSheet({
     <>
       <Drawer.Root state={drawerState}>
         <Drawer.Trigger className="hidden" />
-        <Drawer.Backdrop isDismissable={!isAnyModalOpen} className="z-50">
+        <Drawer.Backdrop
+          ref={setDrawerOverlay}
+          isDismissable={!isAnyModalOpen}
+          className="z-50"
+        >
           <Drawer.Content placement="right" className="z-60">
             <Drawer.Dialog className="flex h-full flex-col p-0 w-125 max-w-[90vw]">
               <Drawer.Body className="flex-1 overflow-y-auto p-0">
@@ -246,13 +264,16 @@ export default function PropertyDetailsSheet({
                           </p>
                         </div>
 
-                        <StatusChip
-                          size="sm"
-                          tone={STATUS_COLOR[selected.status] ?? "neutral"}
-                          className="capitalize"
-                        >
-                          {selected.status}
-                        </StatusChip>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <StatusChip
+                            size="sm"
+                            tone={STATUS_COLOR[selected.status] ?? "neutral"}
+                            className="capitalize"
+                          >
+                            {propertyStatusLabel(selected.status)}
+                          </StatusChip>
+                          <HiddenListingChip hidden={selected.is_hidden_by_admin} />
+                        </div>
                       </div>
                     </div>
 
@@ -413,6 +434,7 @@ export default function PropertyDetailsSheet({
                           <ReadOnlyField label="Furnishing" value={selected.furnished_type} />
                           <ReadOnlyField label="Floor Level" value={selected.floor_level} />
                           <ReadOnlyField label="Lease Duration" value={selected.lease_duration} />
+                          {selected.has_own_electricity_meter === true && <ReadOnlyField label={OWN_ELECTRICITY_METER_FIELD_LABEL} value={OWN_ELECTRICITY_METER_DETAIL} />}
                         </div>
                       </section>
 
@@ -532,10 +554,11 @@ export default function PropertyDetailsSheet({
         amenityIds={selected?.amenities}
       />
 
-      {selected && (
+      {selected && drawerOverlay && (
         <EditPropertyModal
           isOpen={editModalOpen}
           property={selected}
+          portalContainer={drawerOverlay}
           onClose={() => setEditModalOpen(false)}
           onSaved={(updated) => {
             onUpdate(updated);
@@ -548,10 +571,13 @@ export default function PropertyDetailsSheet({
         isOpen={deleteConfirmOpen}
         propertyName={selected?.name}
         isDeleting={deleting}
-        onClose={() => setDeleteConfirmOpen(false)}
-        onConfirm={async () => {
-          await handleDelete();
+        error={deleteError}
+        onClose={() => {
           setDeleteConfirmOpen(false);
+          setDeleteError(null);
+        }}
+        onConfirm={async () => {
+          if (await handleDelete()) setDeleteConfirmOpen(false);
         }}
       />
     </>

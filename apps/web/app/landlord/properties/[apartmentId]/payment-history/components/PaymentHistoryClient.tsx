@@ -20,6 +20,7 @@ import PaymentHistoryFilters from "@/app/tenant/payment/components/PaymentHistor
 import PropertyPaymentHistoryShell from "./PropertyPaymentHistoryShell";
 import RouteLoadingStatus from "@/app/components/display/RouteLoadingStatus";
 import { useAuthIdentity } from "@/hooks/use-auth-identity";
+import EmptyState from "@/app/components/display/EmptyState";
 
 function toYear(payment: PaymentRecord): string {
   const src = payment.period_start ?? payment.date;
@@ -126,18 +127,17 @@ function PaymentHistoryContent({
           <Button variant="secondary" size="sm" isDisabled={paymentsQuery.revalidating} onPress={() => void paymentsQuery.refresh()}>Try Again</Button>
         </div>
       ) : filtered.length === 0 ? (
-        <Card className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-          <Card.Content className="py-16 flex flex-col items-center gap-3 text-center">
-            <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 p-5">
-              <Receipt size={32} className="text-primary" />
-            </span>
-            <p className="text-base font-nunito font-bold text-zinc-900 dark:text-zinc-100">No payments found</p>
-            <p className="text-sm text-zinc-500 max-w-sm">Payments for this unit will appear here.</p>
+        <EmptyState
+          framed
+          icon={Receipt}
+          title="No payments found"
+          description="Payments for this unit will appear here."
+          action={
             <Button variant="secondary" size="sm" onPress={() => setFilters({ years: [], statuses: [], sort: "Newest" })}>
               Clear filters
             </Button>
-          </Card.Content>
-        </Card>
+          }
+        />
       ) : (
         <div className="space-y-6">
           {grouped.map(([year, payments]) => (

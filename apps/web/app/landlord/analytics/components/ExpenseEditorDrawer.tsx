@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { parseDate } from "@internationalized/date";
 import {
   Button,
@@ -38,7 +38,7 @@ import FinanceDrawer from "./FinanceDrawer";
 
 const EXPENSE_CATEGORY_OPTIONS = budgetCategoryOptions("expense");
 /** Matches the shared rule: expenses can be dated from 2000 onwards. */
-const MIN_EXPENSE_DATE = "2000-01-01";
+const MIN_EXPENSE_DATE = parseDate("2000-01-01");
 
 /** The draft is kept as an ISO string; only a real calendar date reaches the picker. */
 function toCalendarDate(value: string) {
@@ -90,6 +90,7 @@ export default function ExpenseEditorDrawer({
   onClose,
 }: ExpenseEditorDrawerProps) {
   const today = manilaToday();
+  const latestExpenseDate = useMemo(() => parseDate(today), [today]);
   const busy = saving.pending || removing.pending;
   // A new expense starts without a property unless the report is scoped to one.
   const [property, setProperty] = useState(
@@ -311,8 +312,8 @@ export default function ExpenseEditorDrawer({
           className="flex w-full flex-col gap-1"
           value={parsedDate}
           onChange={(value) => setDate(value ? value.toString() : "")}
-          minValue={parseDate(MIN_EXPENSE_DATE)}
-          maxValue={parseDate(today)}
+          minValue={MIN_EXPENSE_DATE}
+          maxValue={latestExpenseDate}
           isInvalid={submitted && !!dateError}
           isDisabled={busy}
           isRequired
@@ -335,7 +336,8 @@ export default function ExpenseEditorDrawer({
           </DateField.Group>
           <FieldError>{dateError}</FieldError>
           <DatePicker.Popover>
-            <Calendar aria-label="Date paid">
+            {/* Set here too: HeroUI's Calendar default limits override the DatePicker's. */}
+            <Calendar aria-label="Date paid" minValue={MIN_EXPENSE_DATE} maxValue={latestExpenseDate}>
               <Calendar.Header>
                 <Calendar.YearPickerTrigger className="cursor-pointer">
                   <Calendar.YearPickerTriggerHeading />

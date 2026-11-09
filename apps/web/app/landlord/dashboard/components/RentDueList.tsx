@@ -2,7 +2,7 @@ import Link from "next/link";
 import { IconCalendarCheck } from "@tabler/icons-react";
 import { formatDate, formatPesoDisplay, type RentDue } from "@repo/utils";
 import StatusChip from "@/app/components/display/StatusChip";
-import ChartEmptyState from "./ChartEmptyState";
+import EmptyState from "@/app/components/display/EmptyState";
 
 const MAX_ROWS = 8;
 
@@ -27,7 +27,7 @@ export default function RentDueList({ rentDues, className = "" }: Props) {
       </div>
 
       {rentDues.length === 0 ? (
-        <ChartEmptyState
+        <EmptyState
           icon={IconCalendarCheck}
           title="No upcoming rent dues"
           description="You're all caught up. New dues appear here as they come due."

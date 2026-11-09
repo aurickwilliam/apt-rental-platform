@@ -23,6 +23,10 @@ export const auth: Record<keyof typeof enAuth, string> = {
   "auth.signIn.action": "Mag-sign in",
   "auth.signUp.action": "Mag-sign up",
 
+  "auth.error.emailNotRegistered": "Wala kaming nakitang account sa email address na iyan.",
+  "auth.error.googleAccount":
+    "Naka-link ang email na ito sa Google account. Mag-sign in gamit ang Google.",
+  "auth.error.captchaFailed": "Hindi nagtagumpay ang security check. Subukan ulit.",
   "auth.error.invalidOrExpiredCode":
     "Mali o expired na ang code. I-check ang code o humingi ng bago.",
   "auth.error.wrongCurrentPassword": "Mali ang current password mo.",

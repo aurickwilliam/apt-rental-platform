@@ -19,6 +19,10 @@ function compile(file, modules) {
 function database(results) {
   const calls = [];
   const client = {
+    rpc: async (name) => {
+      assert.equal(name,'get_effective_lease_terms');
+      return {data:null,error:{code:'PGRST202',message:'Renewal schema not installed'}};
+    },
     from(table) {
       const call = { table, filters: [], orders: [] };
       calls.push(call);
@@ -42,7 +46,9 @@ const active = { id: "lease-a", apartment: { id: "apt-a", name: "Unit A" }, stat
 function tenancyService(client) {
   return compile("../service/tenancyService.ts", {
     "@repo/supabase/browser": { createClient: () => client },
-    "./tenancy-context": compile("../service/tenancy-context.ts", {}),
+    "./tenancy-context": compile("../service/tenancy-context.ts", {
+      '@repo/utils':compile('../../../packages/utils/src/effectiveLeaseTerms.ts',{}),
+    }),
   });
 }
 
@@ -106,11 +112,15 @@ test("Maintenance page uses the independent context and shares its tenant identi
     const jsx = (type, props) => ({ type, props });
     const page = compile("../app/tenant/maintenance/MaintenanceClient.tsx", {
       "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
+      react: { useState: (value) => [value, () => {}], useEffect: () => {} },
+      "@heroui/react": { Button: "Button" },
       "@tabler/icons-react": { IconTool: "Tool" },
-      "./components/PropertyContextCard": { default: "PropertyContextCard" },
-      "./components/MaintenanceForm": { default: "MaintenanceForm" },
+      "./components/MaintenanceRequestModal": { default: "MaintenanceRequestModal" },
+      "./components/MaintenanceOverview": { default: "MaintenanceOverview" },
+      "@/hooks/use-maintenance-overview": { useMaintenanceOverview: () => ({ data: null, loading: true }) },
       "./components/MaintenanceHistory": { default: "MaintenanceHistory" },
       "./components/MaintenancePageSkeleton": { default: "MaintenancePageSkeleton" },
+      "@/app/components/display/EmptyState": { default: "EmptyState" },
       "@/app/components/display/ErrorBanner": { default: "ErrorBanner" },
       "@/hooks/use-maintenance-tenancy": { useMaintenanceTenancy: () => state },
       "@/hooks/use-maintenance-request-history": { useMaintenanceRequestHistory: (...args) => { historyReads.push(args); return { requests: [] }; } },
@@ -120,11 +130,11 @@ test("Maintenance page uses the independent context and shares its tenant identi
     const boundary = page.default({ initial: {} });
     const content = boundary.props.children(undefined);
     const tree = nodes(content.type(content.props));
-    assert.deepEqual(historyReads, [[state.tenancy ? "apt-a" : null, "tenant-a", false, undefined]]);
+    assert.deepEqual(historyReads, [[state.tenancy ? "apt-a" : null, "tenant-a", false, undefined, true]]);
     assert.equal(tree.some((node) => node.type === "MaintenancePageSkeleton"), state.loading);
     assert.equal(tree.some((node) => node.type === "ErrorBanner"), !!state.error);
-    assert.equal(tree.some((node) => node.type === "PropertyContextCard"), !!state.tenancy);
-    assert.equal(tree.some((node) => node.type === "MaintenanceForm"), !!state.tenancy);
+    assert.equal(tree.some((node) => node.type === "MaintenanceRequestModal"), !!state.tenancy);
+    assert.equal(tree.some((node) => node.type === "MaintenanceOverview"), !!state.tenancy);
   }
 });
 
@@ -141,6 +151,7 @@ test("maintenance history reuses supplied identity, but omitted identity still f
       } },
       "@/service/favoritesService": { getTenantContext: async () => { contexts++; return { tenantId: "tenant-a" }; } },
       "@/service/maintenanceService": { fetchMaintenanceRequestHistory: async (...args) => { reads.push(args); return []; } },
+      "@/service/tenantMaintenanceService": {},
     });
     hook.useMaintenanceRequestHistory("apt-a", suppliedId);
     await load();

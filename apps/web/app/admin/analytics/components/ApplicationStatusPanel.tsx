@@ -5,6 +5,8 @@ import type { ChartConfig } from "@/components/ui/chart";
 import type { ApplicationStatusCounts } from "../types";
 import Panel from "./Panel";
 import StatusDonut from "./StatusDonut";
+import EmptyState from "@/app/components/display/EmptyState";
+import { IconClipboardList, IconAlertCircle } from "@tabler/icons-react";
 
 const applicationStatusConfig = {
   pending: { label: "Pending", color: COLORS.light.warning },
@@ -38,12 +40,13 @@ export default function ApplicationStatusPanel({
       description="Current status of all rental applications · not limited to the selected reporting period."
     >
       {applicationStatus === null ? (
-        <p
-          className="mt-5 rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground"
-          role="status"
-        >
-          Application status is unavailable. Refresh and try again.
-        </p>
+        <EmptyState
+          framed
+          className="mt-5 py-8"
+          icon={IconAlertCircle}
+          title="Application status is unavailable"
+          description="Refresh and try again."
+        />
       ) : applicationStatus.total ? (
         <StatusDonut
           data={applicationSlices}
@@ -53,12 +56,13 @@ export default function ApplicationStatusPanel({
           showPercent
         />
       ) : (
-        <p
-          className="mt-5 rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground"
-          role="status"
-        >
-          No rental applications yet.
-        </p>
+        <EmptyState
+          framed
+          className="mt-5 py-8"
+          icon={IconClipboardList}
+          title="No rental applications yet"
+          description="Applications will appear here once tenants apply."
+        />
       )}
     </Panel>
   );

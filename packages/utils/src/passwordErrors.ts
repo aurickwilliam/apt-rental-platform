@@ -6,9 +6,12 @@ import { translate, type LanguageCode, type TranslationKey } from "@repo/i18n";
 
 export type PasswordErrorReason =
   | "invalid_email"
+  | "email_not_registered"
+  | "google_account"
   | "invalid_or_expired_code"
   | "wrong_current_password"
   | "rate_limited"
+  | "captcha_failed"
   | "same_password"
   | "weak_password"
   | "session_expired"
@@ -18,9 +21,12 @@ export type PasswordErrorReason =
 
 const PASSWORD_ERROR_KEYS: Record<PasswordErrorReason, TranslationKey> = {
   invalid_email: "validation.email.invalid",
+  email_not_registered: "auth.error.emailNotRegistered",
+  google_account: "auth.error.googleAccount",
   invalid_or_expired_code: "auth.error.invalidOrExpiredCode",
   wrong_current_password: "auth.error.wrongCurrentPassword",
   rate_limited: "auth.error.rateLimited",
+  captcha_failed: "auth.error.captchaFailed",
   same_password: "auth.error.samePassword",
   weak_password: "auth.error.weakPassword",
   // Only the recovery session expires mid-flow, so the wording is recovery's.
@@ -74,6 +80,7 @@ export function toPasswordErrorReason(error: unknown): PasswordErrorReason {
   if (code && INVALID_CODE_ERRORS.has(code)) return "invalid_or_expired_code";
   if (code === "invalid_credentials") return "wrong_current_password";
   if ((code && RATE_LIMIT_ERRORS.has(code)) || status === RATE_LIMIT_STATUS) return "rate_limited";
+  if (code === "captcha_failed") return "captcha_failed";
   if (code === "same_password") return "same_password";
   if (code === "weak_password" || name === "AuthWeakPasswordError") return "weak_password";
   if (code === "reauthentication_needed") return "reauthentication_required";

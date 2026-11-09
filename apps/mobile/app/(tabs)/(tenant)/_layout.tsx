@@ -1,11 +1,13 @@
 import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { Tabs } from 'expo-router';
+import { useMemo } from 'react';
 import { Platform } from 'react-native';
 
 import {
   IconBed,
   IconSearch,
   IconMessageCircle,
+  IconMessageCircleFilled,
   IconUser,
   IconBedFilled,
   IconUserFilled
@@ -15,6 +17,8 @@ import { useTranslation } from "hooks/i18n";
 import { useColors } from "hooks/useTheme";
 
 import { CustomTabBar, type CustomTabConfig } from '@/components/layout/CustomTabBar';
+import { TabBarVisibilityProvider } from '@/components/layout/TabBarVisibilityContext';
+import { useUnreadChatCount } from '@/hooks/chat';
 
 const TENANT_TABS: CustomTabConfig[] = [
   {
@@ -33,7 +37,7 @@ const TENANT_TABS: CustomTabConfig[] = [
     name: 'chat',
     labelKey: 'nav.chat',
     icon: IconMessageCircle,
-    iconFilled: IconMessageCircle
+    iconFilled: IconMessageCircleFilled
   },
   {
     name: 'profile',
@@ -45,26 +49,38 @@ const TENANT_TABS: CustomTabConfig[] = [
 
 export default function TenantTabLayout() {
   const { colors } = useColors();
+  // Owns the tenant chat list's realtime channel (the Chat screen reads it with subscribe: false).
+  const unreadChats = useUnreadChatCount('tenant');
   const { t } = useTranslation();
+
+  const tabs = useMemo(
+    () =>
+      TENANT_TABS.map((tab) =>
+        tab.name === 'chat' ? { ...tab, badge: unreadChats } : tab
+      ),
+    [unreadChats]
+  );
 
   if (Platform.OS === 'android') {
     return (
-      <Tabs
-        screenOptions={{
-          headerShown: false,
-          tabBarStyle: {
-            position: 'absolute',
-            backgroundColor: 'transparent',
-            borderTopWidth: 0,
-            elevation: 0
-          },
-        }}
-        tabBar={(props) => <CustomTabBar {...props} tabs={TENANT_TABS} />}
-      >
-        {TENANT_TABS.map((tab) => (
-          <Tabs.Screen key={tab.name} name={tab.name} />
-        ))}
-      </Tabs>
+      <TabBarVisibilityProvider>
+        <Tabs
+          screenOptions={{
+            headerShown: false,
+            tabBarStyle: {
+              position: 'absolute',
+              backgroundColor: 'transparent',
+              borderTopWidth: 0,
+              elevation: 0
+            },
+          }}
+          tabBar={(props) => <CustomTabBar {...props} tabs={tabs} />}
+        >
+          {TENANT_TABS.map((tab) => (
+            <Tabs.Screen key={tab.name} name={tab.name} />
+          ))}
+        </Tabs>
+      </TabBarVisibilityProvider>
     );
   }
 

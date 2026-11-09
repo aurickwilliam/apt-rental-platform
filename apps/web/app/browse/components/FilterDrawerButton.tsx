@@ -26,12 +26,21 @@ type Props = {
   basePath?: string;
   /** Passed to the filter panel; see FilterContainer. */
   navigate?: (href: string) => void;
+  /** The search bar embeds the entry as a quiet ghost button. */
+  variant?: "tertiary" | "ghost";
+  size?: "md" | "lg";
 };
 
 // Self-contained filter entry: compact button with active-count badge plus its
 // drawer (bottom sheet on phones, right-hand panel from md up). Rendered inside
 // the search row at every size; it is the only way to the filters.
-export default function FilterDrawerButton({ resultCount, basePath = "/browse", navigate }: Props) {
+export default function FilterDrawerButton({
+  resultCount,
+  basePath = "/browse",
+  navigate,
+  variant = "tertiary",
+  size = "lg",
+}: Props) {
   const isMobile = useIsMobile();
   const searchParams = useSearchParams();
   const { t } = useTranslation();
@@ -55,10 +64,10 @@ export default function FilterDrawerButton({ resultCount, basePath = "/browse", 
   return (
     <>
       <Button
-        variant="tertiary"
-        size="lg"
+        variant={variant}
+        size={size}
         isIconOnly
-        className="relative shrink-0"
+        className="relative shrink-0 cursor-pointer"
         onPress={() => setIsOpen(true)}
         aria-label={t("browse.filters.open")}
       >
@@ -78,7 +87,7 @@ export default function FilterDrawerButton({ resultCount, basePath = "/browse", 
                 className={
                   isMobile
                     ? "flex max-h-[85dvh] w-full flex-col rounded-t-2xl p-0"
-                    : "flex h-full w-105 max-w-[90vw] flex-col p-0"
+                    : "flex h-full w-105 max-w-[90vw] flex-col overflow-hidden rounded-l-2xl p-0"
                 }
               >
                 {isMobile ? (

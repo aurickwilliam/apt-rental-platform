@@ -26,11 +26,15 @@ export interface MapApartment {
  * Uses direct column filters — no PostGIS required for MVP.
  * For production with PostGIS, swap to `rpc('apartments_in_bbox', bbox)`.
  */
-export async function fetchApartmentsInBbox(bbox: BBox, limit = 100): Promise<MapApartment[]> {
+export async function fetchApartmentsInBbox(
+  bbox: BBox,
+  limit = 100,
+  search = '',
+): Promise<MapApartment[]> {
   const { minLng, minLat, maxLng, maxLat } = bbox;
 
   // Normalize: handle antimeridian not needed for PH (120-121E)
-  const { data, error } = await supabase
+  let query = supabase
     .from('apartments')
     .select(
       `
@@ -65,6 +69,14 @@ export async function fetchApartmentsInBbox(bbox: BBox, limit = 100): Promise<Ma
     .lte('longitude', maxLng)
     .limit(limit);
 
+  // Same name / barangay / city match as the Search tab. Commas and brackets
+  // are separators in a PostgREST `or` filter, so they cannot be part of a term.
+  const term = search.replace(/[,()]/g, ' ').trim();
+  if (term) {
+    query = query.or(`name.ilike.%${term}%,barangay.ilike.%${term}%,city.ilike.%${term}%`);
+  }
+
+  const { data, error } = await query;
   if (error) throw new Error(error.message);
 
   return (data ?? []).map((apt: any) => {

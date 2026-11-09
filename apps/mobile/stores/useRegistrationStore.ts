@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import type { RegistrationAcceptance } from '@/service/auth/registrationAcceptance';
+import type { ProfileDetailsRow } from '@/hooks/auth/useProfileDetailsForm';
 
 type RegistrationData = {
   // From CompleteProfile
@@ -22,6 +24,8 @@ type RegistrationData = {
 
   // From VerifyMobile
   mobileNumber: string;
+  acceptance: RegistrationAcceptance;
+  profileDetails: ProfileDetailsRow;
 }
 
 type RegistrationStore = {

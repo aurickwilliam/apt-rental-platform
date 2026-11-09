@@ -5,6 +5,7 @@ import { usePasswordValidation } from "@repo/hooks";
 import { useProfileDetailsForm } from "./useProfileDetailsForm";
 import { useSignUpProfile } from "./useSignUpProfile";
 import { useRegistrationStore } from "@/stores/useRegistrationStore";
+import { emptyRegistrationAcceptance } from "@/service/auth/registrationAcceptance";
 
 const mockPush = jest.fn();
 const mockBack = jest.fn();
@@ -48,6 +49,8 @@ function fillValid(hook: () => ReturnType<typeof setup>["result"]["current"], pa
     form.postal.onChange("1400");
     passwords.setPassword(password);
     passwords.setConfirmPassword(password);
+    hook().flow.policies.setAccepted("privacyAccepted", true);
+    hook().flow.policies.setAccepted("termsAccepted", true);
   });
 }
 
@@ -78,6 +81,7 @@ describe("useSignUpProfile", () => {
       email: "a@example.test",
       password: "Passw0rd!",
       fullName: "Ana Lim Jr.",
+      acceptance: { ...emptyRegistrationAcceptance(), termsAccepted: true, privacyAccepted: true },
     });
     expect(useRegistrationStore.getState().data).toMatchObject({
       email: "a@example.test",
@@ -87,6 +91,8 @@ describe("useSignUpProfile", () => {
       mobileNumber: "09171234567",
       password: "Passw0rd!",
       userSide: "landlord",
+      acceptance: { ...emptyRegistrationAcceptance(), termsAccepted: true, privacyAccepted: true },
+      profileDetails: expect.objectContaining({ first_name: "Ana", suffix: "Jr.", mobile_number: "09171234567" }),
     });
     expect(mockPush).toHaveBeenCalledWith({
       pathname: "/(auth)/otp-verification",
@@ -114,5 +120,30 @@ describe("useSignUpProfile", () => {
 
     expect(useRegistrationStore.getState().data).toEqual({});
     expect(mockBack).toHaveBeenCalled();
+  });
+
+  it("requires both policies even if submit is called directly", async () => {
+    const { result } = setup();
+    fillValid(() => result.current);
+    act(() => result.current.flow.policies.setAccepted("termsAccepted", false));
+    await act(async () => { await result.current.flow.submit(); });
+    expect(mockRequestSignUpCode).not.toHaveBeenCalled();
+    expect(result.current.flow.policies.errors.termsAccepted).toBeTruthy();
+    expect(useRegistrationStore.getState().data).toEqual({});
+  });
+
+  it("does not request twice or revive the draft after leaving during a code request", async () => {
+    let resolveRequest!: () => void;
+    mockRequestSignUpCode.mockImplementation(() => new Promise<void>((resolve) => { resolveRequest = resolve; }));
+    const { result } = setup();
+    fillValid(() => result.current);
+    let request!: Promise<void>;
+    act(() => { request = result.current.flow.submit(); });
+    await act(async () => { await result.current.flow.submit(); });
+    expect(mockRequestSignUpCode).toHaveBeenCalledTimes(1);
+    act(() => result.current.flow.goBack());
+    await act(async () => { resolveRequest(); await request; });
+    expect(useRegistrationStore.getState().data).toEqual({});
+    expect(mockPush).not.toHaveBeenCalled();
   });
 });

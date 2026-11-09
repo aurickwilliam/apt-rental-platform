@@ -7,9 +7,11 @@ import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import {
   BROWSE_BODY_CLASS,
   BROWSE_GRID_CLASS,
-  BROWSE_HERO_CLASS,
-  BROWSE_SEARCH_ROW_CLASS,
+  BROWSE_GRID_WITH_RAIL_CLASS,
+  BROWSE_HEADER_CLASS,
+  BROWSE_RAIL_CLASS,
   browseFrameClass,
+  browseRailCardClass,
 } from "../lib/browse-layout";
 
 // Title/location widths cycle so a row of placeholders reads as real listings
@@ -62,7 +64,8 @@ function SectionSkeleton({ sectionIndex }: { sectionIndex: number }) {
         <Skeleton className="h-5 w-40 rounded-md sm:w-48" />
         <Skeleton className="h-4 w-16 rounded-md" />
       </div>
-      <div className="flex gap-3 overflow-hidden pb-2 sm:gap-4">
+      {/* Bleeds past the page padding like the loaded row, so nothing shifts. */}
+      <div className="-mx-4 flex gap-3 overflow-hidden px-4 pb-2 sm:-mx-6 sm:gap-4 sm:px-6">
         {Array.from({ length: 5 }, (_, i) => (
           <div key={i} className="w-44 shrink-0 sm:w-56">
             <CardSkeleton index={sectionIndex + i} />
@@ -136,24 +139,27 @@ export function FilterPanelSkeleton() {
   );
 }
 
-// The filter entry sits in the search row at every size. This placeholder keeps
-// the row geometry until it is ready, without claiming a result count.
-// Translucent white so it reads on the primary hero it sits in.
+// The filter entry sits inside the search bar at every size. This placeholder
+// keeps the bar's geometry until it is ready, without claiming a result count.
 export function FilterEntrySkeleton() {
-  return <Skeleton className="size-11 shrink-0 rounded-full bg-white/30!" aria-hidden="true" />;
+  return <Skeleton className="size-9 shrink-0 rounded-full" aria-hidden="true" />;
 }
 
-// Search hero placeholder: the same primary banner as the loaded page, with
-// shimmer in place of the headline, tagline and search pill so nothing
-// interactive appears before it works.
-function BrowseHeroSkeleton({ withFilterEntry = false }: { withFilterEntry?: boolean }) {
+// Search header placeholder: the heading and tagline lines (md and up), the
+// search bar and the city chips, in the loaded header's exact heights so
+// nothing shifts when the page streams in.
+function BrowseHeaderSkeleton() {
   return (
-    <div aria-hidden="true" className={BROWSE_HERO_CLASS}>
-      <Skeleton className="mx-auto hidden h-[30px] w-3/4 max-w-md rounded-lg bg-white/30! sm:h-[37.5px] md:block lg:h-[45px]" />
-      <Skeleton className="mx-auto hidden h-5 w-full max-w-lg rounded-md bg-white/20! md:block" />
-      <div className={BROWSE_SEARCH_ROW_CLASS}>
-        <Skeleton className="h-[38px] min-w-0 flex-1 rounded-full bg-white/60!" />
-        {withFilterEntry ? <FilterEntrySkeleton /> : null}
+    <div aria-hidden="true" className={BROWSE_HEADER_CLASS}>
+      <div className="hidden md:block">
+        <Skeleton className="h-[30px] w-60 rounded-lg sm:h-[37.5px]" />
+        <Skeleton className="mt-1 h-5 w-full max-w-md rounded-md" />
+      </div>
+      <Skeleton className="h-12 w-full rounded-full" />
+      <div className="flex gap-2 py-0.5">
+        {["w-20", "w-20", "w-20", "w-20", "w-24"].map((width, i) => (
+          <Skeleton key={i} className={`h-8 shrink-0 ${width} rounded-full`} />
+        ))}
       </div>
     </div>
   );
@@ -172,8 +178,24 @@ export function BrowseResultsGridSkeleton() {
       <div aria-hidden="true" className="mb-3 flex h-8 items-center">
         <Skeleton className="h-5 w-24 rounded-md" />
       </div>
-      <BrowseCardsSkeleton />
+      <BrowseCardsSkeleton className={BROWSE_GRID_WITH_RAIL_CLASS} />
     </>
+  );
+}
+
+// The filter rail's placeholder beside searched / filtered / paged results (md
+// and up): the card with its "Filters" header and the drawer panel's placeholder.
+export function BrowseFilterRailSkeleton({ fullWidth = false }: { fullWidth?: boolean }) {
+  return (
+    <div aria-hidden="true" className={BROWSE_RAIL_CLASS}>
+      <div className={browseRailCardClass(fullWidth)}>
+        <div className="flex items-center gap-2 border-b border-divider px-4 py-3">
+          <Skeleton className="size-4 rounded" />
+          <Skeleton className="h-5 w-16 rounded-md" />
+        </div>
+        <FilterPanelSkeleton />
+      </div>
+    </div>
   );
 }
 
@@ -181,9 +203,10 @@ export function BrowseResultsGridSkeleton() {
 export function BrowseResultsPageSkeleton({ fullWidth = false }: BrowsePageSkeletonProps) {
   return (
     <div className={browseFrameClass(fullWidth)} aria-busy="true">
-      <BrowseHeroSkeleton withFilterEntry />
+      <BrowseHeaderSkeleton />
 
       <div className={BROWSE_BODY_CLASS}>
+        <BrowseFilterRailSkeleton fullWidth={fullWidth} />
         <div className="w-full min-w-0 flex-1 rounded-lg p-0">
           <BrowseResultsGridSkeleton />
         </div>
@@ -198,7 +221,7 @@ export function BrowseResultsPageSkeleton({ fullWidth = false }: BrowsePageSkele
 export default function BrowsePageSkeleton({ fullWidth = false }: BrowsePageSkeletonProps) {
   return (
     <div className={browseFrameClass(fullWidth)} aria-busy="true">
-      <BrowseHeroSkeleton withFilterEntry />
+      <BrowseHeaderSkeleton />
 
       <div className={BROWSE_BODY_CLASS}>
         <div className="w-full min-w-0 flex-1 rounded-lg p-0">

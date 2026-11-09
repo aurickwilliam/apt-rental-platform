@@ -4,6 +4,7 @@ import { AppSidebar, MobileSidebarNavigation } from "../components/layout/AppSid
 import SettingsOverlay from "../components/settings/SettingsOverlay";
 import NotificationsOverlay from "../components/notifications/NotificationsOverlay";
 import DraggableNotificationBell from "../components/notifications/DraggableNotificationBell";
+import TutorialTour from "../components/tutorial/TutorialTour";
 import { getServerIdentity } from "@/lib/server-identity";
 import { hasActiveTenancyAsLandlord } from "@/lib/landlord-active-tenancy";
 
@@ -18,14 +19,14 @@ const PASSPORT_HREF = "/landlord/passport";
 const ANALYTICS_HREF = "/landlord/analytics";
 
 const LANDLORD_NAV = [
-  { href: "/landlord/dashboard", labelKey: "nav.dashboard", icon: "LayoutDashboard", prefetchOnIntent: true, sectionKey: "nav.section.overview" },
-  { href: "/landlord/properties", labelKey: "nav.properties", icon: "Building", activityKey: "properties", prefetchOnIntent: true, sectionKey: "nav.section.rentals" },
-  { href: "/landlord/applications", labelKey: "nav.applications", icon: "FileCheck", activityKey: "applications", prefetchOnIntent: true, sectionKey: "nav.section.rentals" },
-  { href: "/landlord/maintenance-requests", labelKey: "nav.maintenance", icon: "Tool", activityKey: "maintenance", prefetchOnIntent: true, sectionKey: "nav.section.rentals" },
-  { href: "/landlord/messages", labelKey: "nav.messages", icon: "Messages", activityKey: "messages", sectionKey: "nav.section.rentals" },
-  { href: "/landlord/payments", labelKey: "nav.payments", icon: "CashBanknote", activityKey: "payments", prefetchOnIntent: true, sectionKey: "nav.section.finance" },
-  { href: ANALYTICS_HREF, labelKey: "nav.analytics", icon: "ChartBar", prefetchOnIntent: true, sectionKey: "nav.section.finance" },
-  { href: PASSPORT_HREF, labelKey: "nav.passport", icon: "ShieldCheck", activityKey: "passport", sectionKey: "nav.section.verification" },
+  { href: "/landlord/dashboard", labelKey: "nav.dashboard", icon: "LayoutDashboard", tourKey: "nav-dashboard", prefetchOnIntent: true, sectionKey: "nav.section.overview" },
+  { href: "/landlord/properties", labelKey: "nav.properties", icon: "Building", activityKey: "properties", tourKey: "nav-properties", prefetchOnIntent: true, sectionKey: "nav.section.rentals" },
+  { href: "/landlord/applications", labelKey: "nav.applications", icon: "FileCheck", activityKey: "applications", tourKey: "nav-applications", prefetchOnIntent: true, sectionKey: "nav.section.rentals" },
+  { href: "/landlord/maintenance-requests", labelKey: "nav.maintenance", icon: "Tool", activityKey: "maintenance", tourKey: "nav-maintenance", prefetchOnIntent: true, sectionKey: "nav.section.rentals" },
+  { href: "/landlord/messages", labelKey: "nav.messages", icon: "Messages", activityKey: "messages", tourKey: "nav-messages", sectionKey: "nav.section.rentals" },
+  { href: "/landlord/payments", labelKey: "nav.payments", icon: "CashBanknote", activityKey: "payments", tourKey: "nav-payments", prefetchOnIntent: true, sectionKey: "nav.section.finance" },
+  { href: ANALYTICS_HREF, labelKey: "nav.analytics", icon: "ChartBar", tourKey: "nav-analytics", prefetchOnIntent: true, sectionKey: "nav.section.finance" },
+  { href: PASSPORT_HREF, labelKey: "nav.passport", icon: "ShieldCheck", activityKey: "passport", tourKey: "nav-passport", sectionKey: "nav.section.verification" },
 ] as const;
 
 // Landlord tools stay closed until the account is verified; the one entry
@@ -36,8 +37,8 @@ const UNVERIFIED_NAV = [
 
 // A running tenancy keeps the two screens it needs.
 const TENANCY_NAV = [
-  { href: "/landlord/maintenance-requests", labelKey: "nav.maintenance", icon: "Tool", sectionKey: "nav.section.currentTenancy" },
-  { href: "/landlord/payments", labelKey: "nav.payments", icon: "CashBanknote", sectionKey: "nav.section.currentTenancy" },
+  { href: "/landlord/maintenance-requests", labelKey: "nav.maintenance", icon: "Tool", tourKey: "nav-maintenance", sectionKey: "nav.section.currentTenancy" },
+  { href: "/landlord/payments", labelKey: "nav.payments", icon: "CashBanknote", tourKey: "nav-payments", sectionKey: "nav.section.currentTenancy" },
 ] as const;
 
 export default async function DashboardLayout({
@@ -52,6 +53,7 @@ export default async function DashboardLayout({
   let userRoles: string[] = ["landlord"];
   let userAvatarUrl: string | null = null;
   let accountStatus: string | null = null;
+  let profileId: string | null = null;
   let hasActiveTenancy = false;
 
   try {
@@ -63,6 +65,7 @@ export default async function DashboardLayout({
       if (profile?.roles && profile.roles.length > 0) userRoles = profile.roles;
       userAvatarUrl = profile?.avatar_url ?? null;
       accountStatus = profile?.account_status ?? null;
+      profileId = profile?.id ?? null;
       if (profile && isLandlordAccessBlocked(profile.roles ?? [], accountStatus)) {
         hasActiveTenancy = await hasActiveTenancyAsLandlord(supabase, profile.id);
       }
@@ -121,6 +124,9 @@ export default async function DashboardLayout({
       <Suspense fallback={null}>
         <NotificationsOverlay activePortal="landlord" />
       </Suspense>
+      {profileId ? (
+        <TutorialTour portal="landlord" profileId={profileId} accountStatus={accountStatus} />
+      ) : null}
     </div>
   );
 }

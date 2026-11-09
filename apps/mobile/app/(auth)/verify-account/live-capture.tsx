@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { CameraView } from 'expo-camera'
 import { Image } from 'expo-image'
 
-import { Button, CloseButton } from 'heroui-native'
+import { Button, CloseButton, Switch } from 'heroui-native'
 
 import { IconChevronLeft } from '@tabler/icons-react-native'
 
@@ -47,14 +47,17 @@ export default function LiveCapture() {
   // The reserved "selfie" step id reuses this screen with a front-camera,
   // circular guide (see SELFIE_STEP); every other stepId resolves against the
   // selected ID type's capture sequence.
+  const isSelfie = stepId === SELFIE_STEP.id;
   const captureStep =
-    stepId === SELFIE_STEP.id ? SELFIE_STEP : getCaptureSequence(idType ?? null).find((step) => step.id === stepId);
+    isSelfie ? SELFIE_STEP : getCaptureSequence(idType ?? null).find((step) => step.id === stepId);
 
   const { state: permissionState, requestPermission, openSettings } = useCameraPermission();
 
   const cameraRef = useRef<CameraView>(null);
   const [cameraReady, setCameraReady] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [mirrorEnabled, setMirrorEnabled] = useState(false);
+  const mirrorCapture = isSelfie && mirrorEnabled;
 
   const [screenState, setScreenState] = useState<ScreenState>('preview');
   const [capturedPhoto, setCapturedPhoto] = useState<CapturedPhoto | null>(null);
@@ -70,8 +73,9 @@ export default function LiveCapture() {
 
   const resetCameraLifecycleState = useCallback(() => {
     setCameraReady(false);
+    setMirrorEnabled(false);
     isCapturingRef.current = false;
-  }, [setCameraReady]);
+  }, [setCameraReady, setMirrorEnabled]);
 
   const handleMountError = useCallback(
     (event: { message: string }) => {
@@ -108,14 +112,10 @@ export default function LiveCapture() {
       const viewHeight = previewSize?.height ?? viewportHeight;
       const frame = computeGuidedFrameRect(viewWidth, viewHeight, captureStep?.aspectRatio);
       const region = mapGuidedRectToImageCrop(frame, viewWidth, viewHeight, photo.width, photo.height);
-      // The front preview is mirrored — flip the selfie save so it matches
-      // what was on screen. ID steps use the rear camera: no flip.
-      const mirrorHorizontal = stepId === SELFIE_STEP.id;
-
       try {
-        const cropped = await cropPhotoToFrame(photo.uri, region, photo.width, photo.height, {
-          mirrorHorizontal,
-        });
+        // CameraView's mirror prop has already applied the selected orientation,
+        // so cropping and the uncropped fallback preserve that same orientation.
+        const cropped = await cropPhotoToFrame(photo.uri, region, photo.width, photo.height);
         console.log('ID capture crop mapping.', {
           viewWidth,
           viewHeight,
@@ -123,7 +123,7 @@ export default function LiveCapture() {
           photoHeight: photo.height,
           frame,
           region,
-          mirrorHorizontal,
+          mirrored: mirrorCapture,
           croppedWidth: cropped.width,
           croppedHeight: cropped.height,
         });
@@ -144,7 +144,7 @@ export default function LiveCapture() {
     } finally {
       isCapturingRef.current = false;
     }
-  }, [cameraReady, captureStep, previewSize, stepId, viewportWidth, viewportHeight, setCapturedPhoto, setScreenState, setCameraError, t]);
+  }, [cameraReady, captureStep, mirrorCapture, previewSize, viewportWidth, viewportHeight, setCapturedPhoto, setScreenState, setCameraError, t]);
 
   const handleManualCapture = useCallback(() => {
     void capturePhoto();
@@ -152,9 +152,10 @@ export default function LiveCapture() {
 
   const handleRetake = useCallback(() => {
     setCapturedPhoto(null);
+    setMirrorEnabled(false);
     setScreenState('preview');
     isCapturingRef.current = false;
-  }, [setCapturedPhoto, setScreenState]);
+  }, [setCapturedPhoto, setMirrorEnabled, setScreenState]);
 
   const handleUsePhoto = () => {
     if (capturedPhoto == null || stepId == null) return;
@@ -165,8 +166,8 @@ export default function LiveCapture() {
       height: capturedPhoto.height,
     });
 
-    const nextStep =
-      stepId === SELFIE_STEP.id ? null : getNextCaptureStep(idType ?? null, stepId);
+    setMirrorEnabled(false);
+    const nextStep = isSelfie ? null : getNextCaptureStep(idType ?? null, stepId);
 
     if (nextStep !== null) {
       router.replace(
@@ -235,8 +236,14 @@ export default function LiveCapture() {
         >
           <CameraView
             ref={cameraRef}
-            style={{ flex: 1 }}
+            style={{
+              flex: 1,
+              // Expo's front preview is mirrored independently of its capture
+              // output. Counter that preview only when Mirror is off.
+              transform: [{ scaleX: isSelfie && !mirrorEnabled ? -1 : 1 }],
+            }}
             facing={captureStep?.cameraFacing ?? 'back'}
+            mirror={mirrorCapture}
             onCameraReady={() => setCameraReady(true)}
             onMountError={handleMountError}
           />
@@ -253,13 +260,26 @@ export default function LiveCapture() {
 
           <View className="absolute top-24 left-0 right-0 items-center px-5">
             <Text className="text-white text-sm font-nunitoSemiBold text-center">
-              {stepId === SELFIE_STEP.id
+              {isSelfie
                 ? t("authMobile.verify.capture.faceHint", { label: stepLabel })
                 : t("authMobile.verify.capture.idHint", { label: stepLabel })}
             </Text>
           </View>
 
-          <CaptureHint isSelfie={stepId === SELFIE_STEP.id} />
+          {isSelfie ? (
+            <View className="absolute bottom-44 left-0 right-0 items-center">
+              <View className="bg-black/50 rounded-full px-4 py-2 flex-row items-center gap-3">
+                <Text className="text-white text-sm font-nunitoSemiBold">Mirror</Text>
+                <Switch
+                  isSelected={mirrorEnabled}
+                  onSelectedChange={setMirrorEnabled}
+                  accessibilityLabel="Mirror"
+                />
+              </View>
+            </View>
+          ) : null}
+
+          <CaptureHint isSelfie={isSelfie} />
 
           <View className="absolute bottom-12 left-0 right-0 items-center">
             <TouchableOpacity

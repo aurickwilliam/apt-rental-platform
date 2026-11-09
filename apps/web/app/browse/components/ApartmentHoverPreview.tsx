@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import Image from "next/image";
 
 import { Button, Card, Spinner } from "@heroui/react";
@@ -8,19 +9,24 @@ import {
   IconBed,
   IconHeart,
   IconHeartFilled,
-  IconRuler,
+  IconMaximize,
   IconShieldCheckFilled,
   IconStarFilled,
+  type Icon,
 } from "@tabler/icons-react";
 
 import { formatPesoDisplay } from "@repo/utils";
 import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+import StatusChip from "@/app/components/display/StatusChip";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
+import type { PreviewPlacement } from "./use-hover-preview";
 
 interface ApartmentHoverPreviewProps {
   apartment: BrowseApartment;
-  style: { left: number; top: number; width: number };
+  style: PreviewPlacement;
+  /** Plays the exit animation; the owner unmounts the preview once it ends. */
+  isClosing: boolean;
   isFavorite: boolean;
   isFavoriteLoading: boolean;
   onFavoritePress: () => void;
@@ -29,9 +35,20 @@ interface ApartmentHoverPreviewProps {
   onMouseLeave: () => void;
 }
 
+// One icon size, stroke and gap for every stat, so bed, bath and area read as a set.
+function Stat({ icon: StatIcon, label }: { icon: Icon; label: string }) {
+  return (
+    <span className="flex items-center gap-1.5">
+      <StatIcon size={16} stroke={1.75} aria-hidden="true" className="shrink-0" />
+      {label}
+    </span>
+  );
+}
+
 export default function ApartmentHoverPreview({
   apartment,
   style,
+  isClosing,
   isFavorite,
   isFavoriteLoading,
   onFavoritePress,
@@ -40,87 +57,62 @@ export default function ApartmentHoverPreview({
   onMouseLeave,
 }: ApartmentHoverPreviewProps) {
   const { t } = useTranslation();
-  // CSS-only enter animation (no motion library): fade + slight zoom on
-  // mount, instant unmount. Respects reduced-motion preferences.
+  const { fromScale, ...position } = style;
+  const hasStats =
+    apartment.bedrooms !== undefined ||
+    apartment.bathrooms !== undefined ||
+    apartment.areaSqm !== undefined;
+
+  // The preview grows out of the card it covers (`fromScale`) and shrinks back
+  // into it on exit; see .apt-hover-preview in globals.css.
   return (
     <div
       role="dialog"
       aria-label={t("browse.preview.quickAria", { name: apartment.name })}
-      className="fixed z-50 hidden animate-in fade-in-0 zoom-in-95 duration-180 motion-reduce:animate-none md:block"
-      style={style}
+      className="apt-hover-preview fixed z-50 hidden md:block"
+      data-closing={isClosing ? "true" : undefined}
+      style={{ ...position, "--hover-from-scale": fromScale } as CSSProperties}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <Card className="overflow-hidden rounded-xl border border-divider bg-surface p-0 shadow-xl">
-        <div className="relative">
+      <div
+        className="cursor-pointer rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        role="button"
+        tabIndex={0}
+        aria-label={t("browse.preview.viewDetailsAria", { name: apartment.name })}
+        onClick={onViewDetails}
+        onKeyDown={(event) => {
+          if (event.target !== event.currentTarget) return;
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onViewDetails();
+          }
+        }}
+      >
+        <Card className="relative overflow-hidden rounded-xl border border-divider bg-surface p-0 shadow-xl transition-colors duration-200 hover:border-primary">
           <Image
             src={apartment.image}
-            alt={apartment.name}
+            alt=""
             width={640}
             height={360}
             sizes="320px"
             unoptimized={!canOptimizePublicApartmentImage(apartment.image)}
             className="h-40 w-full object-cover"
           />
+
           {apartment.isVerified ? (
-            <span className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-500">
-              <IconShieldCheckFilled size={14} className="text-green-500" />
-              {t("browse.preview.verified")}
-            </span>
-          ) : null}
-        </div>
-
-        <div className="flex flex-col gap-1.5 p-3">
-          <h4 className="truncate text-base font-semibold">{apartment.name}</h4>
-          <p className="truncate text-xs text-default-500">{apartment.location}</p>
-
-          <div className="flex items-center justify-between">
-            <p className="text-[15px] font-medium text-primary">
-              {formatPesoDisplay(apartment.price)}
-            </p>
-            <p className="flex items-center gap-1 text-sm">
-              <IconStarFilled size={16} className="text-yellow-400" />
-              {apartment.rating === 0 ? "-" : apartment.rating}
-            </p>
-          </div>
-
-          {apartment.bedrooms !== undefined ||
-          apartment.bathrooms !== undefined ||
-          apartment.areaSqm !== undefined ? (
-            <div className="flex items-center gap-3 text-xs text-default-500">
-              {apartment.bedrooms !== undefined && (
-                <span className="flex items-center gap-1">
-                  <IconBed size={14} />
-                  {t("browse.preview.bedrooms", { count: apartment.bedrooms })}
-                </span>
-              )}
-              {apartment.bathrooms !== undefined && (
-                <span className="flex items-center gap-1">
-                  <IconBath size={14} />
-                  {t("browse.preview.bathrooms", { count: apartment.bathrooms })}
-                </span>
-              )}
-              {apartment.areaSqm !== undefined && (
-                <span className="flex items-center gap-1">
-                  <IconRuler size={14} />
-                  {t("browse.preview.sqm", { count: apartment.areaSqm })}
-                </span>
-              )}
-            </div>
+            <StatusChip tone="success" size="sm" className="absolute top-2 left-2">
+              <span className="flex items-center gap-1">
+                <IconShieldCheckFilled size={14} aria-hidden="true" />
+                {t("browse.preview.verified")}
+              </span>
+            </StatusChip>
           ) : null}
 
-          <div className="mt-1 flex items-center gap-2">
+          <span className="absolute top-2 right-2" onClick={(event) => event.stopPropagation()}>
             <Button
-              size="sm"
-              className="flex-1"
-              onPress={onViewDetails}
-              aria-label={t("browse.preview.viewDetailsAria", { name: apartment.name })}
-            >
-              {t("browse.preview.viewDetails")}
-            </Button>
-            <Button
-              size="sm"
               variant="ghost"
+              className="bg-white/75"
               isIconOnly
               aria-label={isFavorite ? t("favorites.remove.aria") : t("favorites.save.aria")}
               isPending={isFavoriteLoading}
@@ -136,9 +128,30 @@ export default function ApartmentHoverPreview({
                 )
               }
             </Button>
+          </span>
+
+          <div className="flex flex-col gap-1.5 p-3">
+            <h4 className="truncate text-base font-semibold">{apartment.name}</h4>
+            <p className="truncate text-xs text-default-500">{apartment.location}</p>
+
+            {hasStats ? (
+              <div className="mt-0.5 flex items-center gap-4 text-xs text-default-500">
+                {apartment.bedrooms !== undefined && <Stat icon={IconBed} label={t("browse.preview.bedrooms", { count: apartment.bedrooms })} />}
+                {apartment.bathrooms !== undefined && <Stat icon={IconBath} label={t("browse.preview.bathrooms", { count: apartment.bathrooms })} />}
+                {apartment.areaSqm !== undefined && <Stat icon={IconMaximize} label={t("browse.preview.sqm", { count: apartment.areaSqm })} />}
+              </div>
+            ) : null}
+
+            <div className="mt-1.5 flex items-center justify-between">
+              <p className="text-xl font-semibold text-primary">{formatPesoDisplay(apartment.price)}</p>
+              <p className="flex items-center gap-1 text-sm">
+                <IconStarFilled size={16} className="text-yellow-400" />
+                {apartment.rating === 0 ? "-" : apartment.rating}
+              </p>
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }

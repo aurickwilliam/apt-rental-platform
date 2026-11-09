@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Chip, Dropdown, InputGroup, Separator, Spinner } from "@heroui/react";
-import { IconArrowLeft as ArrowLeft, IconFilter as ListFilter, IconSearch as Search } from "@tabler/icons-react";
+import { IconArrowLeft as ArrowLeft, IconFilter as ListFilter, IconSearch as Search, IconCalendar } from "@tabler/icons-react";
 import { formatFullName } from "@repo/utils";
 
 import { useLandlordVisitRequests } from "@/hooks/use-landlord-visit-requests";
@@ -11,6 +11,7 @@ import type { LandlordVisitStatus } from "@/service/landlordVisitRequestsService
 
 import VisitRequestCard from "../components/VisitRequestCard";
 import { getVisitStatusLabel } from "../lib/visit-status-styles";
+import EmptyState from "@/app/components/display/EmptyState";
 
 const STATUS_OPTIONS: LandlordVisitStatus[] = ["pending", "rejected", "rescheduled", "cancelled"];
 
@@ -173,10 +174,13 @@ export default function PendingVisitRequestsPage() {
         <>
           <p className="text-xs text-muted-foreground">Total: {filtered.length}</p>
           {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-12 text-muted-foreground">
-              <p className="text-sm font-medium">No visit requests</p>
-              <p className="text-xs mt-1">New tenant visit requests will appear here.</p>
-            </div>
+            <EmptyState
+              framed
+              className="py-12"
+              icon={IconCalendar}
+              title="No visit requests"
+              description="New tenant visit requests will appear here."
+            />
           ) : (
             <div className="flex flex-col gap-3">
               {filtered.map((request) => (

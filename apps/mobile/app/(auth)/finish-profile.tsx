@@ -5,6 +5,7 @@ import { useRef, useState } from 'react';
 import ScreenWrapper, { type ScreenWrapperScrollRef } from 'components/layout/ScreenWrapper';
 import ProfileDetailsFields from '@/components/profile/ProfileDetailsFields';
 import ErrorDialog from '@/components/display/ErrorDialog';
+import RegistrationPolicyAcceptance from '@/components/legal/RegistrationPolicyAcceptance';
 import RoleTab from './components/RoleTab';
 
 import { useProfileDetailsForm } from '@/hooks/auth/useProfileDetailsForm';
@@ -34,7 +35,7 @@ export default function FinishProfile() {
 
   const scrollRef = useRef<ScreenWrapperScrollRef>(null);
   const form = useProfileDetailsForm({ firstName, lastName, scrollRef });
-  const { submit, signOut, loading, error, errorDialogOpen, closeErrorDialog } = useFinishProfile({
+  const { submit, signOut, loading, error, errorDialogOpen, closeErrorDialog, policies } = useFinishProfile({
     form,
     role: selectedRole,
     requestedRole,
@@ -67,7 +68,8 @@ export default function FinishProfile() {
       </View>
 
       <View className="mt-16 mb-0">
-        <Button onPress={submit} isDisabled={loading}>
+        <RegistrationPolicyAcceptance form={policies} isDisabled={loading} />
+        <Button onPress={submit} isDisabled={loading || !policies.canSubmit}>
           <Button.Label>
             {loading ? t("common.pleaseWait") : t("common.submit")}
           </Button.Label>
@@ -77,7 +79,7 @@ export default function FinishProfile() {
         </Button>
 
         {isProfileMissing && (
-          <LinkButton onPress={signOut} className="mt-4 self-center p-0">
+          <LinkButton onPress={signOut} isDisabled={loading} className="mt-4 self-center p-0">
             <LinkButton.Label className="text-accent font-nunitoSemiBold underline">
               {t("authMobile.useDifferentAccount")}
             </LinkButton.Label>

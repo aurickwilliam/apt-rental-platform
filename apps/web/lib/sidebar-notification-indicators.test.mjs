@@ -77,7 +77,9 @@ function sidebar({ portal = "tenant", collapsed = false, dark = false, mobile = 
       notifications: rows, unreadCount: rows.filter(n => !n.is_read).length,
       markOneRead: () => writes++, markVisibleRead: () => writes++,
     }) },
+    "@/components/ui/tooltip": { Tooltip: "Tooltip", TooltipContent: "TooltipContent", TooltipProvider: "TooltipProvider", TooltipTrigger: "TooltipTrigger" },
     "@/lib/sidebar-notification-activity": mapping,
+    "@/lib/tutorial-controller": { useTutorialNavMenuOpen: () => false, setTutorialLayerHost: () => {} },
     "@/hooks/use-pending-navigation": { usePendingNavigation: () => ({ pendingHref: null, navigate: href => navigation.push(href) }) },
   });
   const nav = navItems(portal).filter(n => !hiddenPassport || n.activityKey !== "passport");
@@ -111,7 +113,8 @@ test("collapsed rails keep the dot away from the icon and retain accessible labe
   const result = sidebar({ collapsed: true, rows: [row("chat", "Actor", "message")] });
   const link = result.links.find(n => n.props.href === "/tenant/messages");
   assert.equal(link.props["aria-label"], "Messages, Unread activity");
-  assert.equal(link.props.title, "Messages, Unread activity");
+  const tooltip = result.all.find(n => n.type === "TooltipContent" && /Messages/.test(String(n.props.children)));
+  assert.equal(tooltip.props.children, "Messages, Unread activity");
   assert.match(dots(link)[0].props.className, /right-0.5 top-0.5/);
   assert.equal(link.props["aria-current"], undefined);
 });

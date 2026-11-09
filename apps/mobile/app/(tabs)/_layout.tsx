@@ -9,6 +9,7 @@ import { hasMobilePortalRole, portalHome } from '@/service/auth/portalPreference
 import { useColors } from 'hooks/useTheme';
 import { getSplashBackground } from '@/utils/splashBackground';
 import ReviewUnlockGate from '@/components/ratings/ReviewUnlockGate';
+import TutorialHost from '@/components/tutorial/TutorialHost';
 
 export default function TabsLayout() {
   const router = useRouter();
@@ -67,6 +68,7 @@ export default function TabsLayout() {
     {portal === 'tenant' && profile?.roles.includes('tenant') && segments[1] === '(tenant)' ? (
       <ReviewUnlockGate key={`${profile.user_id}:${profile.id}`} authUserId={profile.user_id} tenantId={profile.id} />
     ) : null}
+    <TutorialHost />
     </>
   );
 }

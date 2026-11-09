@@ -15,6 +15,7 @@ import { useState } from "react";
 import { formatPesoDisplay } from "@repo/utils";
 import dynamic from "next/dynamic";
 import MaintenanceHistoryButton from "./MaintenanceHistoryButton";
+import ReportButton from "@/app/components/reports/ReportButton";
 import { isApartmentUnavailable } from "@/lib/apartment-availability";
 import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import type { TranslationKey } from "@repo/i18n";
@@ -61,6 +62,20 @@ export default function PriceCard({
   const router = useRouter();
   const { t } = useTranslation();
   const [isApplyOpen, setIsApplyOpen] = useState(false);
+
+  // Reports need the real listing; the create-listing preview has none, so it keeps a disabled button.
+  const reportButton =
+    !isPreview && apartmentId && applyApartment ? (
+      <ReportButton
+        variant="card"
+        target={{
+          kind: "apartment",
+          apartmentId,
+          ownerId: applyApartment.landlordId,
+          name: applyApartment.name || "this listing",
+        }}
+      />
+    ) : null;
   const breakdownModal = useOverlayState();
   const isUnavailable = isApartmentUnavailable(apartmentStatus);
 
@@ -140,16 +155,17 @@ export default function PriceCard({
 
             {!isPreview && apartmentId ? <MaintenanceHistoryButton apartmentId={apartmentId} /> : null}
 
-            {/* Report Button */}
-            <Button
-              variant="tertiary"
-              className="bg-red-400/10 text-red-600 border-red-300 hover:bg-red-400/20"
-              fullWidth
-              isDisabled={isPreview}
-            >
-              <IconFlag size={16} />
-              {t("apartment.price.report")}
-            </Button>
+            {reportButton ?? (
+              <Button
+                variant="tertiary"
+                className="bg-red-400/10 text-red-600 border-red-300 hover:bg-red-400/20"
+                fullWidth
+                isDisabled
+              >
+                <IconFlag size={16} />
+                {t("apartment.price.report")}
+              </Button>
+            )}
           </Card.Footer>
         </Card>
       </div>
@@ -159,15 +175,7 @@ export default function PriceCard({
       <div className="lg:hidden flex flex-col gap-2">
         {apartmentId ? <MaintenanceHistoryButton apartmentId={apartmentId} /> : null}
 
-        {/* Report Button */}
-        <Button
-          variant="tertiary"
-          className="bg-red-400/10 text-red-600 border-red-300 hover:bg-red-400/20"
-          fullWidth
-        >
-          <IconFlag size={16} />
-          {t("apartment.price.report")}
-        </Button>
+        {reportButton}
       </div>
 
       {/* Mobile: fixed bottom bar, app-style price + apply */}

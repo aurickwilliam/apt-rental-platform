@@ -8,7 +8,8 @@ import { IconCalendarCheck, IconChartBar } from "@tabler/icons-react-native";
 
 import { formatPesoDisplay } from "@repo/utils";
 
-import ScreenWrapper from "@/components/layout/ScreenWrapper";
+import ScreenWrapper, { type ScreenWrapperScrollRef } from "@/components/layout/ScreenWrapper";
+import { useTabScreenScroll } from "@/components/layout/TabBarVisibilityContext";
 import RentDueCard from "@/app/(tabs)/components/dashboard/RentDueCard";
 import MonthCollectionCard from "@/app/(tabs)/components/dashboard/MonthCollectionCard";
 import DashboardStatTile from "@/app/(tabs)/components/dashboard/DashboardStatTile";
@@ -21,7 +22,6 @@ import EmptyState from "@/components/display/EmptyState";
 import NotificationBellButton from "@/app/(tabs)/components/NotificationBellButton";
 
 import { useDashboardData } from "@/hooks/dashboard";
-import { useColors } from "@/hooks/useTheme";
 
 import {
   buildRequestItems,
@@ -42,7 +42,8 @@ const REQUEST_ROUTES = {
 
 function Dashboard() {
   const router = useRouter();
-  const { colors } = useColors();
+  const { ref: scrollRef, onScroll: onTabBarScroll } =
+    useTabScreenScroll<ScreenWrapperScrollRef>();
   const { data, isLoading, error } = useDashboardData();
   const { stats, attention, thisMonth, collectionByMonth, monthlyRevenue, rentDues } =
     data;
@@ -66,6 +67,8 @@ function Dashboard() {
 
   return (
     <ScreenWrapper
+      ref={scrollRef}
+      onScroll={onTabBarScroll}
       scrollable
       className="p-5"
       bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
@@ -143,7 +146,7 @@ function Dashboard() {
             {showCombinedChartEmpty ? (
               <View className="bg-surface rounded-3xl border border-border p-4">
                 <EmptyState
-                  icon={<IconChartBar size={36} color={colors.gray500} />}
+                  icon={IconChartBar}
                   title="No earnings yet"
                   description="Once tenants start paying rent, your earnings will show up here."
                 />
@@ -168,7 +171,7 @@ function Dashboard() {
 
             {rentDues.length === 0 ? (
               <EmptyState
-                icon={<IconCalendarCheck size={36} color={colors.gray500} />}
+                icon={IconCalendarCheck}
                 title="No upcoming rent dues"
                 description="You're all caught up. New dues will appear here as they come due."
               />

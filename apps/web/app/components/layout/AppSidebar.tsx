@@ -48,10 +48,12 @@ import { usePendingNavigation } from "@/hooks/use-pending-navigation";
 import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import type { TranslationKey } from "@repo/i18n";
 import SidebarLinkPending from "./SidebarLinkPending";
+import { Tooltip as RailTooltip, TooltipContent as RailTooltipContent, TooltipProvider as RailTooltipProvider, TooltipTrigger as RailTooltipTrigger } from "@/components/ui/tooltip";
 import SidebarNotificationsItem from "./SidebarNotificationsItem";
 import { NOTIFICATIONS_QUERY_VALUE } from "@/app/components/notifications/NotificationsOverlay";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import { useNotifications } from "@/hooks/use-notifications";
+import { setTutorialLayerHost, useTutorialNavMenuOpen } from "@/lib/tutorial-controller";
 import { getUnreadSidebarActivity, type SidebarActivityKey } from "@/lib/sidebar-notification-activity";
 import ToggleSwitch from "@/app/components/settings/ToggleSwitch";
 import { SETTINGS_QUERY_VALUE } from "@/app/components/settings/SettingsOverlay";
@@ -186,6 +188,8 @@ type NavItem = {
   activityKey?: SidebarActivityKey;
   /** Warm this route on hover/focus and when the mobile menu opens. */
   prefetchOnIntent?: boolean;
+  /** Stable `data-tour` key the first-time tutorial highlights (see `TUTORIAL_TARGETS` in `@repo/utils`). */
+  tourKey?: string;
   /** Group this item belongs to; consecutive items sharing it sit together under a separator. */
   sectionKey?: TranslationKey;
 };
@@ -366,9 +370,9 @@ export function AppSidebar({
 
   const displayName = userName?.trim() || t("nav.role.user");
   const roleLabel = userRole?.trim() || "";
-  const profileHref =
-    accountProfileHref ??
-    (activePortal === "landlord" ? "/landlord/profile" : "/tenant/profile");
+  const profileHref = accountProfileHref ?? (roleLabel.toLowerCase() === "landlord"
+    ? "/landlord/profile"
+    : "/tenant/profile");
 
   const switchTargets = getSwitchTargets(activePortal, userRoles).map((target) => ({
     ...target,
@@ -395,6 +399,9 @@ export function AppSidebar({
         className={`flex border-b border-sidebar-border bg-sidebar ${collapsed ? "justify-center px-2 py-3" : "items-center justify-between gap-2 px-5 py-5"}`}
       >
         {collapsed ? (
+          <RailTooltip>
+            <RailTooltipTrigger asChild>
+              <span className="inline-flex">
           <Button
             variant="ghost"
             aria-label={t("nav.expandSidebar")}
@@ -420,6 +427,10 @@ export function AppSidebar({
               />
             </span>
           </Button>
+              </span>
+            </RailTooltipTrigger>
+            <RailTooltipContent side="right" sideOffset={8}>{t("nav.expandSidebar")}</RailTooltipContent>
+          </RailTooltip>
         ) : (
           <Link
             href={navItems[0]?.href ?? "/"}
@@ -457,6 +468,7 @@ export function AppSidebar({
         aria-label={t("nav.portalPages")}
         className={`flex flex-1 flex-col overflow-y-auto ${collapsed ? "gap-1 px-2 py-2" : "gap-1.5 px-3 py-4"}`}
       >
+        <RailTooltipProvider delayDuration={0}>
         {navGroups.map((group, groupIndex) => {
           const sectionLabel = group.sectionKey ? t(group.sectionKey) : undefined;
           return (
@@ -467,7 +479,7 @@ export function AppSidebar({
             className={`flex flex-col ${collapsed ? "gap-1" : "gap-1.5"}`}
           >
             {groupIndex > 0 ? <Separator className={collapsed ? "my-1" : "my-1.5"} /> : null}
-            {group.items.map(({ labelKey, href, icon, activityKey, prefetchOnIntent }) => {
+            {group.items.map(({ labelKey, href, icon, activityKey, prefetchOnIntent, tourKey }) => {
           const label = t(labelKey);
           const active = isActive(pathname, href);
           const hasActivity = !!activityKey && activity.has(activityKey);
@@ -476,20 +488,15 @@ export function AppSidebar({
               ? (ADMIN_ICON_MAP[icon] ?? IconSearch)
               : (ICON_MAP[icon] ?? Search);
           return (
+            <RailTooltip key={href}>
+              <RailTooltipTrigger asChild>
             <Link
               href={href}
-              key={href}
+              data-tour={tourKey}
               onMouseEnter={prefetchOnIntent ? () => router.prefetch(href) : undefined}
               onFocus={prefetchOnIntent ? () => router.prefetch(href) : undefined}
               aria-current={active ? "page" : undefined}
               aria-label={hasActivity ? t("nav.unreadActivity", { label }) : collapsed ? label : undefined}
-              title={
-                collapsed
-                  ? hasActivity
-                    ? t("nav.unreadActivity", { label })
-                    : label
-                  : undefined
-              }
               className={`group relative flex min-h-11 w-full items-center rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring ${collapsed ? "justify-center" : "gap-3 py-2.5 pl-3 pr-7"} ${
                 active
                   ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
@@ -505,11 +512,19 @@ export function AppSidebar({
               {hasActivity ? <UnreadActivityDot active={active} collapsed={collapsed} /> : null}
               <SidebarLinkPending label={label} />
             </Link>
+              </RailTooltipTrigger>
+              {collapsed ? (
+                <RailTooltipContent side="right" sideOffset={8}>
+                  {hasActivity ? t("nav.unreadActivity", { label }) : label}
+                </RailTooltipContent>
+              ) : null}
+            </RailTooltip>
           );
             })}
           </div>
           );
         })}
+        </RailTooltipProvider>
         <SidebarNotificationsItem activePortal={activePortal} collapsed={collapsed} />
       </nav>
 
@@ -781,7 +796,8 @@ type MobileSidebarNavigationProps = {
 };
 
 const DRAWER_ROW_CLASS =
-  "flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left font-nunito text-[15px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-primary";
+  // justify-start: HeroUI buttons center their content, so rows must say where it starts.
+  "mobile-sidebar-row flex min-h-11 w-full cursor-pointer items-center justify-start gap-3 rounded-xl px-3 py-2.5 text-left font-nunito text-[15px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-primary";
 
 function drawerRowClass(active: boolean) {
   return `${DRAWER_ROW_CLASS} ${
@@ -852,6 +868,8 @@ function MobileSidebarMenu({
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
   useCloseOverlayAt("(min-width: 768px)", true, closeMobileMenu);
+  // The first-time tour keeps the drawer open so it can point at a real link.
+  const tourHoldsMenu = useTutorialNavMenuOpen();
 
   // Rows are buttons, not Links, so routes are warmed explicitly when the
   // drawer opens: the account pages and only the items that opted in.
@@ -869,8 +887,11 @@ function MobileSidebarMenu({
     [router, profileHref, favoritesHref, navItems],
   );
   const drawerState = useOverlayState({
-    isOpen: isMobileMenuOpen,
-    onOpenChange: handleMobileMenuOpenChange,
+    isOpen: isMobileMenuOpen || tourHoldsMenu,
+    onOpenChange: (value) => {
+      if (!value && tourHoldsMenu) return;
+      handleMobileMenuOpenChange(value);
+    },
   });
 
   // Settings and notifications open through shared query params (the overlays
@@ -940,13 +961,17 @@ function MobileSidebarMenu({
       </header>
 
       <Drawer.Root state={drawerState}>
-        <Drawer.Backdrop>
+        {/* While the tour holds the menu it is not dismissable: the overlay's outside-press handler would swallow presses on the tour card. */}
+        <Drawer.Backdrop isDismissable={!tourHoldsMenu} isKeyboardDismissDisabled={tourHoldsMenu}>
           <Drawer.Content placement="left">
             <Drawer.Dialog
               aria-label={menuLabel}
               className="flex h-full w-[calc(100vw-3rem)] max-w-xs flex-col rounded-r-3xl p-0 font-nunito"
             >
-              <div className="flex items-center justify-between gap-2 border-b border-divider px-4 py-3">
+              {/* During the tour the menu is only something to point at: its rows are inert
+                  (no Log Out). The tour layer's host must stay inside this dialog, because the
+                  overlay marks everything outside the dialog inert. */}
+              <div inert={tourHoldsMenu} className="flex items-center justify-between gap-2 border-b border-divider px-4 py-3">
                 <Link
                   href={navItems[0]?.href ?? "/"}
                   onClick={closeMobileMenu}
@@ -973,6 +998,7 @@ function MobileSidebarMenu({
 
               <nav
                 aria-label={navLabel}
+                inert={tourHoldsMenu}
                 className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-3 py-3"
               >
                 {navGroups.map((group, groupIndex) => {
@@ -985,7 +1011,7 @@ function MobileSidebarMenu({
                     className="flex flex-col gap-1"
                   >
                     {groupIndex > 0 ? <Separator className="my-1.5" /> : null}
-                    {group.items.map(({ labelKey, href, icon, activityKey }) => {
+                    {group.items.map(({ labelKey, href, icon, activityKey, tourKey }) => {
                       const label = t(labelKey);
                       const Icon = iconFor(icon);
                       const active = isActive(pathname, href);
@@ -994,6 +1020,7 @@ function MobileSidebarMenu({
                         <Button
                           variant="ghost"
                           key={href}
+                          data-tour={tourKey}
                           onClick={() => go(href)}
                           aria-current={active ? "page" : undefined}
                           aria-label={hasActivity ? t("nav.unreadActivity", { label }) : undefined}
@@ -1102,7 +1129,7 @@ function MobileSidebarMenu({
                 </div>
               </nav>
 
-              <div className="border-t border-divider px-3 py-3">
+              <div inert={tourHoldsMenu} className="border-t border-divider px-3 py-3">
                 <Button
                   variant="ghost"
                   onClick={() => {
@@ -1115,6 +1142,7 @@ function MobileSidebarMenu({
                   {t("nav.logOut")}
                 </Button>
               </div>
+              <div ref={setTutorialLayerHost} data-tutorial-host />
             </Drawer.Dialog>
           </Drawer.Content>
         </Drawer.Backdrop>

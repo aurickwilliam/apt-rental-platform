@@ -49,7 +49,7 @@ export const SECTIONS: Section[] = [
     blocks: [
       {
         type: "paragraph",
-        text: "This Cookie Policy explains how APT (A Place to Thrive) uses cookies and similar technologies when you visit and use our website. This Policy should be read together with our Privacy Policy and Terms of Service.",
+        text: "This Cookie Policy explains how APT (A Place to Thrive) uses cookies and similar technologies when you visit and use our website. This Policy should be read together with our Privacy Policy and Terms and Conditions.",
       },
       {
         type: "paragraph",

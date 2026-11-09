@@ -179,6 +179,7 @@ export type Database = {
           description: string
           floor_level: string | null
           furnished_type: string | null
+          has_own_electricity_meter: boolean
           hidden_at: string | null
           hidden_by: string | null
           hidden_reason: string | null
@@ -218,6 +219,7 @@ export type Database = {
           description: string
           floor_level?: string | null
           furnished_type?: string | null
+          has_own_electricity_meter?: boolean
           hidden_at?: string | null
           hidden_by?: string | null
           hidden_reason?: string | null
@@ -257,6 +259,7 @@ export type Database = {
           description?: string
           floor_level?: string | null
           furnished_type?: string | null
+          has_own_electricity_meter?: boolean
           hidden_at?: string | null
           hidden_by?: string | null
           hidden_reason?: string | null
@@ -866,32 +869,14 @@ export type Database = {
           },
         ]
       }
-      payment_method_preferences: {
-        Row: {
-          created_at: string
-          default_method: string | null
-          saved_methods: string[]
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          default_method?: string | null
-          saved_methods?: string[]
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          default_method?: string | null
-          saved_methods?: string[]
-          updated_at?: string
-          user_id?: string
-        }
+      landlord_payment_settings: {
+        Row: { landlord_id: string; accepted_methods: string[]; created_at: string; updated_at: string }
+        Insert: { landlord_id: string; accepted_methods: string[] }
+        Update: { accepted_methods?: string[]; updated_at?: string }
         Relationships: [
           {
-            foreignKeyName: "payment_method_preferences_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "landlord_payment_settings_landlord_id_fkey"
+            columns: ["landlord_id"]
             isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -900,6 +885,7 @@ export type Database = {
       }
       payment: {
         Row: {
+          renewal_proposal_id: string | null
           billing_kind: string | null
           rent_amount: number | null
           deposit_amount: number | null
@@ -933,6 +919,7 @@ export type Database = {
         }
         Insert: {
           amount?: number | null
+          renewal_proposal_id?: string | null
           apartment_id?: string | null
           created_at?: string
           date: string
@@ -956,6 +943,7 @@ export type Database = {
         }
         Update: {
           amount?: number | null
+          renewal_proposal_id?: string | null
           apartment_id?: string | null
           created_at?: string
           date?: string
@@ -1100,6 +1088,7 @@ export type Database = {
           rejected_reason: string | null
           status: string
           tenant_id: string
+          tenant_preferences: Json | null
           updated_at: string | null
         }
         Insert: {
@@ -1126,6 +1115,7 @@ export type Database = {
           rejected_reason?: string | null
           status?: string
           tenant_id: string
+          tenant_preferences?: Json | null
           updated_at?: string | null
         }
         Update: {
@@ -1152,6 +1142,7 @@ export type Database = {
           rejected_reason?: string | null
           status?: string
           tenant_id?: string
+          tenant_preferences?: Json | null
           updated_at?: string | null
         }
         Relationships: [
@@ -1231,6 +1222,7 @@ export type Database = {
       }
       tenancies: {
         Row: {
+          renewal_ended_at: string | null
           billing_version: number | null
           advance_rent: number | null
           apartment_id: string
@@ -1451,6 +1443,7 @@ export type Database = {
       }
       user_reports: {
         Row: {
+          action_taken: string
           apartment_id: string | null
           created_at: string
           details: string | null
@@ -1462,8 +1455,11 @@ export type Database = {
           resolved_at: string | null
           resolved_by: string | null
           status: string
+          status_rank: number
+          target_type: string
         }
         Insert: {
+          action_taken?: string
           apartment_id?: string | null
           created_at?: string
           details?: string | null
@@ -1475,8 +1471,10 @@ export type Database = {
           resolved_at?: string | null
           resolved_by?: string | null
           status?: string
+          target_type?: string
         }
         Update: {
+          action_taken?: string
           apartment_id?: string | null
           created_at?: string
           details?: string | null
@@ -1488,6 +1486,7 @@ export type Database = {
           resolved_at?: string | null
           resolved_by?: string | null
           status?: string
+          target_type?: string
         }
         Relationships: [
           {
@@ -1583,6 +1582,41 @@ export type Database = {
           },
         ]
       }
+      tutorial_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          portal: string
+          skipped_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          portal: string
+          skipped_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          portal?: string
+          skipped_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tutorial_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           account_status: string
@@ -1597,6 +1631,7 @@ export type Database = {
           gender: string | null
           id: string
           is_suspended: boolean
+          suspended_until: string | null
           last_name: string | null
           middle_name: string | null
           mobile_number: string | null
@@ -1625,6 +1660,7 @@ export type Database = {
           gender?: string | null
           id?: string
           is_suspended?: boolean
+          suspended_until?: string | null
           last_name?: string | null
           middle_name?: string | null
           mobile_number?: string | null
@@ -1653,6 +1689,7 @@ export type Database = {
           gender?: string | null
           id?: string
           is_suspended?: boolean
+          suspended_until?: string | null
           last_name?: string | null
           middle_name?: string | null
           mobile_number?: string | null
@@ -1816,6 +1853,43 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      list_lease_renewals: {
+        Args: { p_before?: string | null; p_before_id?: string | null }
+        Returns: Json
+      }
+      get_lease_renewal: {
+        Args: { p_tenancy_id: string; p_portal: string }
+        Returns: Json
+      }
+      get_effective_lease_terms: {
+        Args: { p_tenancy_id: string }
+        Returns: Json
+      }
+      act_on_lease_renewal: {
+        Args: { p_tenancy_id: string; p_portal: string; p_action: string; p_expected_version: number | null; p_payload?: Json }
+        Returns: undefined
+      }
+      complete_mobile_registration: {
+        Args: {
+          profile_details: Json;
+          requested_role: string;
+          terms_accepted: boolean;
+          privacy_accepted: boolean;
+          terms_version: string;
+          privacy_version: string;
+          registration_source: string;
+          expected_auth_id: string;
+        };
+        Returns: string;
+      };
+      auth_throttle: {
+        Args: { p_action: string; p_purpose: string; p_subject: string }
+        Returns: number
+      }
+      auth_throttle_server: {
+        Args: { p_action: string; p_purpose: string; p_subject: string }
+        Returns: number
+      }
       acknowledge_signed_lease: {
         Args: { p_tenancy_id: string }
         Returns: undefined
@@ -1830,6 +1904,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_act_on_report: {
+        Args: {
+          p_action: string
+          p_note: string
+          p_report_id: string
+          p_until?: string
+        }
+        Returns: undefined
+      }
       admin_resolve_user_report: {
         Args: { p_note: string; p_report_id: string; p_status: string }
         Returns: undefined
@@ -1838,8 +1921,21 @@ export type Database = {
         Args: { p_apartment_id: string; p_hide: boolean; p_reason: string }
         Returns: undefined
       }
+      admin_grant_admin_role: {
+        Args: { p_reason: string; p_target_id: string }
+        Returns: undefined
+      }
+      admin_revoke_admin_role: {
+        Args: { p_reason: string; p_target_id: string }
+        Returns: undefined
+      }
       admin_set_user_access: {
-        Args: { p_reason: string; p_suspend: boolean; p_target_id: string }
+        Args: {
+          p_reason: string
+          p_suspend: boolean
+          p_target_id: string
+          p_until?: string
+        }
         Returns: undefined
       }
       block_user: { Args: { p_user_id: string }; Returns: undefined }
@@ -1862,6 +1958,10 @@ export type Database = {
         | { Args: { p_include_active?: boolean }; Returns: number }
       get_admin_analytics: {
         Args: { date_from: string; date_to: string }
+        Returns: Json
+      }
+      get_admin_apartment_activity: {
+        Args: { p_apartment_id: string }
         Returns: Json
       }
       get_admin_analytics_start_date: { Args: never; Returns: string }
@@ -2022,6 +2122,7 @@ export type Database = {
       }
       get_my_suspension_status: { Args: never; Returns: Json }
       is_email_registered: { Args: { p_email: string }; Returns: boolean }
+      get_password_recovery_eligibility: { Args: { p_email: string }; Returns: string }
       get_portal_conversations: {
         Args: { p_portal: string }
         Returns: {
@@ -2074,6 +2175,28 @@ export type Database = {
       notify_rent_due_status: { Args: never; Returns: undefined }
       register_push_token: {
         Args: { p_platform: string; p_token: string }
+        Returns: undefined
+      }
+      unregister_push_token: { Args: { p_token: string }; Returns: undefined }
+      request_listing_review: {
+        Args: { p_apartment_id: string; p_note: string }
+        Returns: undefined
+      }
+      get_listing_review_state: {
+        Args: { p_apartment_id: string }
+        Returns: Json
+      }
+      report_apartment: {
+        Args: { p_apartment_id: string; p_details?: string; p_reason: string }
+        Returns: undefined
+      }
+      report_profile: {
+        Args: {
+          p_details?: string
+          p_reason: string
+          p_reported_user_id: string
+          p_target_type: string
+        }
         Returns: undefined
       }
       report_user: {
@@ -2142,6 +2265,14 @@ export type Database = {
       waive_maintenance_fee: {
         Args: { p_request_id: string }
         Returns: undefined
+      }
+      get_landlord_accepted_methods: {
+        Args: { p_tenancy_id: string }
+        Returns: string[] | null
+      }
+      get_apartment_accepted_methods: {
+        Args: { p_apartment_id: string }
+        Returns: string[] | null
       }
     }
     Enums: {

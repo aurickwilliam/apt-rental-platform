@@ -23,15 +23,6 @@ export default function Footer() {
 
           <Accordion.Panel>
             <Accordion.Body className="flex flex-col gap-2">
-              <Link href="/company" className="text-base font-medium text-white/80 hover:text-white">
-                Company
-              </Link>
-              <Link href="/community" className="text-base font-medium text-white/80 hover:text-white">
-                Community
-              </Link>
-              <Link href="/careers" className="text-base font-medium text-white/80 hover:text-white">
-                Careers
-              </Link>
               <Link href="/about" className="text-base font-medium text-white/80 hover:text-white">
                 About Us
               </Link>
@@ -49,16 +40,10 @@ export default function Footer() {
 
           <Accordion.Panel>
             <Accordion.Body className="flex flex-col gap-2">
-              <Link href="/help" className="text-base font-medium text-white/80 hover:text-white">
-                Help Center
-              </Link>
-              <Link href="/#contact" className="text-base font-medium text-white/80 hover:text-white">
+              <Link href="/faq#contact" className="text-base font-medium text-white/80 hover:text-white">
                 Contact Us
               </Link>
-              <Link href="/safety" className="text-base font-medium text-white/80 hover:text-white">
-                Safety & Security
-              </Link>
-              <Link href="/#faqs" className="text-base font-medium text-white/80 hover:text-white">
+              <Link href="/faq" className="text-base font-medium text-white/80 hover:text-white">
                 FAQ
               </Link>
             </Accordion.Body>
@@ -77,14 +62,11 @@ export default function Footer() {
               <Link href="/browse" className="text-base font-medium text-white/80 hover:text-white">
                 Search Rentals
               </Link>
-              <Link href="/list-property" className="text-base font-medium text-white/80 hover:text-white">
+              <Link href="/forowners" className="text-base font-medium text-white/80 hover:text-white">
                 List Your Property
               </Link>
-              <Link href="/apply" className="text-base font-medium text-white/80 hover:text-white">
-                Online Application
-              </Link>
               <Link href="/sign-in" className="text-base font-medium text-white/80 hover:text-white">
-                Tenant Login
+                Sign In
               </Link>
             </Accordion.Body>
           </Accordion.Panel>
@@ -95,31 +77,16 @@ export default function Footer() {
       <div className="hidden md:flex justify-between gap-10">
         <div className="flex flex-col gap-3">
           <h3 className="font-semibold font-inter font-semibold text-white">Who we are</h3>
-          <Link href="/company" className="text-base font-medium text-white/80 hover:text-white">
-            Company
-          </Link>
-          <Link href="/community" className="text-base font-medium text-white/80 hover:text-white">
-            Community
-          </Link>
-          <Link href="/careers" className="text-base font-medium text-white/80 hover:text-white">
-            Careers
-          </Link>
           <Link href="/about" className="text-base font-medium text-white/80 hover:text-white">
             About Us
           </Link>
         </div>
         <div className="flex flex-col gap-3">
           <h3 className="font-semibold font-inter font-semibold text-white">Support</h3>
-          <Link href="/help" className="text-base font-medium text-white/80 hover:text-white">
-            Help Center
-          </Link>
-          <Link href="/#contact" className="text-base font-medium text-white/80 hover:text-white">
+          <Link href="/faq#contact" className="text-base font-medium text-white/80 hover:text-white">
             Contact Us
           </Link>
-          <Link href="/safety" className="text-base font-medium text-white/80 hover:text-white">
-            Safety & Security
-          </Link>
-          <Link href="/#faqs" className="text-base font-medium text-white/80 hover:text-white">
+          <Link href="/faq" className="text-base font-medium text-white/80 hover:text-white">
             FAQ
           </Link>
         </div>
@@ -128,14 +95,11 @@ export default function Footer() {
           <Link href="/browse" className="text-base font-medium text-white/80 hover:text-white">
             Search Rentals
           </Link>
-          <Link href="/list-property" className="text-base font-medium text-white/80 hover:text-white">
+          <Link href="/forowners" className="text-base font-medium text-white/80 hover:text-white">
             List Your Property
           </Link>
-          <Link href="/apply" className="text-base font-medium text-white/80 hover:text-white">
-            Online Application
-          </Link>
           <Link href="/sign-in" className="text-base font-medium text-white/80 hover:text-white">
-            Tenant Login
+            Sign In
           </Link>
         </div>
       </div>
@@ -144,15 +108,15 @@ export default function Footer() {
       <div className="mt-5 text-center md:hidden">
         {/* Socials */}
         <div className="mb-5">
-          <Button size="lg" variant="ghost" isIconOnly className="mx-1 bg-white/20 hover:bg-white/30">
+          <Button aria-label="X" size="lg" variant="ghost" isIconOnly className="mx-1 bg-white/20 hover:bg-white/30">
             <IconBrandX className="text-white" size={26} />
           </Button>
            <a href="https://www.facebook.com/profile.php?id=61583486606822" target="_blank" rel="noopener noreferrer">
-            <Button size="lg" variant="ghost" isIconOnly className="mx-1 bg-white/20 hover:bg-white/30">
+             <Button aria-label="Facebook" size="lg" variant="ghost" isIconOnly className="mx-1 bg-white/20 hover:bg-white/30">
              <IconBrandFacebook className="text-white" size={26} />
             </Button>
            </a>
-          <Button size="lg" variant="ghost" isIconOnly className="mx-1 bg-white/20 hover:bg-white/30">
+          <Button aria-label="Instagram" size="lg" variant="ghost" isIconOnly className="mx-1 bg-white/20 hover:bg-white/30">
             <IconBrandInstagram className="text-white" size={26} />
           </Button>
         </div>
@@ -166,9 +130,9 @@ export default function Footer() {
           </p>
         </div>
 
-        <div className="flex items-center justify-center mt-5">
+        <div className="flex flex-wrap items-center justify-center gap-y-2 mt-5">
           <LegalPolicyLink href="/tos" className="text-sm text-white/80 hover:text-white mx-2">
-            Terms of Service
+            Terms and Conditions
           </LegalPolicyLink>
           <LegalPolicyLink href="/pap" className="text-sm text-white/80 hover:text-white mx-2">
             Privacy Policy
@@ -180,8 +144,8 @@ export default function Footer() {
       </div>
 
       {/* Desktop */}
-      <div className="hidden md:block mt-20">
-        <div className="flex justify-between items-center">
+      <div className="hidden md:block mt-8">
+        <div className="flex flex-wrap justify-between items-center gap-4">
           <p className="text-sm text-white/80">
             109 Samson Road corner Caimito Road, Caloocan, Philippines
           </p>
@@ -189,9 +153,9 @@ export default function Footer() {
             <p className="text-sm text-white/80">
               © {new Date().getFullYear()} APT Rental Platform. All rights reserved.
             </p>
-            <div className="flex items-center justify-center">
+            <div className="flex flex-wrap items-center justify-center gap-y-2">
               <LegalPolicyLink href="/tos" className="text-sm text-white/80 hover:text-white mx-2">
-                Terms of Service
+                Terms and Conditions
               </LegalPolicyLink>
               <LegalPolicyLink href="/pap" className="text-sm text-white/80 hover:text-white mx-2">
                 Privacy Policy
@@ -214,15 +178,15 @@ export default function Footer() {
           />
 
           <div>
-            <Button size="lg" variant="ghost" isIconOnly className="mx-1 bg-white/20 hover:bg-white/30">
+            <Button aria-label="X" size="lg" variant="ghost" isIconOnly className="mx-1 bg-white/20 hover:bg-white/30">
               <IconBrandX className="text-white" size={26} />
             </Button>
             <a href="https://www.facebook.com/profile.php?id=61583486606822" target="_blank" rel="noopener noreferrer">
-              <Button size="lg" variant="ghost" isIconOnly className="mx-1 bg-white/20 hover:bg-white/30">
+              <Button aria-label="Facebook" size="lg" variant="ghost" isIconOnly className="mx-1 bg-white/20 hover:bg-white/30">
                 <IconBrandFacebook className="text-white" size={26} />
               </Button>
             </a>
-            <Button size="lg" variant="ghost" isIconOnly className="mx-1 bg-white/20 hover:bg-white/30">
+            <Button aria-label="Instagram" size="lg" variant="ghost" isIconOnly className="mx-1 bg-white/20 hover:bg-white/30">
               <IconBrandInstagram className="text-white" size={26} />
             </Button>
           </div>

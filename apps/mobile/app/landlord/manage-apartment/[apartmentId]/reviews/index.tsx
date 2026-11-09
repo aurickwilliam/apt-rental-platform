@@ -12,6 +12,8 @@ import {
   PullToRefreshControl,
   PullToRefreshIndicator,
 } from '@/components/display/PullToRefresh'
+import EmptyState from "@/components/display/EmptyState";
+import { IconStar } from "@tabler/icons-react-native";
 
 const SORT_OPTIONS: ReviewSortOption[] = [
   'Most Recent',
@@ -80,14 +82,11 @@ export default function ReviewsPage() {
           </>
         }
         ListEmptyComponent={
-          <View className='items-center justify-center py-16 gap-1'>
-            <Text className='text-foreground text-base font-nunitoSemiBold'>
-              No reviews yet
-            </Text>
-            <Text className='text-muted text-sm font-inter text-center'>
-              Reviews from tenants will show up here once they&apos;re submitted.
-            </Text>
-          </View>
+          <EmptyState
+            icon={IconStar}
+            title='No reviews yet'
+            description='Reviews from tenants will show up here once they are submitted.'
+          />
         }
         renderItem={({ item }) => (
           <RatingCard

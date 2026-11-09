@@ -192,7 +192,7 @@ export default async function PassportDocumentReviewPage({ params }: PageProps) 
           <UserActivityTimeline
             events={activityEvents}
             title="Document activity"
-            emptyMessage="No document activity yet"
+            emptyMessage="Review decisions for this document will appear here."
           />
         </div>
         <div className="min-w-0">

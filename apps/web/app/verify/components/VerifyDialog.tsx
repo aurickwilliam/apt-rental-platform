@@ -190,6 +190,7 @@ export default function VerifyDialog({ open, onClose }: VerifyDialogProps) {
                   accountStatus={state.accountStatus}
                   hasPending={state.hasPending}
                   onCompleted={handleCompleted}
+                  onNavigate={onClose}
                 />
               </Modal.Body>
             )}

@@ -4,12 +4,12 @@ import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
 
-import { TOC as termsContents } from "../app/(main)/tos/data/tos-sections.ts";
-import { TOC as privacyContents } from "../app/(main)/pap/data/pap-sections.ts";
+import { terms, privacy } from "./test-support/legal-policy-runtime.mjs";
 import { TOC as cookieContents } from "../app/(main)/cookies/data/cookies-sections.ts";
+const termsContents = terms.TOC, privacyContents = privacy.TOC;
 
 const routes = [
-  { route: "tos", title: "Terms of", titleAccent: "Service", contents: termsContents },
+  { route: "tos", title: "Terms and", titleAccent: "Conditions", contents: termsContents },
   { route: "pap", title: "Privacy", titleAccent: "Policy", contents: privacyContents },
   { route: "cookies", title: "Cookie", titleAccent: "Policy", contents: cookieContents },
 ];

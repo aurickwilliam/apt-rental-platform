@@ -1,4 +1,5 @@
 import ConfirmDialog from '@/components/display/ConfirmDialog'
+import type { UserReportReason } from '@/service/chat/conversationActionsService'
 
 import type { ConversationActionOverlaysState } from '@/hooks/chat/useConversationRowActions'
 
@@ -42,7 +43,7 @@ export default function ConversationActionOverlays({
         isSubmitting={isReporting}
         errorMessage={reportError}
         onClose={onCloseReport}
-        onSubmit={(reason, details) => void onSubmitReport(reason, details)}
+        onSubmit={(reason, details) => void onSubmitReport(reason as UserReportReason, details)}
       />
 
       <ConfirmDialog

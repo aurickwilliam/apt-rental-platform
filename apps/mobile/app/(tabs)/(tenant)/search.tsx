@@ -1,23 +1,34 @@
+import { useState } from "react";
 import { Keyboard } from "react-native";
 
 import { useRouter } from "expo-router";
 
 import ScreenWrapper from "components/layout/ScreenWrapper";
-import FilterBottomSheet, {
-  DEFAULT_FILTERS,
-} from "@/app/(tabs)/components/search/FilterBottomSheet";
+import FilterBottomSheet from "@/app/(tabs)/components/search/FilterBottomSheet";
 import ApartmentsList from "../components/search/ApartmentsList";
 import SearchFiltersBar from "../components/search/SearchFiltersBar";
 import SearchHeader from "../components/search/SearchHeader";
+import CityChips from "../components/search/CityChips";
+import RecentSearchesList from "../components/search/RecentSearchesList";
 import SearchSectionsList from "../components/search/SearchSectionsList";
 import { useSearchLogic, useSearchSections } from "@/hooks/search";
 import { useUserPreferences } from "@/hooks/preferences/useUserPreferences";
 import { useFavoriteToggle } from "@/hooks/favorites";
+import { useProfile } from "@/hooks/auth";
+import { useRecentApartmentSearches } from "@/hooks/search/useRecentApartmentSearches";
+import {
+  toRecentApartmentSearch,
+  type RecentApartmentSearch,
+} from "@/service/search/recentApartmentSearches";
 
 export default function Search() {
   const router = useRouter();
   const { preferences, hasPrefs, isLoading: prefsLoading } = useUserPreferences();
   const { toggleFavoriteWithToast } = useFavoriteToggle();
+  const { profile } = useProfile();
+  const { recent, remember, clear: clearRecent } = useRecentApartmentSearches(profile?.user_id);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [fieldBottom, setFieldBottom] = useState(0);
 
   const initialCity = "CAMANAVA";
 
@@ -27,7 +38,6 @@ export default function Search() {
     cities,
     error,
     fetchApartments,
-    filters,
     isFilterSheetOpen,
     setIsFilterSheetOpen,
     handleApplyFilters,
@@ -44,10 +54,12 @@ export default function Search() {
     committedSearch,
     commitSearch,
     clearSearch,
+    chipCity,
+    selectCity,
     selectedCity,
     setIsGridView,
     setSearchDraft,
-    setSelectedCity,
+    sheetFilters,
   } = useSearchLogic({ initialCity });
 
   const isDefaultBrowse =
@@ -73,7 +85,21 @@ export default function Search() {
   // Degrade to the bounded legacy list when the batched section RPC fails.
   const showNetflix = isNetflixBrowse && !sectionsError;
 
-  const handleApartmentPress = (id: string) => router.push(`/apartment/${id}` as any);
+  const showRecent = isSearchFocused && searchDraft.trim() === "" && recent.length > 0;
+
+  const handleApartmentPress = (id: string) => {
+    const card =
+      apartments.find((item) => item.id === id) ??
+      sections.flatMap((section) => section.apartments).find((item) => item.id === id);
+    if (card?.name) remember(toRecentApartmentSearch(card));
+    router.push(`/apartment/${id}` as any);
+  };
+
+  const handleRecentPress = (apartment: RecentApartmentSearch) => {
+    Keyboard.dismiss();
+    remember(apartment);
+    router.push(`/apartment/${apartment.id}` as any);
+  };
 
   const handleFavoritePress = async (apartmentId: string) => {
     await toggleFavoriteWithToast(apartmentId);
@@ -90,7 +116,7 @@ export default function Search() {
   const handleClearAll = () => {
     clearSearch();
     handleClearFilters();
-    if (selectedCity !== initialCity) setSelectedCity(initialCity);
+    if (selectedCity !== initialCity) selectCity(initialCity);
   };
 
   const handleSubmitSearch = () => {
@@ -111,9 +137,6 @@ export default function Search() {
     // keyboard on drag and on taps outside pressables instead.
     <ScreenWrapper noBottomPadding dismissKeyboardOnTouch={false}>
       <SearchHeader
-        cities={cities}
-        selectedCity={selectedCity}
-        onSelectCity={setSelectedCity}
         isGridView={isGridView}
         onToggleView={() => setIsGridView((previous) => !previous)}
         onFavoritesPress={() => router.push("/tenant/favorites")}
@@ -138,10 +161,19 @@ export default function Search() {
         onClearFilters={handleClearFilters}
         selectedCity={selectedCity}
         committedSearch={committedSearch}
+        onFocusChange={setIsSearchFocused}
+        onFieldBottomChange={setFieldBottom}
+        belowField={
+          <CityChips cities={cities} selectedCity={chipCity} onSelectCity={selectCity} />
+        }
       />
 
       {showNetflix ? (
         <SearchSectionsList
+          showRecommendationNotice={
+            preferencesForSections !== null && !sections.some((section) => section.id === "for_you")
+          }
+          onUpdatePreferences={() => router.push("/settings/preferences" as any)}
           sections={sections}
           isLoading={isInitialLoading}
           isFetching={sectionsFetching}
@@ -172,11 +204,21 @@ export default function Search() {
         />
       )}
 
+      {showRecent && (
+        <RecentSearchesList
+          top={fieldBottom}
+          onDismiss={Keyboard.dismiss}
+          recent={recent}
+          onSelect={handleRecentPress}
+          onClear={clearRecent}
+        />
+      )}
+
       <FilterBottomSheet
         isOpen={isFilterSheetOpen}
         onOpenChange={setIsFilterSheetOpen}
         resultCount={resultCount}
-        initialFilters={filters ?? DEFAULT_FILTERS}
+        initialFilters={sheetFilters}
         onApply={handleApplyFilters}
         onClear={handleClearFilters}
       />

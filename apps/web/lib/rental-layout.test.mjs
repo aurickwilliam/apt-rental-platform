@@ -210,7 +210,7 @@ test("paid and unpaid layouts respond to content width and contain table scrolli
   }
 });
 
-test("Maintenance and Signed lease share the Quick actions/Landlord tracks while Payment history stays full-width", () => {
+test("Maintenance and Signed lease share the Quick actions/Landlord tracks while Payment history and Lease renewal share the second row", () => {
   for (const paid of [false, true]) {
     const all = renderRental({ paid });
     const shell = all.find(node => node.props.className?.includes("@container/rental"));
@@ -219,7 +219,7 @@ test("Maintenance and Signed lease share the Quick actions/Landlord tracks while
     const [actionsRow, supportingRow] = rows.slice(1);
     assert.equal(actionsRow.props.className, supportingRow.props.className, "column widths, gap, breakpoint and stretching match exactly");
     assert.ok(!supportingRow.props.className.includes("grid-cols-2 "), "two columns only apply at the content-width breakpoint");
-    const [maintenance, lease] = supportingRow.props.children;
+    const [maintenance, lease, renewalPlacement, history] = supportingRow.props.children;
     assert.equal(maintenance.type, "./components/DashboardCard");
     assert.ok(content(nodes(maintenance)).includes("Maintenance"));
     assert.ok(nodes(maintenance).some(node => node.type === "Link" && node.props.href === "/tenant/maintenance"));
@@ -227,8 +227,12 @@ test("Maintenance and Signed lease share the Quick actions/Landlord tracks while
     assert.equal(lease.props.tenancyId, "tenancy");
     assert.equal(typeof lease.props.onView, "function");
     assert.equal(typeof lease.props.onAcknowledged, "function");
-    const history = children[children.indexOf(supportingRow) + 1];
+    assert.match(renewalPlacement.props.className, /@min-\[64rem\]\/rental:col-start-2/);
+    assert.match(renewalPlacement.props.className, /@min-\[64rem\]\/rental:row-start-2/);
+    assert.ok(nodes(renewalPlacement).some(node => node.type === "@/app/components/renewals/LeaseRenewalEntry" && node.props.tenancyId === "tenancy" && node.props.portal === "tenant"));
     assert.equal(history.type, "./components/DashboardCard");
+    assert.match(history.props.className, /@min-\[64rem\]\/rental:col-start-1/);
+    assert.match(history.props.className, /@min-\[64rem\]\/rental:row-start-2/);
     assert.ok(nodes(history).some(node => node.type === "Table.Content" && node.props["aria-label"] === "Payment history"));
   }
 });

@@ -1,4 +1,9 @@
 import { createClient } from "@repo/supabase/browser";
+import type { Json } from "@repo/supabase";
+import {
+  parseApplicationPreferenceSnapshot,
+  type ApplicationPreferenceSnapshot,
+} from "@repo/utils";
 
 import {
   APPLICATION_DOCUMENT_PATH_KEYS,
@@ -34,6 +39,8 @@ export type TenantApplication = {
   has_smoker: boolean;
   need_parking: boolean;
   message: string | null;
+  /** Pet, parking, smoking and disability details the tenant declared when they applied. */
+  preferences: ApplicationPreferenceSnapshot | null;
   documents: ApplicationDocument[];
   apartments: {
     name: string;
@@ -50,7 +57,7 @@ export type TenantApplication = {
 const APPLICATION_SELECT = `id, status, created_at, rejected_reason, apartment_id,
   occupation, employer_name, monthly_income, employment_type,
   prev_landlord_name, prev_landlord_contact,
-  move_in_date, no_occupants, has_pets, has_smoker, need_parking, message,
+  move_in_date, no_occupants, has_pets, has_smoker, need_parking, message, tenant_preferences,
   gov_id_url, gov_id_back_url, proof_of_income_url, proof_of_billing_url, nbi_clearance_url,
   apartments(name, monthly_rent, street_address, barangay, city, province, zip_code, apartment_images(url, is_cover))`;
 
@@ -73,8 +80,8 @@ export async function fetchTenantApplications(tenantId: string, options: TenantA
 
   const typed = (rows ?? []) as unknown as (Omit<
     TenantApplication,
-    "documents" | "apartments"
-  > &
+    "documents" | "apartments" | "preferences"
+  > & { tenant_preferences: unknown } &
     Record<ApplicationDocumentPathKey, string | null> & {
       apartments: TenantApplication["apartments"];
     })[];
@@ -108,6 +115,7 @@ export async function fetchTenantApplications(tenantId: string, options: TenantA
       has_smoker: item.has_smoker,
       need_parking: item.need_parking,
       message: item.message,
+      preferences: parseApplicationPreferenceSnapshot(item.tenant_preferences),
       apartments: item.apartments,
       documents,
     };
@@ -135,6 +143,8 @@ export type InsertTenantApplicationPayload = {
   proof_of_income_url: string | null;
   proof_of_billing_url: string;
   nbi_clearance_url: string | null;
+  /** Pet, parking, smoking and disability details the tenant declared on the form. */
+  tenant_preferences: ApplicationPreferenceSnapshot | null;
 };
 
 export async function insertTenantApplication(
@@ -144,7 +154,12 @@ export async function insertTenantApplication(
 
   const { data, error } = await supabase
     .from("rental_application")
-    .insert({ ...payload, status: "pending" })
+    .insert({
+      ...payload,
+      // A plain JSON object; the snapshot interface has no index signature.
+      tenant_preferences: payload.tenant_preferences as unknown as Json,
+      status: "pending",
+    })
     .select("id")
     .single();
 
@@ -165,6 +180,7 @@ export interface ApplicationSubmitContext {
   accountStatus: string | null;
   landlordId: string | null;
   hasActiveApplication: boolean;
+  hasActiveTenancy: boolean;
 }
 
 /**
@@ -189,7 +205,7 @@ export async function fetchApplicationSubmitContext(apartmentId: string): Promis
   if (profileError) throw new Error(profileError.message);
   if (!profile) throw new Error("You must be signed in to submit an application.");
 
-  const [apartmentResult, pendingResult] = await Promise.all([
+  const [apartmentResult, pendingResult, tenancyResult] = await Promise.all([
     supabase.from("apartments").select("landlord_id").eq("id", apartmentId).maybeSingle(),
     supabase
       .from("rental_application")
@@ -198,17 +214,20 @@ export async function fetchApplicationSubmitContext(apartmentId: string): Promis
       .eq("apartment_id", apartmentId)
       .eq("status", "pending")
       .limit(1),
+    supabase.from("tenancies").select("id").eq("tenant_id", profile.id).eq("status", "active").limit(1),
   ]);
   if (apartmentResult.error || !apartmentResult.data) {
     throw new Error("Could not verify this apartment. Please try again.");
   }
   if (pendingResult.error) throw new Error(pendingResult.error.message);
+  if (tenancyResult.error) throw new Error(tenancyResult.error.message);
 
   return {
     tenantId: profile.id,
     accountStatus: profile.account_status,
     landlordId: apartmentResult.data.landlord_id,
     hasActiveApplication: (pendingResult.data ?? []).length > 0,
+    hasActiveTenancy: (tenancyResult.data ?? []).length > 0,
   };
 }
 
@@ -218,18 +237,24 @@ export async function cancelTenantApplication(
 ): Promise<void> {
   const supabase = createClient();
 
-  const { error: appError } = await supabase
+  const { data: cancelled, error: appError } = await supabase
     .from("rental_application")
     .update({ status: "cancelled" })
-    .eq("id", applicationId);
+    .eq("id", applicationId)
+    .eq("status", "pending")
+    .select("id")
+    .maybeSingle();
 
-  if (appError) throw appError;
+  if (appError) throw new Error(appError.message);
+  if (!cancelled) throw new Error("This application is no longer pending or is unavailable. Refresh the details before trying again.");
 
   if (visitRequestId) {
-    await supabase
+    const { error: visitError } = await supabase
       .from("visit_request")
       .update({ status: "cancelled" })
       .eq("id", visitRequestId)
+      .eq("application_id", applicationId)
       .in("status", ["pending", "approved", "rescheduled"]);
+    if (visitError) console.error("Application cancelled, but the related visit update could not be confirmed.");
   }
 }

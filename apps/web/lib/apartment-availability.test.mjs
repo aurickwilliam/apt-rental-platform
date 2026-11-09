@@ -15,7 +15,8 @@ test("occupied and maintenance units cannot start an application from details", 
 // Query-contract checks cover server components without adding a React renderer
 // or loading Next's server-only Supabase client into the node:test runner.
 for (const [path, expectedStatusFilter] of [
-  ["../app/browse/lib/fetch-browse-results.ts", /\.in\("status", \["available", "unverified"\]\)/],
+  // The paged list and the Browse rows share these rules through applyVisibleListings.
+  ["../app/browse/lib/browse-query.ts", /\.in\("status", \["available", "unverified"\]\)/],
   ["../app/browse/lib/fetch-map-results.ts", /\.in\("status", \["available", "unverified"\]\)/],
   ["../app/browse/lib/fetch-browse-sections.ts", /\.in\("status", \["available", "unverified"\]\)/],
   ["../app/(main)/components/FeaturedApartments.tsx", /\.eq\("status", "available"\)/],

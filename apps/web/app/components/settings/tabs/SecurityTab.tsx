@@ -14,13 +14,16 @@ import { usePasswordSignInStatus } from "@/hooks/use-password-sign-in-status";
 import SettingsRow from "../SettingsRow";
 import StatusChip from "../StatusChip";
 import AdminTwoStep from "./AdminTwoStep";
+import { policyHref, type PolicyPortal } from "@/lib/policy-routes";
 
 export default function SecurityTab({
   isAdmin = false,
+  activePortal = null,
   onChangePassword,
   onChangeEmail,
 }: {
   isAdmin?: boolean;
+  activePortal?: PolicyPortal | null;
   // Closes Settings and opens the Change Password modal.
   onChangePassword: () => void;
   // Closes Settings and opens the Change Email modal.
@@ -49,7 +52,7 @@ export default function SecurityTab({
           </p>
         </div>
         <Link
-          href="/pap"
+          href={policyHref("privacy", activePortal)}
           className="block rounded-xl border border-border p-4 text-sm font-semibold text-primary hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           {t("settings.security.privacyPolicy")}{" "}

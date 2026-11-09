@@ -1,5 +1,6 @@
 import type { createClient as createServerClient } from "@repo/supabase/server";
 import { periodMonthLabel } from "@/app/tenant/payment/utils";
+import { fetchEffectiveLeaseTermsWith } from '@repo/utils';
 
 type Supabase = Awaited<ReturnType<typeof createServerClient>>;
 
@@ -28,6 +29,7 @@ export type LandlordUnitApartment = {
   province: string | null;
   zip_code: number | null;
   status: string;
+  is_hidden_by_admin: boolean;
   average_rating: number | null;
   no_ratings: number | null;
   no_bedrooms: number | null;
@@ -37,6 +39,7 @@ export type LandlordUnitApartment = {
   furnished_type: string | null;
   floor_level: string | null;
   lease_duration: string | null;
+  has_own_electricity_meter: boolean;
   amenities: string[];
   lease_agreement_url: string | null;
   is_verified: boolean | null;
@@ -100,7 +103,8 @@ const APARTMENT_SELECT = `
   street_address, barangay, city, province, zip_code, status,
   average_rating, no_ratings, no_bedrooms, no_bathrooms, area_sqm,
   max_occupants, furnished_type, floor_level, lease_duration,
-  amenities, lease_agreement_url, is_verified, landlord_id,
+  has_own_electricity_meter,
+  amenities, lease_agreement_url, is_verified, is_hidden_by_admin, landlord_id,
   apartment_images (id, url, url_thumb, is_cover)
 `;
 
@@ -124,7 +128,7 @@ const TENANCY_SELECT = `
 const MAINTENANCE_PREVIEW_SELECT = "id, title, created_at";
 
 const PAYMENT_PREVIEW_SELECT =
-  "id, amount, date, status, method, reference_id, due_date, period_start";
+  "id, amount, date, status, method, reference_id, due_date, period_start, billing_kind";
 
 const REVIEW_SELECT = `
   id,
@@ -163,14 +167,15 @@ export async function fetchLandlordUnitDescription(supabase: Supabase, apartment
   const [apartment, tenancy] = await Promise.all([
     fetchLandlordUnitApartment(supabase, apartmentId),
     supabase.from("tenancies")
-      .select("lease_start, lease_end, tenant:users!tenancies_tenant_id_fkey(id)")
+      .select("id, lease_start, lease_end, tenant:users!tenancies_tenant_id_fkey(id)")
       .eq("apartment_id", apartmentId).eq("status", "active").maybeSingle(),
   ]);
   if (tenancy.error) throw tenancy.error;
   if (!apartment) return null;
+  const effectiveTerms=tenancy.data?.id?await fetchEffectiveLeaseTermsWith(supabase,tenancy.data.id):null;
   return {
     apartment,
-    tenant: tenancy.data?.tenant ? { leaseStart: tenancy.data.lease_start, leaseEnd: tenancy.data.lease_end } : null,
+    tenant: tenancy.data?.tenant ? { leaseStart: tenancy.data.lease_start, leaseEnd: effectiveTerms?effectiveTerms.leaseEnd:tenancy.data.lease_end } : null,
   };
 }
 
@@ -267,6 +272,7 @@ export async function fetchLandlordUnitDetail(
   if (!apartment) return null;
 
   const tenancyData = tenancyResult.data as unknown as TenancyRow | null;
+  const effectiveTerms=tenancyData?await fetchEffectiveLeaseTermsWith(supabase,tenancyData.id):null;
   const tenant: LandlordUnitTenant | null = tenancyData?.tenant
     ? {
         id: tenancyData.tenant.id,
@@ -277,7 +283,7 @@ export async function fetchLandlordUnitDetail(
         mobileNumber: tenancyData.tenant.mobile_number,
         avatarUrl: tenancyData.tenant.avatar_url,
         leaseStart: tenancyData.lease_start,
-        leaseEnd: tenancyData.lease_end,
+        leaseEnd: effectiveTerms?effectiveTerms.leaseEnd:tenancyData.lease_end,
         tenancyId: tenancyData.id,
         signedLeasePath: tenancyData.signed_lease_path,
         signedLeaseUploadedAt: tenancyData.signed_lease_uploaded_at,
@@ -296,6 +302,7 @@ export async function fetchLandlordUnitDetail(
 
   const recentPayments: LandlordUnitPaymentPreview[] = (
     (paymentsResult.data ?? []) as unknown as {
+      billing_kind?:string|null;
       id: string;
       amount: number | null;
       date: string;
@@ -307,7 +314,7 @@ export async function fetchLandlordUnitDetail(
     }[]
   ).map((p) => ({
     id: p.id,
-    month: periodMonthLabel(p.due_date ?? p.period_start ?? p.date),
+    month: p.billing_kind==='lease_renewal'?'Lease Renewal':periodMonthLabel(p.due_date ?? p.period_start ?? p.date),
     amount: Number(p.amount ?? 0),
     paidDate: toPaidDate(p.date),
     status: p.status,

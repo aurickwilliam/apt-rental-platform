@@ -8,8 +8,10 @@ import ScreenWrapper, { type ScreenWrapperScrollRef } from 'components/layout/Sc
 import ProfileDetailsFields from '@/components/profile/ProfileDetailsFields';
 import NewPasswordFields from '@/components/inputs/NewPasswordFields';
 import ErrorDialog from '@/components/display/ErrorDialog';
+import RegistrationPolicyAcceptance from '@/components/legal/RegistrationPolicyAcceptance';
 
 import { useProfileDetailsForm } from '@/hooks/auth/useProfileDetailsForm';
+import { useCaptcha } from '@/hooks/auth/useCaptcha';
 import { useSignUpProfile } from '@/hooks/auth/useSignUpProfile';
 import { isPortal } from '@/service/auth/portalPreference';
 import { firstParam } from '@/utils/routeParams';
@@ -38,11 +40,13 @@ export default function CompleteProfile() {
   const scrollRef = useRef<ScreenWrapperScrollRef>(null);
   const form = useProfileDetailsForm({ scrollRef });
   const passwords = usePasswordValidation();
-  const { submit, goBack, loading, error, errorDialogOpen, closeErrorDialog } = useSignUpProfile({
+  const { widget: captchaWidget, take: takeCaptcha } = useCaptcha();
+  const { submit, goBack, loading, error, errorDialogOpen, closeErrorDialog, policies } = useSignUpProfile({
     form,
     passwords,
     email,
     userSide: role,
+    takeCaptcha,
   });
 
   const getPasswordError = (field: 'password' | 'confirmPassword') => {
@@ -82,7 +86,7 @@ export default function CompleteProfile() {
         <Separator />
 
         <Text className="text-xl text-foreground font-nunitoBold mt-3">
-          {t("authMobile.completeProfile.accountSecurity")}
+          {t("auth.form.setPassword")}
         </Text>
 
         <View {...form.trackPosition('password')}>
@@ -99,7 +103,9 @@ export default function CompleteProfile() {
       </View>
 
       <View className="mt-16 mb-0">
-        <Button onPress={submit} isDisabled={loading}>
+        <RegistrationPolicyAcceptance form={policies} isDisabled={loading} />
+        {captchaWidget}
+        <Button onPress={submit} isDisabled={loading || !policies.canSubmit}>
           <Button.Label>
             {loading ? t("common.pleaseWait") : t("common.submit")}
           </Button.Label>

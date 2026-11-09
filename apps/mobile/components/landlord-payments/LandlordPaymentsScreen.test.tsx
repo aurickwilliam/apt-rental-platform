@@ -47,8 +47,16 @@ jest.mock("@/components/landlord-payments/LandlordPaymentsSkeleton", () => {
   return { __esModule: true, default: () => <T>payments skeleton</T> };
 });
 jest.mock("@/components/display/EmptyState", () => {
-  const { Text: T } = jest.requireActual("react-native");
-  return { __esModule: true, default: ({ title }: { title: string }) => <T>{title}</T> };
+  const { Text: T, View: V } = jest.requireActual("react-native");
+  return {
+    __esModule: true,
+    default: ({ title, action }: { title: string; action?: React.ReactNode }) => (
+      <V>
+        <T>{title}</T>
+        {action}
+      </V>
+    ),
+  };
 });
 
 // Selects and tabs are exercised through their props: each option is a button.

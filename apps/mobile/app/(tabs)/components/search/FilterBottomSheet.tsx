@@ -14,51 +14,31 @@ import {
 
 import {
   APARTMENT_TYPES,
+  CAMANAVA_CITIES,
   FURNISHED_TYPES,
   FLOOR_LEVELS,
   LEASE_DURATIONS,
   isRetiredAmenity,
 } from "@repo/constants";
 import { PERKS } from "@/constants/perks";
+import RangeInputFields from "@/components/inputs/RangeInputFields";
+
+import {
+  DEFAULT_FILTERS,
+  MAX_BUDGET,
+  MAX_SIZE,
+  MIN_BUDGET,
+  MIN_SIZE,
+  type FilterState,
+} from "@/service/search/searchFilters";
 
 import { useColors } from "hooks/useTheme";
 
 import { IconShieldCheck } from "@tabler/icons-react-native";
 
-const MAX_SIZE = 300;
-const MIN_BUDGET = 1000;
-const MAX_BUDGET = 50000;
-const MIN_SIZE = 10;
-
 const ROOM_OPTS = ["Any", "1", "2", "3", "4+"];
 
-export type FilterState = {
-  budget: [number, number];
-  unitTypes: string[];
-  sortBy: "newest" | "price_asc" | "price_desc" | "most_popular";
-  bedrooms: string;
-  bathrooms: string;
-  sizeRange: [number, number];
-  furnishing: string[];
-  floorLevel: string[];
-  leaseDuration: string[];
-  amenities: string[];
-  verifiedOnly: boolean;
-};
-
-export const DEFAULT_FILTERS: FilterState = {
-  budget: [MIN_BUDGET, MAX_BUDGET],
-  sizeRange: [MIN_SIZE, MAX_SIZE],
-  unitTypes: APARTMENT_TYPES,
-  sortBy: "newest",
-  bedrooms: "Any",
-  bathrooms: "Any",
-  furnishing: FURNISHED_TYPES,
-  floorLevel: FLOOR_LEVELS,
-  leaseDuration: LEASE_DURATIONS,
-  amenities: [],
-  verifiedOnly: false,
-};
+export { DEFAULT_FILTERS, type FilterState };
 
 type Props = {
   isOpen: boolean;
@@ -145,6 +125,9 @@ export default function FilterBottomSheet({
           snapPoints={["85%"]}
           enableOverDrag={false}
           enableDynamicSizing={false}
+          keyboardBehavior="interactive"
+          keyboardBlurBehavior="restore"
+          enableBlurKeyboardOnGesture
           contentContainerClassName="h-full"
           handleIndicatorClassName="bg-[#D0D0D0] w-10"
           backgroundClassName="bg-surface rounded-t-[20px]"
@@ -167,6 +150,7 @@ export default function FilterBottomSheet({
           {/* ── Scrollable Content ── */}
           <BottomSheetScrollView
             style={{ flex: 1 }}
+            keyboardShouldPersistTaps="handled"
             contentContainerStyle={{
               paddingTop: 16,
               paddingBottom: 32,
@@ -192,6 +176,26 @@ export default function FilterBottomSheet({
               />
               <Chip.Label>Verified listings only</Chip.Label>
             </Chip>
+
+            <Separator className="my-4" />
+
+            {/* Location */}
+            <Text className="font-nunitoSemiBold text-base text-foreground mb-3">
+              Location
+            </Text>
+            <TagGroup
+              selectionMode="multiple"
+              selectedKeys={new Set(filters.locations)}
+              onSelectionChange={handleMultiSelect("locations")}
+            >
+              <TagGroup.List className="flex-row flex-wrap gap-2">
+                {CAMANAVA_CITIES.map((city) => (
+                  <TagGroup.Item key={city} id={city}>
+                    {city}
+                  </TagGroup.Item>
+                ))}
+              </TagGroup.List>
+            </TagGroup>
 
             <Separator className="my-4" />
 
@@ -239,50 +243,36 @@ export default function FilterBottomSheet({
                 </Text>
               </View>
             </Slider>
+            <RangeInputFields
+              min={filters.budget[0]}
+              max={filters.budget[1]}
+              absoluteMin={MIN_BUDGET}
+              absoluteMax={MAX_BUDGET}
+              step={500}
+              prefix="₱"
+              minLabel="Minimum budget"
+              maxLabel="Maximum budget"
+              onCommit={(next) => setFilters((p) => ({ ...p, budget: next }))}
+            />
 
             <Separator className="my-4" />
 
-            {/* Size Range */}
-            <Slider
-              value={filters.sizeRange}
-              onChange={(v) =>
-                setFilters((p) => ({ ...p, sizeRange: v as [number, number] }))
-              }
-              minValue={MIN_SIZE}
-              maxValue={MAX_SIZE}
-              step={5}
+            <Text className="font-nunitoSemiBold text-base text-foreground mb-3">
+              Unit Type
+            </Text>
+            <TagGroup
+              selectionMode="multiple"
+              selectedKeys={new Set(filters.unitTypes)}
+              onSelectionChange={handleMultiSelect("unitTypes")}
             >
-              <View className="flex-row items-center justify-between mb-2">
-                <Text className="font-nunitoSemiBold text-base text-foreground">
-                  Size Range
-                </Text>
-                <Slider.Output>
-                  {({ state }) => (
-                    <Text className="font-nunitoSemiBold text-sm text-accent">
-                      {state.values[0]} sqm – {state.values[1]} sqm
-                    </Text>
-                  )}
-                </Slider.Output>
-              </View>
-              <Slider.Track>
-                {({ state }) => (
-                  <>
-                    <Slider.Fill />
-                    {state.values.map((_, i) => (
-                      <Slider.Thumb key={i} index={i} />
-                    ))}
-                  </>
-                )}
-              </Slider.Track>
-              <View className="flex-row justify-between mt-1">
-                <Text className="text-muted text-xs font-inter">
-                  10 sqm
-                </Text>
-                <Text className="text-muted text-xs font-inter">
-                  300 sqm
-                </Text>
-              </View>
-            </Slider>
+              <TagGroup.List className="flex-row flex-wrap gap-2">
+                {APARTMENT_TYPES.map((type) => (
+                  <TagGroup.Item key={type} id={type}>
+                    {type}
+                  </TagGroup.Item>
+                ))}
+              </TagGroup.List>
+            </TagGroup>
 
             <Separator className="my-4" />
 
@@ -348,23 +338,58 @@ export default function FilterBottomSheet({
 
             <Separator className="my-4" />
 
-            <Text className="font-nunitoSemiBold text-base text-foreground mb-3">
-              Unit Type
-            </Text>
-            <TagGroup
-              selectionMode="multiple"
-              selectedKeys={new Set(filters.unitTypes)}
-              onSelectionChange={handleMultiSelect("unitTypes")}
+            {/* Size Range */}
+            <Slider
+              value={filters.sizeRange}
+              onChange={(v) =>
+                setFilters((p) => ({ ...p, sizeRange: v as [number, number] }))
+              }
+              minValue={MIN_SIZE}
+              maxValue={MAX_SIZE}
+              step={5}
             >
-              <TagGroup.List className="flex-row flex-wrap gap-2">
-                {APARTMENT_TYPES.map((type) => (
-                  <TagGroup.Item key={type} id={type}>
-                    {type}
-                  </TagGroup.Item>
-                ))}
-              </TagGroup.List>
-            </TagGroup>
-
+              <View className="flex-row items-center justify-between mb-2">
+                <Text className="font-nunitoSemiBold text-base text-foreground">
+                  Size Range
+                </Text>
+                <Slider.Output>
+                  {({ state }) => (
+                    <Text className="font-nunitoSemiBold text-sm text-accent">
+                      {state.values[0]} sqm – {state.values[1]} sqm
+                    </Text>
+                  )}
+                </Slider.Output>
+              </View>
+              <Slider.Track>
+                {({ state }) => (
+                  <>
+                    <Slider.Fill />
+                    {state.values.map((_, i) => (
+                      <Slider.Thumb key={i} index={i} />
+                    ))}
+                  </>
+                )}
+              </Slider.Track>
+              <View className="flex-row justify-between mt-1">
+                <Text className="text-muted text-xs font-inter">
+                  10 sqm
+                </Text>
+                <Text className="text-muted text-xs font-inter">
+                  300 sqm
+                </Text>
+              </View>
+            </Slider>
+            <RangeInputFields
+              min={filters.sizeRange[0]}
+              max={filters.sizeRange[1]}
+              absoluteMin={MIN_SIZE}
+              absoluteMax={MAX_SIZE}
+              step={5}
+              suffix="sqm"
+              minLabel="Minimum size"
+              maxLabel="Maximum size"
+              onCommit={(next) => setFilters((p) => ({ ...p, sizeRange: next }))}
+            />
             <Separator className="my-4" />
 
             <Text className="font-nunitoSemiBold text-base text-foreground mb-3">

@@ -2,6 +2,7 @@ import { act, renderHook } from "@testing-library/react-native";
 
 import { useFinishProfile } from "./useFinishProfile";
 import { useProfileDetailsForm } from "./useProfileDetailsForm";
+import { emptyRegistrationAcceptance, POLICY_UPDATE_MESSAGE } from "@/service/auth/registrationAcceptance";
 
 const mockReplace = jest.fn();
 const mockDispatch = jest.fn();
@@ -29,7 +30,8 @@ jest.mock("@/utils/queryClient", () => ({ clearQueryClient: () => mockClearQuery
 function setup(role: "tenant" | "landlord" = "tenant", requestedRole?: string) {
   return renderHook(() => {
     const form = useProfileDetailsForm({ scrollRef: { current: null } });
-    return { form, flow: useFinishProfile({ form, role, requestedRole }) };
+    const flow = useFinishProfile({ form, role, requestedRole });
+    return { form, flow };
   });
 }
 
@@ -60,6 +62,10 @@ describe("useFinishProfile", () => {
 
   it("does not save while the form is invalid", async () => {
     const { result } = setup();
+    act(() => {
+      result.current.flow.policies.setAccepted("privacyAccepted", true);
+      result.current.flow.policies.setAccepted("termsAccepted", true);
+    });
 
     await act(async () => { await result.current.flow.submit(); });
 
@@ -70,6 +76,10 @@ describe("useFinishProfile", () => {
   it("saves, activates the portal and sends a tenant to personalization", async () => {
     const { result } = setup("tenant", "tenant");
     fillValid(() => result.current.form);
+    act(() => {
+      result.current.flow.policies.setAccepted("privacyAccepted", true);
+      result.current.flow.policies.setAccepted("termsAccepted", true);
+    });
 
     await act(async () => { await result.current.flow.submit(); });
 
@@ -77,6 +87,7 @@ describe("useFinishProfile", () => {
       details: expect.objectContaining({ first_name: "Ana", mobile_number: "09171234567", postal_code: 1400 }),
       role: "tenant",
       requestedRole: "tenant",
+      acceptance: { ...emptyRegistrationAcceptance(), termsAccepted: true, privacyAccepted: true },
     });
     expect(mockSwitchTo).toHaveBeenCalledWith("auth-1", ["tenant"], "tenant");
     expect(mockReplace).toHaveBeenCalledWith("/personalization/step-one");
@@ -85,6 +96,10 @@ describe("useFinishProfile", () => {
   it("sends a landlord to the dashboard", async () => {
     const { result } = setup("landlord");
     fillValid(() => result.current.form);
+    act(() => {
+      result.current.flow.policies.setAccepted("privacyAccepted", true);
+      result.current.flow.policies.setAccepted("termsAccepted", true);
+    });
 
     await act(async () => { await result.current.flow.submit(); });
 
@@ -95,6 +110,10 @@ describe("useFinishProfile", () => {
     mockFinishProfile.mockRejectedValue(new Error("JWT expired"));
     const { result } = setup();
     fillValid(() => result.current.form);
+    act(() => {
+      result.current.flow.policies.setAccepted("privacyAccepted", true);
+      result.current.flow.policies.setAccepted("termsAccepted", true);
+    });
 
     await act(async () => { await result.current.flow.submit(); });
 
@@ -115,5 +134,23 @@ describe("useFinishProfile", () => {
     expect(mockClearQueryClient).toHaveBeenCalled();
     expect(mockSignOut).toHaveBeenCalled();
     expect(mockReplace).toHaveBeenCalledWith("/sign-in");
+  });
+
+  it("blocks missing acceptance and shows stale revisions inline without losing the profile draft", async () => {
+    const { result } = setup();
+    fillValid(() => result.current.form);
+    await act(async () => { await result.current.flow.submit(); });
+    expect(mockFinishProfile).not.toHaveBeenCalled();
+    act(() => {
+      result.current.flow.policies.setAccepted("privacyAccepted", true);
+      result.current.flow.policies.setAccepted("termsAccepted", true);
+    });
+    mockFinishProfile.mockRejectedValue({ message: POLICY_UPDATE_MESSAGE });
+    await act(async () => { await result.current.flow.submit(); });
+    expect(result.current.flow.policies.errors.version).toBe(POLICY_UPDATE_MESSAGE);
+    expect(result.current.flow.policies.value.termsAccepted).toBe(false);
+    expect(result.current.form.values.firstName).toBe("Ana");
+    expect(result.current.flow.errorDialogOpen).toBe(false);
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 });

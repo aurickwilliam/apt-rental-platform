@@ -9,7 +9,7 @@ export default function LandingLayout({ children }: { children: React.ReactNode 
       <noscript>
         <style>{`[data-landing-reveal] { opacity: 1 !important; transform: none !important; }`}</style>
       </noscript>
-      <Suspense fallback={<div aria-hidden="true" className="box-content h-20 border-b border-transparent" />}>
+      <Suspense fallback={<div aria-hidden="true" className="box-content h-20 md:h-[72px] border-b border-transparent" />}>
         <AppNavbar />
       </Suspense>
       {children}

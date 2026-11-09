@@ -4,7 +4,12 @@ import { supabase } from '@repo/supabase'
 import { useProfile } from 'hooks/auth'
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 import { fetchPassportDocumentsWithVerification } from '@/service/passport/passportService'
+import { fetchHasActiveRentalAsTenant } from '@/service/applications/activeRentalService'
 import { evaluateApplicationReadiness } from '@repo/passport'
+import { normalizePHMobile } from '@repo/constants'
+import { buildDeclaredApplicationPreferenceSnapshot } from '@repo/utils'
+import type { Json } from '@repo/supabase'
+import { toApplicationPreferenceSource } from '@/service/applications/applicationFormPreferences'
 
 type SubmitArgs = {
   apartmentId: string
@@ -72,6 +77,7 @@ export function useSubmitApplication() {
         // Authoritative passport read: links the approved ID first, so the
         // primary ID is present even if the passport screen was never opened.
         const passportDocs = await fetchPassportDocumentsWithVerification(tenantId)
+        const hasActiveTenancy = await fetchHasActiveRentalAsTenant(tenantId)
 
         const readiness = evaluateApplicationReadiness({
           accountStatus: profile?.account_status,
@@ -79,6 +85,7 @@ export function useSubmitApplication() {
           landlordId: apartment.landlord_id,
           // The unique index rejects a duplicate pending application below.
           hasActiveApplication: false,
+          hasActiveTenancy,
           passportDocs,
           employmentType: tenantInformation.employmentType,
         })
@@ -91,6 +98,12 @@ export function useSubmitApplication() {
           return fail('Your APT Passport is missing required documents.')
         }
 
+        // The details the tenant declared on the form (pets, parking and
+        // vehicles, smoking, disability), kept as they were when applying.
+        const preferenceSnapshot = buildDeclaredApplicationPreferenceSnapshot(
+          toApplicationPreferenceSource(rentalPreferences),
+        )
+
         const { error: insertError } = await supabase.from('rental_application').insert({
           tenant_id: tenantId,
           apartment_id: apartmentId,
@@ -99,7 +112,10 @@ export function useSubmitApplication() {
           monthly_income: monthlyIncome,
           employment_type: tenantInformation.employmentType,
           prev_landlord_name: tenantInformation.previousLandlordName || null,
-          prev_landlord_contact: tenantInformation.previousLandlordContact || null,
+          // Stored as 0XXXXXXXXXX, without the spaces the field shows.
+          prev_landlord_contact: tenantInformation.previousLandlordContact
+            ? normalizePHMobile(tenantInformation.previousLandlordContact)
+            : null,
           move_in_date: rentalPreferences.moveInDate.toISOString().slice(0, 10),
           no_occupants: noOccupants,
           has_pets: rentalPreferences.hasPets ?? false,
@@ -112,6 +128,8 @@ export function useSubmitApplication() {
           proof_of_income_url: docs.proofOfIncome?.storage_path ?? null,
           proof_of_billing_url: docs.proofOfBilling.storage_path,
           nbi_clearance_url: docs.nbiClearance?.storage_path ?? null,
+          // A plain JSON object; the snapshot interface has no index signature.
+          tenant_preferences: preferenceSnapshot as unknown as Json,
           status: 'pending',
         })
 

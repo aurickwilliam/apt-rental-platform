@@ -4,6 +4,7 @@ import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button, Card, Chip, useOverlayState } from "@heroui/react";
+import { filterPaymentHistory } from "@repo/utils";
 import StatusChip from "@/app/components/display/StatusChip";
 import type { StatusTone } from "@/lib/status-tone";
 import { IconArrowLeft as ArrowLeft, IconCashBanknote as Banknote, IconReceipt as Receipt, IconAdjustmentsHorizontal as SlidersHorizontal } from "@tabler/icons-react";
@@ -15,6 +16,7 @@ import { useTenancy } from "@/hooks/use-tenancy";
 import PaymentHistoryFilters from "../components/PaymentHistoryFilters";
 import PaymentHistorySkeleton from "../components/PaymentHistorySkeleton";
 import ReceiptModal from "../components/ReceiptModal";
+import EmptyState from "@/app/components/display/EmptyState";
 
 function toYear(payment: PaymentRecord): string {
   const src = payment.period_start ?? payment.date;
@@ -51,7 +53,7 @@ function PaymentRowCard({ payment }: { payment: PaymentRecord }) {
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 truncate">
-                {payment.billing_kind === "move_in" ? "Move-in payment" : periodMonthLabel(payment.due_date ?? payment.period_start ?? payment.date)}
+                {payment.billing_kind === "lease_renewal" ? "Lease Renewal" : payment.billing_kind === "move_in" ? "Move-in payment" : periodMonthLabel(payment.due_date ?? payment.period_start ?? payment.date)}
               </p>
               <p className="text-xs text-zinc-500 truncate mt-0.5">{payment.apartment_name ?? "—"}</p>
               <p className="text-xs text-zinc-400 mt-1">via {methodLabel(payment.method)}</p>
@@ -92,10 +94,12 @@ function HistoryContent() {
   const closeReceipt = () => router.replace("/tenant/payment/history");
 
   const currentYear = String(new Date().getFullYear());
-  // Mobile parity: history hides pending rows (pending lives in verify/success flow).
+  // Mobile parity (shared rule): pending rows live in the verify/success flow, and failed
+  // attempts (backed out or abandoned checkouts) only show under the Failed filter.
+  const showFailed = filters.statuses.includes("Failed");
   const visiblePayments = useMemo(
-    () => (paymentsQuery.data ?? []).filter((p) => paymentStatusLabel(p.status) !== "Pending"),
-    [paymentsQuery.data],
+    () => filterPaymentHistory(paymentsQuery.data ?? [], showFailed),
+    [paymentsQuery.data, showFailed],
   );
   const availableYears = useMemo(
     () => [...new Set(visiblePayments.map(toYear))].sort((a, b) => Number(b) - Number(a)),
@@ -198,18 +202,17 @@ function HistoryContent() {
 
         {/* Content */}
         {filtered.length === 0 ? (
-          <Card className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-            <Card.Content className="py-16 flex flex-col items-center gap-3 text-center">
-              <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 p-5">
-                <Receipt size={32} className="text-primary" />
-              </span>
-              <p className="text-base font-nunito font-bold text-zinc-900 dark:text-zinc-100">No payments found</p>
-              <p className="text-sm text-zinc-500 max-w-sm">Try adjusting your filters to see more results.</p>
+          <EmptyState
+            framed
+            icon={Receipt}
+            title="No payments found"
+            description="Try adjusting your filters to see more results."
+            action={
               <Button variant="secondary" size="sm" onPress={() => setFilters({ years: [], statuses: [], sort: "Newest" })}>
                 Clear filters
               </Button>
-            </Card.Content>
-          </Card>
+            }
+          />
         ) : (
           <div className="space-y-6">
             {grouped.map(([year, payments]) => (

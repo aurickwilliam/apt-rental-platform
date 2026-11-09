@@ -1,5 +1,7 @@
 import { Table } from "@heroui/react";
 import StatusChip from "@/app/components/display/StatusChip";
+import EmptyState from "@/app/components/display/EmptyState";
+import { IconHistory } from "@tabler/icons-react";
 
 export interface ReleaseHistoryEntry {
   id: string;
@@ -53,9 +55,13 @@ export default function ReleaseHistory({ entries, error }: ReleaseHistoryProps) 
 
   if (entries.length === 0) {
     return (
-      <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-        No releases have been published yet. Use Publish release to add the first one.
-      </div>
+      <EmptyState
+        framed
+        className="py-10"
+        icon={IconHistory}
+        title="No releases yet"
+        description="No releases have been published yet. Use Publish release to add the first one."
+      />
     );
   }
 

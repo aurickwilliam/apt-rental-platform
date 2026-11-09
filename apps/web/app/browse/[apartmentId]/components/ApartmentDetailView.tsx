@@ -5,6 +5,7 @@ import RatingSection from "./RatingsSection";
 import MapLocation from "./MapLocation";
 
 import { Separator } from "@heroui/react";
+import { OWN_ELECTRICITY_METER_DETAIL } from "@repo/constants";
 
 import { fetchVerifiedLandlordIds } from "@/lib/verified-landlord";
 
@@ -17,11 +18,13 @@ import {
   IconBuilding,
   IconCalendar,
   IconArmchair,
+  IconBolt,
 } from "@tabler/icons-react";
 
 import ApartmentReviewsPreview from "./ApartmentReviewsPreview";
 import RelatedApartments from "./RelatedApartments";
 import PriceCard from "./PriceCard";
+import AcceptedPaymentMethods from "./AcceptedPaymentMethods";
 import ShareBtn from "./ShareBtn";
 import FavoriteBtn from "./FavoriteBtn";
 import LandlordChatPanel from "./LandlordChatPanel";
@@ -63,6 +66,11 @@ export default async function ApartmentDetailView({
       .eq('id', apartmentId)
       .eq('is_hidden_by_admin', false)
       .is('deleted_at', null)
+      // Cover first: the gallery's big photo is `images[0]`, and the listing
+      // cards show the `is_cover` photo, so the two must agree.
+      .order("is_cover", { referencedTable: "apartment_images", ascending: false, nullsFirst: false })
+      .order("created_at", { referencedTable: "apartment_images", ascending: true })
+      .order("id", { referencedTable: "apartment_images", ascending: true })
       .single(),
   ]);
 
@@ -90,7 +98,12 @@ export default async function ApartmentDetailView({
           .eq("status", "pending").limit(1)
       : { data: null },
   );
-  const [profileResult, landlordResult, relatedResult, pendingResult, verifiedLandlordIds] = await Promise.all([
+  const tenancyPromise = profilePromise.then(async ({ data: profile }) =>
+    profile?.roles?.includes("tenant")
+      ? await supabase.from("tenancies").select("id").eq("tenant_id", profile.id).eq("status", "active").limit(1)
+      : { data: null },
+  );
+  const [profileResult, landlordResult, relatedResult, pendingResult, tenancyResult, verifiedLandlordIds, acceptedMethodsResult] = await Promise.all([
     profilePromise,
     apartment.landlord_id
       ? supabase
@@ -112,7 +125,10 @@ export default async function ApartmentDetailView({
       .order("is_cover", { referencedTable: "apartment_images", ascending: false, nullsFirst: false })
       .limit(1, { referencedTable: "apartment_images" }),
     pendingPromise,
+    tenancyPromise,
     fetchVerifiedLandlordIds(supabase, apartment.landlord_id ? [apartment.landlord_id] : []),
+    // Method names only; a failed read just leaves the card out.
+    supabase.rpc("get_apartment_accepted_methods", { p_apartment_id: apartmentId }),
   ]);
 
   const { data: currentUser } = profileResult;
@@ -130,6 +146,7 @@ export default async function ApartmentDetailView({
           userId: currentUser.id,
           accountStatus: currentUser.account_status,
           hasActiveApplication: (pendingApplications ?? []).length > 0,
+          hasActiveTenancy: (tenancyResult.data ?? []).length > 0,
         }
       : null;
 
@@ -157,7 +174,12 @@ export default async function ApartmentDetailView({
       <div className="flex items-center justify-between gap-2">
         <BackBtn />
         <div className="flex items-center gap-2">
-          <ShareBtn />
+          <ShareBtn
+            apartmentId={apartment.id}
+            name={apartment.name}
+            city={apartment.city}
+            monthlyRent={apartment.monthly_rent}
+          />
           <FavoriteBtn apartmentId={apartment.id} />
         </div>
       </div>
@@ -236,6 +258,14 @@ export default async function ApartmentDetailView({
                 {enumLabel(language, FURNISHED_TYPE_KEYS, apartment.furnished_type ?? "")}
               </h2>
             </div>
+            {apartment.has_own_electricity_meter === true && (
+              <div className="flex gap-2 items-center min-w-0">
+                <IconBolt size={22} className="text-muted-foreground shrink-0" aria-hidden="true" />
+                <p className="text-sm sm:text-base font-medium text-muted-foreground min-w-0 break-words">
+                  {OWN_ELECTRICITY_METER_DETAIL}
+                </p>
+              </div>
+            )}
           </div>
 
           <Separator className="my-6 sm:my-8" />
@@ -299,6 +329,8 @@ export default async function ApartmentDetailView({
             apartmentName={apartment.name ?? ""}
             profilePortal={basePath === "/tenant/browse" ? "tenant" : basePath === "/landlord/browse" ? "landlord" : "public"}
           />
+
+          <AcceptedPaymentMethods methods={acceptedMethodsResult.error ? null : acceptedMethodsResult.data} />
         </div>
       </div>
 

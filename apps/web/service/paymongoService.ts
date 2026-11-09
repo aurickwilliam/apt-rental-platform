@@ -1,19 +1,14 @@
 "use client";
 
 import { createClient } from "@repo/supabase/browser";
+import type { BankCode } from "@repo/constants";
 
-// Web twin of mobile service/payments/paymongoService.ts (read-only study, not modified).
+// Web twin of mobile service/payments/paymongoService.ts.
 // Proxies PayMongo through the `paymongo` edge function so the secret never
-// reaches the browser. Mock mode applies server-side while PAYMONGO_SECRET_KEY
-// is unset (-fail/-expired simulation, card 0002 decline).
-
-export type PaymongoCard = {
-  number: string;
-  expMonth: number;
-  expYear: number;
-  cvc: string;
-  name: string;
-};
+// reaches the browser. Every method (wallets, bank transfer and card) is paid on
+// PayMongo's hosted page, so no account, wallet or card number goes through the app.
+// Mock mode applies server-side while PAYMONGO_SECRET_KEY is unset (-fail/-expired
+// simulation).
 
 export type PaymongoCheckoutSession = {
   id: string;
@@ -22,11 +17,6 @@ export type PaymongoCheckoutSession = {
 };
 
 export type PaymongoSessionStatus = "paid" | "failed" | "expired" | "pending";
-
-export type PaymongoCardPaymentResult = {
-  status: "succeeded" | "failed";
-  failureReason: string | null;
-};
 
 export class PaymongoError extends Error {
   reason: string;
@@ -44,6 +34,12 @@ type PaymongoEnvelope<T> = {
   data: T;
 };
 
+export const NETWORK_ERROR_CODE = "network_error";
+const NETWORK_ERROR_REASON =
+  "We could not reach the server. Check your connection and try again. If you already paid, your payment is safe.";
+// Delays before retrying a dropped connection (up to 3 attempts in all).
+const NETWORK_RETRY_DELAYS_MS = [1000, 2000];
+
 async function extractError(error: unknown): Promise<{ reason: string; code: string | null }> {
   const response = (error as { context?: Response }).context;
   if (response) {
@@ -55,6 +51,11 @@ async function extractError(error: unknown): Promise<{ reason: string; code: str
     } catch {
       // Response body was not JSON — fall through to the generic message.
     }
+  }
+  // The request never reached the function (e.g. the connection dropped).
+  // Nothing is known about the payment.
+  if ((error as { name?: string }).name === "FunctionsFetchError") {
+    return { reason: NETWORK_ERROR_REASON, code: NETWORK_ERROR_CODE };
   }
   return {
     reason: (error as { message?: string }).message ?? "Payment failed. Please try again.",
@@ -76,12 +77,28 @@ async function invoke<T>(action: string, payload: Record<string, unknown>): Prom
   return data as T;
 }
 
+// Only for calls that are safe to repeat (status checks, cancelling): a brief
+// network drop should not look like a failed payment.
+async function invokeRepeatable<T>(action: string, payload: Record<string, unknown>): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await invoke<T>(action, payload);
+    } catch (error) {
+      const delay = NETWORK_RETRY_DELAYS_MS[attempt];
+      if (!(error instanceof PaymongoError) || error.code !== NETWORK_ERROR_CODE || delay === undefined) throw error;
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
+
 export async function createCheckoutSession(params: {
+  renewalProposalId?: string;
   referenceId: string;
   amount: number;
   description: string;
   redirectBaseUrl: string;
-  method?: "gcash" | "maya" | "qrph";
+  method?: "gcash" | "maya" | "qrph" | "bank_transfer" | "card";
+  bankCode?: BankCode;
   tenancyId?: string;
   periodStart?: string | null;
   periodEnd?: string | null;
@@ -105,45 +122,37 @@ export async function getCheckoutSessionStatus(sessionId: string): Promise<Paymo
   return (await getCheckoutSessionDetails(sessionId)).status;
 }
 
+function toSessionStatus(status: string): PaymongoSessionStatus {
+  switch (status) {
+    case "paid":
+      return "paid";
+    case "failed":
+    case "cancelled":
+      return "failed";
+    case "expired":
+      return "expired";
+    default:
+      return "pending";
+  }
+}
+
 export async function getCheckoutSessionDetails(sessionId: string): Promise<{ status: PaymongoSessionStatus; checkoutUrl: string | null }> {
-  const response = await invoke<PaymongoEnvelope<{ id: string; attributes: { status: string; checkout_url?: string } }>>(
+  const response = await invokeRepeatable<PaymongoEnvelope<{ id: string; attributes: { status: string; checkout_url?: string } }>>(
     "getCheckoutSessionStatus",
     { sessionId },
   );
 
   const attributes = response.data.attributes;
-  let status: PaymongoSessionStatus;
-  switch (attributes.status) {
-    case "paid":
-      status = "paid"; break;
-    case "failed":
-    case "cancelled":
-      status = "failed"; break;
-    case "expired":
-      status = "expired"; break;
-    default:
-      status = "pending";
-  }
-  return { status, checkoutUrl: attributes.checkout_url ?? null };
+  return { status: toSessionStatus(attributes.status), checkoutUrl: attributes.checkout_url ?? null };
 }
 
-export async function createCardPayment(params: {
-  referenceId: string;
-  amount: number;
-  description: string;
-  card: PaymongoCard;
-  tenancyId?: string;
-  periodStart?: string | null;
-  periodEnd?: string | null;
-  dueDate?: string | null;
-}): Promise<PaymongoCardPaymentResult> {
-  const response = await invoke<PaymongoEnvelope<{ attributes: { status: string; failure_reason: string | null } }>>(
-    "createCardPayment",
-    params,
+// The tenant backed out of the hosted checkout: ask the backend to close the
+// session so it can't be paid later. Its verdict is what counts ("paid" if the
+// payment went through first, "pending" if the session could not be closed).
+export async function cancelCheckoutSession(sessionId: string): Promise<PaymongoSessionStatus> {
+  const response = await invokeRepeatable<PaymongoEnvelope<{ id: string; attributes: { status: string } }>>(
+    "cancelCheckoutSession",
+    { sessionId },
   );
-
-  return {
-    status: response.data.attributes.status === "succeeded" ? "succeeded" : "failed",
-    failureReason: response.data.attributes.failure_reason,
-  };
+  return toSessionStatus(response.data.attributes.status);
 }

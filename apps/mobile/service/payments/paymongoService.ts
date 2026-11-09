@@ -1,20 +1,15 @@
 import { supabase } from '@repo/supabase'
+import type { BankCode } from '@repo/constants'
 
 // Client for the `paymongo` Supabase Edge Function. The function holds the
 // PayMongo secret key; the client only sends data the app already has.
 //
+// Every method (wallets, bank transfer and card) is paid on PayMongo's hosted page, so no
+// account, wallet or card number ever goes through the app or the edge function.
+//
 // Mock mode: while PAYMONGO_SECRET_KEY is unset on the edge function, all calls
-// return PayMongo-shaped mock responses. For e-wallet sessions, a reference id
-// ending in "-fail" or "-expired" simulates a failed/expired session; card
-// numbers ending in "0002" are declined.
-
-export type PaymongoCard = {
-  number: string
-  expMonth: number
-  expYear: number
-  cvc: string
-  name: string
-}
+// return PayMongo-shaped mock responses. A reference id ending in "-fail" or
+// "-expired" simulates a failed/expired session.
 
 export type PaymongoCheckoutSession = {
   id: string
@@ -24,16 +19,8 @@ export type PaymongoCheckoutSession = {
 
 export type PaymongoSessionStatus = 'paid' | 'failed' | 'expired' | 'pending'
 
-export type PaymongoCardPaymentResult = {
-  status: 'succeeded' | 'failed'
-  failureReason: string | null
-}
-
-// Typed error codes surfaced by the paymongo edge function (server-side
-// eligibility checks in createRefund): REFUND_NOT_SUPPORTED,
-// REFUND_ALREADY_PENDING, PAYMENT_NOT_FOUND, PAYMENT_NOT_OWNED,
-// PAYMENT_NOT_PAID, REFUND_INVALID_AMOUNT, REFUND_EXCEEDS_AMOUNT. Code is null
-// for transport/unknown failures.
+// Error codes surfaced by the paymongo edge function (for example
+// configuration_error or not_found). Code is null for transport/unknown failures.
 export class PaymongoError extends Error {
   reason: string
   code: string | null
@@ -50,6 +37,12 @@ type PaymongoEnvelope<T> = {
   data: T
 }
 
+export const NETWORK_ERROR_CODE = 'network_error'
+const NETWORK_ERROR_REASON =
+  'We could not reach the server. Check your connection and try again. If you already paid, your payment is safe.'
+// Delays before retrying a dropped connection (up to 3 attempts in all).
+const NETWORK_RETRY_DELAYS_MS = [1000, 2000]
+
 const extractError = async (error: unknown): Promise<{ reason: string; code: string | null }> => {
   const response = (error as { context?: Response }).context
   if (response) {
@@ -61,6 +54,11 @@ const extractError = async (error: unknown): Promise<{ reason: string; code: str
     } catch {
       // Response body was not JSON — fall through to the generic message.
     }
+  }
+  // The request never reached the function (e.g. the connection dropped while
+  // the app returned from the browser). Nothing is known about the payment.
+  if ((error as { name?: string }).name === 'FunctionsFetchError') {
+    return { reason: NETWORK_ERROR_REASON, code: NETWORK_ERROR_CODE }
   }
   return {
     reason: (error as { message?: string }).message ?? 'Payment failed. Please try again.',
@@ -81,12 +79,29 @@ const invoke = async <T>(action: string, payload: Record<string, unknown>): Prom
   return data as T
 }
 
+// Only for calls that are safe to repeat (status checks, cancelling): a brief
+// network drop, common when returning from the browser, should not look like a
+// failed payment.
+async function invokeRepeatable<T>(action: string, payload: Record<string, unknown>): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await invoke<T>(action, payload)
+    } catch (error) {
+      const delay = NETWORK_RETRY_DELAYS_MS[attempt]
+      if (!(error instanceof PaymongoError) || error.code !== NETWORK_ERROR_CODE || delay === undefined) throw error
+      await new Promise((resolve) => setTimeout(resolve, delay))
+    }
+  }
+}
+
 export async function createCheckoutSession(params: {
+  renewalProposalId?: string
   referenceId: string
   amount: number
   description: string
   redirectBaseUrl: string
-  method?: 'gcash' | 'maya' | 'qrph'
+  method?: 'gcash' | 'maya' | 'qrph' | 'bank_transfer' | 'card'
+  bankCode?: BankCode
   tenancyId?: string
   periodStart?: string | null
   periodEnd?: string | null
@@ -104,15 +119,8 @@ export async function createCheckoutSession(params: {
   }
 }
 
-// The backend is the source of truth for payment status. Deep-link params
-// never determine the outcome — only this endpoint's verdict is trusted.
-export async function getCheckoutSessionStatus(sessionId: string): Promise<PaymongoSessionStatus> {
-  const response = await invoke<PaymongoEnvelope<{
-    id: string
-    attributes: { status: string }
-  }>>('getCheckoutSessionStatus', { sessionId })
-
-  switch (response.data.attributes.status) {
+function toSessionStatus(status: string): PaymongoSessionStatus {
+  switch (status) {
     case 'paid':
       return 'paid'
     case 'failed':
@@ -125,48 +133,38 @@ export async function getCheckoutSessionStatus(sessionId: string): Promise<Paymo
   }
 }
 
-export async function createCardPayment(params: {
-  referenceId: string
-  amount: number
-  description: string
-  card: PaymongoCard
-  tenancyId?: string
-  periodStart?: string | null
-  periodEnd?: string | null
-  dueDate?: string | null
-}): Promise<PaymongoCardPaymentResult> {
-  const response = await invoke<PaymongoEnvelope<{
-    attributes: { status: string; failure_reason: string | null }
-  }>>('createCardPayment', params)
+export type PaymongoSessionDetails = {
+  status: PaymongoSessionStatus
+  // Only present while the session is still open, so it can be resumed.
+  checkoutUrl: string | null
+}
+
+// The backend is the source of truth for payment status. Deep-link params
+// never determine the outcome — only this endpoint's verdict is trusted.
+export async function getCheckoutSessionDetails(sessionId: string): Promise<PaymongoSessionDetails> {
+  const response = await invokeRepeatable<PaymongoEnvelope<{
+    id: string
+    attributes: { status: string; checkout_url?: string }
+  }>>('getCheckoutSessionStatus', { sessionId })
 
   return {
-    status: response.data.attributes.status === 'succeeded' ? 'succeeded' : 'failed',
-    failureReason: response.data.attributes.failure_reason,
+    status: toSessionStatus(response.data.attributes.status),
+    checkoutUrl: response.data.attributes.checkout_url ?? null,
   }
 }
 
-export type RefundRequestResult = {
-  status: 'processing' | 'succeeded' | 'failed'
+export async function getCheckoutSessionStatus(sessionId: string): Promise<PaymongoSessionStatus> {
+  return (await getCheckoutSessionDetails(sessionId)).status
 }
 
-// Full-amount refund for a paid, refundable payment. The backend checks
-// eligibility (method + PayMongo rail) and inserts the pending refund row
-// before calling PayMongo — duplicate requests fail with REFUND_ALREADY_PENDING.
-export async function requestRefund(params: {
-  paymentId: string
-  amount: number
-}): Promise<RefundRequestResult> {
-  const response = await invoke<PaymongoEnvelope<{
+// The tenant backed out of the hosted checkout: ask the backend to close the
+// session so it can't be paid later. Its verdict is what counts ('paid' if the
+// payment went through first, 'pending' if the session could not be closed).
+export async function cancelCheckoutSession(sessionId: string): Promise<PaymongoSessionStatus> {
+  const response = await invokeRepeatable<PaymongoEnvelope<{
     id: string
     attributes: { status: string }
-  }>>('createRefund', {
-    paymentId: params.paymentId,
-    amount: params.amount,
-    reason: 'requested_by_customer',
-  })
+  }>>('cancelCheckoutSession', { sessionId })
 
-  const status = response.data.attributes.status
-  return {
-    status: status === 'succeeded' ? 'succeeded' : status === 'failed' ? 'failed' : 'processing',
-  }
+  return toSessionStatus(response.data.attributes.status)
 }

@@ -2,172 +2,184 @@
 
 import { useRef, useState } from "react";
 
-import { Button, Dropdown, Label, Spinner } from "@heroui/react";
-import { IconCamera as Camera, IconPencil as Pencil, IconTrash as Trash2 } from "@tabler/icons-react";
+import { Button, Modal, Spinner } from "@heroui/react";
+import { IconCamera, IconTrash, IconUpload, IconX } from "@tabler/icons-react";
 
+import ErrorBanner from "@/app/components/display/ErrorBanner";
+import PhotoGalleryModal from "@/app/components/display/PhotoGalleryModal";
 import UserAvatar from "./UserAvatar";
 import RemovePhotoConfirmModal from "./RemovePhotoConfirmModal";
 import { useProfilePhotoUpload } from "./use-profile-photo";
 
-type EditableAvatarProps = {
+interface EditableAvatarProps {
   authUserId: string;
   initialUrl: string | null;
   initials: string;
   displayName: string;
-};
+}
 
-// Own-profile avatar: circle photo with orange camera badge. The badge opens
-// a compact menu (Change / Remove); picking a file shows an inline preview
-// with Save / Cancel; saving uploads through the shared avatar pipeline and
-// refreshes everywhere on success. Removal requires modal confirmation and
-// only clears the image after the storage + row update succeeds.
-export default function EditableAvatar({
-  authUserId,
-  initialUrl,
-  initials,
-  displayName,
-}: EditableAvatarProps) {
+/** The photo opens a viewer; the separate camera opens a disposable edit draft. */
+export default function EditableAvatar({ authUserId, initialUrl, initials, displayName }: EditableAvatarProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isRemoveOpen, setIsRemoveOpen] = useState(false);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [overlay, setOverlay] = useState<HTMLDivElement | null>(null);
   const {
-    savedUrl,
-    previewUrl,
-    isPreviewing,
-    isSaving,
-    isRemoving,
-    isBusy,
-    selectFile,
-    cancel,
-    save,
-    remove,
+    savedUrl, previewUrl, isPreviewing, isSaving, isRemoving, isBusy,
+    error, selectFile, cancel, save, remove,
   } = useProfilePhotoUpload(authUserId, "avatar", initialUrl);
 
-  const shownUrl = previewUrl ?? savedUrl;
-  const canRemove = savedUrl !== null && !isBusy && !isPreviewing;
+  const closeEditor = () => {
+    if (isBusy) return;
+    cancel();
+    setIsRemoveOpen(false);
+    setIsEditorOpen(false);
+  };
 
-  const handleConfirmRemove = () => {
-    void remove().finally(() => {
-      setIsRemoveOpen(false);
-    });
+  const handleSave = async () => {
+    if (await save()) setIsEditorOpen(false);
+  };
+
+  const handleConfirmRemove = async () => {
+    if (!(await remove())) return;
+    setIsRemoveOpen(false);
+    setIsEditorOpen(false);
   };
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="relative">
+    <>
+      <div className="profile-avatar-photo relative">
         <UserAvatar
-          src={shownUrl}
+          src={savedUrl}
           initials={initials}
           alt={`${displayName}'s profile photo`}
           size="lg"
           className="size-24 rounded-full border-4 border-background bg-primary text-white"
           fallbackClassName="rounded-full bg-primary text-white font-bold text-xl"
         />
-
-        {isBusy ? (
-          <div
-            className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40"
-            aria-hidden
-          >
-            <Spinner size="sm" color="current" className="text-white" />
-          </div>
-        ) : null}
-
-        <Dropdown>
+        {savedUrl ? (
           <Button
             type="button"
-            isIconOnly
-            size="sm"
-            variant="secondary"
-            aria-label="Photo options"
-            isDisabled={isBusy || isPreviewing}
-            className="absolute -right-1 -bottom-1 border-2 border-background shadow-md hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-          >
-            <Camera size={16} aria-hidden="true" />
-          </Button>
-          <Dropdown.Popover placement="bottom start">
-            <Dropdown.Menu
-              aria-label="Profile photo options"
-              onAction={(key) => {
-                if (key === "change") inputRef.current?.click();
-                if (key === "remove" && canRemove) setIsRemoveOpen(true);
-              }}
-            >
-              <Dropdown.Item id="change" textValue="Change photo">
-                <Label className="flex items-center gap-2">
-                  <Pencil size={14} aria-hidden="true" />
-                  Change photo
-                </Label>
-              </Dropdown.Item>
-              <Dropdown.Item
-                id="remove"
-                textValue="Remove photo"
-                variant="danger"
-                isDisabled={!canRemove}
-              >
-                <Label className="flex items-center gap-2">
-                  <Trash2 size={14} aria-hidden="true" />
-                  Remove photo
-                </Label>
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown.Popover>
-        </Dropdown>
-
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          className="hidden"
-          tabIndex={-1}
-          aria-hidden
-          onChange={(e) => {
-            selectFile(e.target.files?.[0]);
-            e.target.value = "";
-          }}
-        />
+            variant="ghost"
+            aria-label="View profile photo"
+            aria-haspopup="dialog"
+            className="button--bare profile-avatar-view-trigger"
+            isDisabled={isBusy}
+            onPress={() => setIsViewerOpen(true)}
+          />
+        ) : null}
+        <Button
+          type="button"
+          isIconOnly
+          size="sm"
+          variant="secondary"
+          aria-label="Edit profile photo"
+          aria-haspopup="dialog"
+          isDisabled={isBusy}
+          onPress={() => setIsEditorOpen(true)}
+          className="profile-avatar-edit-trigger absolute -right-1 -bottom-1 border-2 border-background shadow-md hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        >
+          <IconCamera size={16} aria-hidden="true" />
+        </Button>
       </div>
 
-      {isPreviewing ? (
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            size="sm"
-            variant="primary"
-            onPress={save}
-            isDisabled={isBusy}
-          >
-            {isSaving ? (
-              <>
-                <Spinner size="sm" />
-                Saving...
-              </>
-            ) : (
-              "Save"
-            )}
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onPress={cancel}
-            isDisabled={isBusy}
-          >
-            Cancel
-          </Button>
-        </div>
+      {savedUrl ? (
+        <PhotoGalleryModal
+          name={displayName}
+          photos={[{ url: savedUrl }]}
+          labels={["Profile photo"]}
+          isOpen={isViewerOpen}
+          onOpenChange={setIsViewerOpen}
+          activeIndex={0}
+          onActiveIndexChange={() => undefined}
+        />
       ) : null}
 
-      <RemovePhotoConfirmModal
-        isOpen={isRemoveOpen}
-        title="Remove profile photo?"
-        description="Your profile will show your initials instead. You can upload a new photo anytime."
-        confirmLabel="Remove photo"
-        isRemoving={isRemoving}
-        onClose={() => {
-          if (!isRemoving) setIsRemoveOpen(false);
-        }}
-        onConfirm={handleConfirmRemove}
-      />
-    </div>
+      <Modal>
+        <Modal.Backdrop
+          ref={setOverlay}
+          isOpen={isEditorOpen}
+          onOpenChange={(open) => { if (!open) closeEditor(); }}
+          isDismissable={!isBusy}
+          isKeyboardDismissDisabled={isBusy}
+        >
+          <Modal.Container placement="center" size="lg" scroll="inside">
+            <Modal.Dialog className="rounded-3xl bg-card text-card-foreground">
+              <Modal.CloseTrigger aria-label="Close edit profile photo" className="edit-profile-close-control" isDisabled={isBusy}>
+                <IconX size={20} aria-hidden="true" />
+              </Modal.CloseTrigger>
+              <Modal.Header className="pr-12">
+                <Modal.Heading className="flex items-center gap-2 font-nunito text-lg font-semibold text-primary">
+                  <IconCamera size={20} aria-hidden="true" />
+                  Edit Profile Photo
+                </Modal.Heading>
+              </Modal.Header>
+              <Modal.Body className="space-y-4">
+                <div className="flex justify-center">
+                  <UserAvatar
+                    src={previewUrl ?? savedUrl}
+                    initials={initials}
+                    alt="Profile photo preview"
+                    size="lg"
+                    className="size-40 rounded-full border-4 border-background bg-primary text-white"
+                    fallbackClassName="rounded-full bg-primary text-white font-bold text-xl"
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Choose a JPG, PNG, or WebP image up to 5MB. Your profile photo changes only when you save.
+                </p>
+                <input
+                  ref={inputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  tabIndex={-1}
+                  aria-label="Choose profile photo file"
+                  disabled={isBusy}
+                  onChange={(event) => {
+                    selectFile(event.target.files?.[0]);
+                    event.target.value = "";
+                  }}
+                />
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" onPress={() => inputRef.current?.click()} isDisabled={isBusy}>
+                    <IconUpload size={18} aria-hidden="true" />
+                    Choose photo
+                  </Button>
+                  <Button variant="danger-soft" onPress={() => setIsRemoveOpen(true)} isDisabled={!savedUrl || isBusy}>
+                    <IconTrash size={18} aria-hidden="true" />
+                    Remove photo
+                  </Button>
+                </div>
+                {error ? <ErrorBanner message={error} /> : null}
+              </Modal.Body>
+              <Modal.Footer className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                <Button variant="danger-soft" className="w-full sm:w-auto" onPress={closeEditor} isDisabled={isBusy}>
+                  Cancel
+                </Button>
+                <Button variant="primary" className="w-full sm:w-auto" onPress={() => void handleSave()} isDisabled={!isPreviewing || isBusy}>
+                  {isSaving ? <><Spinner size="sm" />Saving...</> : "Save Changes"}
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
+      </Modal>
+
+      {overlay ? (
+        <RemovePhotoConfirmModal
+          portalContainer={overlay}
+          isOpen={isRemoveOpen}
+          title="Remove profile photo?"
+          description="Your profile will show your initials instead. You can upload a new photo anytime."
+          confirmLabel="Remove photo"
+          isRemoving={isRemoving}
+          error={error}
+          onClose={() => { if (!isRemoving) setIsRemoveOpen(false); }}
+          onConfirm={() => void handleConfirmRemove()}
+        />
+      ) : null}
+    </>
   );
 }

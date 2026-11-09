@@ -14,6 +14,7 @@ import type { FavoriteApartment } from "@/service/favoritesService";
 import FavoriteListCard from "@/app/tenant/favorites/components/FavoriteListCard";
 import { FavoritesPageHeader, FavoritesPageShell } from "./FavoritesPageLayout";
 import { FavoritesCardsSkeleton } from "./FavoritesSkeleton";
+import EmptyState from "@/app/components/display/EmptyState";
 
 export default function FavoritesClient(scope: FavoritePresentationScope) {
   const router = useRouter();
@@ -137,25 +138,18 @@ export default function FavoritesClient(scope: FavoritePresentationScope) {
           </Card.Content>
         </Card>
       ) : apartments.length === 0 ? (
-        <Card className="favorites-state-card">
-          <Card.Content className="items-center gap-4 px-4 py-12 text-center">
-            <span className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-              <IconHeart size={32} aria-hidden="true" />
-            </span>
-            <div className="max-w-sm space-y-2">
-              <h2 className="font-nunito text-xl font-bold text-card-foreground">
-                {cursors.length > 1 || nextCursor ? t("favorites.emptyPageTitle") : t("favorites.emptyTitle")}
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                {cursors.length > 1 || nextCursor ? t("favorites.emptyPageBody") : t("favorites.emptyBody")}
-              </p>
-            </div>
-            <Button onPress={() => router.push("/tenant/browse")}>
+        <EmptyState
+          framed
+          icon={IconHeart}
+          title={cursors.length > 1 || nextCursor ? t("favorites.emptyPageTitle") : t("favorites.emptyTitle")}
+          description={cursors.length > 1 || nextCursor ? t("favorites.emptyPageBody") : t("favorites.emptyBody")}
+          action={
+            <Button size="sm" onPress={() => router.push("/tenant/browse")}>
               {t("favorites.browse")}
               <IconArrowRight size={16} aria-hidden="true" />
             </Button>
-          </Card.Content>
-        </Card>
+          }
+        />
       ) : viewMode === "grid" ? (
         <div className="favorites-grid grid grid-cols-1 gap-5 @min-[36rem]/favorites:grid-cols-2 @min-[64rem]/favorites:grid-cols-3">
           {apartments.map((apartment) => (

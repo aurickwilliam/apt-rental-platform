@@ -7,7 +7,13 @@ import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { useNotificationDisplayPreferences } from "@/hooks/use-notification-display-preferences";
 import { useNotifications } from "@/hooks/use-notifications";
 import type { ActivePortal } from "@/lib/notification-audience";
-import { Button, Tooltip } from "@heroui/react";
+import { Button } from "@heroui/react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 /**
  * Sidebar entry that opens the notifications drawer. Rendered only when the
@@ -36,8 +42,10 @@ export default function SidebarNotificationsItem({
   };
 
   return (
-    <Tooltip isDisabled={!collapsed}>
-      <Tooltip.Trigger>
+    <TooltipProvider delayDuration={0}>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="block w-full">
         <Button
           variant="ghost"
           onClick={openDrawer}
@@ -60,10 +68,16 @@ export default function SidebarNotificationsItem({
             </span>
           ) : null}
         </Button>
-      </Tooltip.Trigger>
-      <Tooltip.Content placement="right">
-        {hasUnread ? t("nav.notificationsUnread", { count: unreadCount }) : t("nav.notifications")}
-      </Tooltip.Content>
+        </span>
+      </TooltipTrigger>
+      {collapsed ? (
+        <TooltipContent side="right" sideOffset={8}>
+          {hasUnread
+            ? t("nav.notificationsUnread", { count: unreadCount })
+            : t("nav.notifications")}
+        </TooltipContent>
+      ) : null}
     </Tooltip>
+    </TooltipProvider>
   );
 }

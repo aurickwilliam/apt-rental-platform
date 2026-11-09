@@ -2,7 +2,7 @@ import { View, Text } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { IconChevronLeft, IconMessagePlus } from "@tabler/icons-react-native";
+import { IconChevronLeft, IconHistory, IconMessagePlus } from "@tabler/icons-react-native";
 import { Button } from "heroui-native";
 
 import { useColors } from "@/hooks/useTheme";
@@ -14,11 +14,18 @@ interface AIHeaderProps {
   /** Starts a new conversation. Hidden until there is something to clear. */
   onNewChat?: () => void;
   canStartNewChat?: boolean;
+  /** Opens the list of saved conversations. */
+  onHistory?: () => void;
 }
 
 // Quiet header: the conversation is the focus, so it sits on the screen
 // background instead of a blue bar.
-export default function AIHeader({ onBackPress, onNewChat, canStartNewChat = false }: AIHeaderProps) {
+export default function AIHeader({
+  onBackPress,
+  onNewChat,
+  canStartNewChat = false,
+  onHistory,
+}: AIHeaderProps) {
   const { colors } = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -36,15 +43,18 @@ export default function AIHeader({ onBackPress, onNewChat, canStartNewChat = fal
       className="flex-row items-center justify-between bg-background px-3"
       style={{ paddingTop: insets.top, height: insets.top + HEADER_HEIGHT }}
     >
-      <Button
-        variant="ghost"
-        isIconOnly
-        onPress={handleBack}
-        className="size-10 rounded-full"
-        accessibilityLabel="Go back"
-      >
-        <IconChevronLeft size={24} color={colors.textPrimary} />
-      </Button>
+      {/* Both sides are two buttons wide so the title stays centred. */}
+      <View className="w-24 flex-row justify-start">
+        <Button
+          variant="ghost"
+          isIconOnly
+          onPress={handleBack}
+          className="size-10 rounded-full"
+          accessibilityLabel="Go back"
+        >
+          <IconChevronLeft size={24} color={colors.textPrimary} />
+        </Button>
+      </View>
 
       <View className="flex-1 items-center" accessibilityRole="header">
         <Text className="text-lg text-foreground font-nunitoBold" numberOfLines={1}>
@@ -55,19 +65,30 @@ export default function AIHeader({ onBackPress, onNewChat, canStartNewChat = fal
         </Text>
       </View>
 
-      {onNewChat && canStartNewChat ? (
-        <Button
-          variant="ghost"
-          isIconOnly
-          onPress={onNewChat}
-          className="size-10 rounded-full"
-          accessibilityLabel="Start a new chat"
-        >
-          <IconMessagePlus size={22} color={colors.textPrimary} />
-        </Button>
-      ) : (
-        <View className="size-10" />
-      )}
+      <View className="w-24 flex-row justify-end">
+        {onHistory ? (
+          <Button
+            variant="ghost"
+            isIconOnly
+            onPress={onHistory}
+            className="size-10 rounded-full"
+            accessibilityLabel="Show chat history"
+          >
+            <IconHistory size={22} color={colors.textPrimary} />
+          </Button>
+        ) : null}
+        {onNewChat && canStartNewChat ? (
+          <Button
+            variant="ghost"
+            isIconOnly
+            onPress={onNewChat}
+            className="size-10 rounded-full"
+            accessibilityLabel="Start a new chat"
+          >
+            <IconMessagePlus size={22} color={colors.textPrimary} />
+          </Button>
+        ) : null}
+      </View>
     </View>
   );
 }

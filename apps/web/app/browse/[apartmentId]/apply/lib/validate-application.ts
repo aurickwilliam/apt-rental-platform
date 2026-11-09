@@ -8,6 +8,8 @@ import {
 } from "@repo/constants";
 import type { TranslateVars, TranslationKey } from "@repo/i18n";
 
+import { validatePets } from "@/lib/tenant-preferences";
+
 import type { ApplicationErrors, ApplicationForm } from "../types";
 
 /** Translates a catalog key with the wizard's locale. */
@@ -92,8 +94,22 @@ export function validatePreferences(form: ApplicationForm, maxOccupants: number 
     next.noOccupants = t("apply.error.occupantsTooMany", { count: maxOccupants });
   }
   if (!form.hasPets) next.hasPets = t("apply.error.hasPetsRequired");
-  if (!form.isSmoker) next.isSmoker = t("apply.error.smokerRequired");
+  else if (form.hasPets === "yes") {
+    const petsError = validatePets({
+      hasPets: true,
+      kindOfPets: form.kindOfPets,
+      noOfPets: form.noOfPets,
+    });
+    if (petsError) next.petDetails = petsError;
+  }
   if (!form.needParking) next.needParking = t("apply.error.parkingRequired");
+  else if (form.needParking === "yes" && form.listOfVehicles.length === 0) {
+    next.parkingDetails = t("apply.error.vehicleKindsRequired");
+  }
+  if (!form.isSmoker) next.isSmoker = t("apply.error.smokerRequired");
+  if (!form.hasDisability) {
+    next.hasDisability = t("apply.error.disabilityRequired");
+  }
 
   return withoutEmpty(next);
 }

@@ -1,5 +1,8 @@
 import type { Viewport } from "next";
+import Link from "next/link";
 import { Card } from "@heroui/react";
+import { verificationApartmentPath } from "@/lib/profile-verification-navigation";
+import "./verification.css";
 
 import MobileVerifyClient from "./components/MobileVerifyClient";
 
@@ -9,24 +12,26 @@ export const viewport: Viewport = {
 };
 
 type MobileVerifyPageProps = {
-  searchParams: Promise<{ token?: string }>;
+  searchParams: Promise<{ token?: string; returnTo?: string }>;
 };
 
-// Phone entry opened from the desktop QR code. The token is opaque (no PII);
+// Phone entry opened from a desktop QR code or the same-device method picker.
+// The token is opaque (no PII);
 // it is validated against the signed-in owner on claim, and consumed only
 // on successful submit. Abandoning the page simply lets it expire.
 export default async function MobileVerifyPage({ searchParams }: MobileVerifyPageProps) {
-  const { token } = await searchParams;
+  const params = await searchParams;
+  const token = typeof params.token === "string" ? params.token : undefined;
+  const returnTo = verificationApartmentPath(typeof params.returnTo === "string" ? params.returnTo : null);
 
   if (!token) {
     return (
-      <div className="mx-auto w-full max-w-xl px-4 py-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
-        <Card className="border border-border bg-card p-6 text-card-foreground rounded-2xl">
+      <div className="mobile-verification-page">
+        <Card className="mobile-verification-shell">
           <Card.Content className="flex flex-col items-center gap-3 text-center">
             <h1 className="font-nunito text-xl font-bold">Invalid verification link</h1>
             <p className="text-sm text-muted-foreground">
-              This page needs a code from your computer. Open your profile,
-              start verification, and scan the QR code again.
+              Open your profile and start identity verification to get a new secure link.
             </p>
           </Card.Content>
         </Card>
@@ -35,8 +40,9 @@ export default async function MobileVerifyPage({ searchParams }: MobileVerifyPag
   }
 
   return (
-    <div className="mx-auto w-full max-w-xl px-4 py-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
-      <MobileVerifyClient token={token} />
+    <div className="mobile-verification-page">
+      <MobileVerifyClient key={token} token={token} returnTo={returnTo} />
+      {returnTo ? <Link href={returnTo} className="mobile-verification-return">Return to apartment</Link> : null}
     </div>
   );
 }

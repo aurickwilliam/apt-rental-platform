@@ -60,6 +60,11 @@ jest.mock("./components/ApplicationDecisionBar", () => {
   const { Text } = jest.requireActual<typeof import("react-native")>("react-native");
   return { __esModule: true, default: () => React.createElement(Text, null, "decision-bar") };
 });
+jest.mock("@/components/ratings/ApplicantRatings", () => {
+  const React = jest.requireActual<typeof import("react")>("react");
+  const { Text } = jest.requireActual<typeof import("react-native")>("react-native");
+  return { __esModule: true, default: ({ tenantId, tenantName }: { tenantId: string; tenantName: string }) => React.createElement(Text, null, `ratings:${tenantId}:${tenantName}`) };
+});
 jest.mock("./components/TenantApplicationDetailsSkeleton", () => ({ __esModule: true, default: () => null }));
 jest.mock("./components/TenantSummaryCard", () => {
   const React = jest.requireActual<typeof import("react")>("react");
@@ -113,6 +118,7 @@ it("groups the information into titled sections", () => {
     "Employment",
     "Preferences",
     "Previous Landlord",
+    "Landlord Ratings",
     "Documents",
     "Message from Tenant",
   ]) {
@@ -120,6 +126,7 @@ it("groups the information into titled sections", () => {
   }
   expect(screen.getByText("Parada 3BR")).toBeTruthy();
   expect(screen.getByText("Case Oh · Applied")).toBeTruthy();
+  expect(screen.getByText("ratings:tenant-1:Case Oh")).toBeTruthy();
 });
 
 it("lists the ID front and back among the documents", () => {

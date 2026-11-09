@@ -12,11 +12,13 @@ import {
   Modal,
   toast,
   useOverlayState,
+  buttonVariants,
 } from "@heroui/react";
 import StatusChip from "@/app/components/display/StatusChip";
 import type { StatusTone } from "@/lib/status-tone";
 import { IconArrowLeft as ArrowLeft, IconRosetteDiscountCheck as BadgeCheck, IconStar as Star, IconFileText as FileText, IconFileUpload as FileUp, IconPencil as Pencil, IconDots as MoreHorizontal, IconTrash as Trash2, IconMessageCircle as MessageCircle, IconTool as Wrench, IconCashBanknote as Banknote, IconChevronRight as ChevronRight, IconCircleCheck as CircleCheck, IconHome as House } from "@tabler/icons-react";
 import { formatPesoDisplay } from "@repo/utils";
+import { OWN_ELECTRICITY_METER_DETAIL, OWN_ELECTRICITY_METER_FIELD_LABEL } from "@repo/constants";
 import { tenantProfileHref } from "@/lib/public-profile";
 import { createClient } from "@repo/supabase/browser";
 import UserAvatar from "@/app/components/profile/UserAvatar";
@@ -38,6 +40,7 @@ import {
 import { toProperty } from "./to-property";
 import { useLeaseViewer } from "./use-lease-viewer";
 import SignedLeaseModal from "./SignedLeaseModal";
+import LeaseRenewalEntry from '@/app/components/renewals/LeaseRenewalEntry';
 import PropertyPhotoGallery from "./PropertyPhotoGallery";
 import { STATUS_COLOR } from "../../components/propertyConstants";
 import { PERKS } from "@/app/components/inputs/perks";
@@ -47,6 +50,11 @@ import DescriptionModal from "../../components/modals/DescriptionModal";
 import AmenitiesModal from "../../components/modals/AmenitiesModal";
 import EditPropertyModal from "../../components/modals/EditPropertyModal";
 import DeletePropertyModal from "../../components/modals/DeletePropertyModal";
+import EmptyState from "@/app/components/display/EmptyState";
+import { propertyStatusLabel } from "@/lib/property-listing-visibility";
+import PropertyVisibilityAction from "./PropertyVisibilityAction";
+import HiddenListingBanner from "./HiddenListingBanner";
+import HiddenListingChip from "../../components/HiddenListingChip";
 
 function buildAddress(apartment: LandlordUnitApartment): string {
   const parts = [
@@ -121,6 +129,7 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
   const [amenitiesModalOpen, setAmenitiesModalOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [signedLeaseOpen, setSignedLeaseOpen] = useState(false);
   const { viewLease, viewing: viewingLease } = useLeaseViewer();
   const { viewSignedLease, viewing: viewingSignedLease } = useSignedLeaseViewer();
@@ -139,7 +148,7 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
     { label: "Monthly Rent", value: formatPesoDisplay(apartment.monthly_rent), icon: Banknote, primary: true },
     { label: "Average Rating", value: apartment.average_rating != null ? String(apartment.average_rating) : "—", icon: Star, primary: false },
     { label: "Total Reviews", value: String(apartment.no_ratings ?? 0), icon: FileText, primary: false },
-    { label: "Status", value: apartment.status, icon: CircleCheck, primary: false, capitalize: true },
+    { label: "Status", value: propertyStatusLabel(apartment.status), icon: CircleCheck, primary: false, capitalize: true },
   ];
 
   const handleViewLease = async () => {
@@ -185,10 +194,13 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
   const handleRemove = async () => {
     setDeleting(true);
     setActionError(null);
+    setDeleteError(null);
     const result = await removeLandlordUnit(createClient(), apartment.id);
     setDeleting(false);
     if (!result.success) {
-      setActionError(result.error ?? "Could not remove this property.");
+      // The modal stays open, so show the database's reason there (for example
+      // "End the active tenancy before deleting this property.").
+      setDeleteError(result.error ?? "Could not remove this property.");
       return;
     }
     setDeleteConfirmOpen(false);
@@ -216,6 +228,7 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
           <ArrowLeft size={16} />
           All Properties
         </Button>
+        <HiddenListingBanner apartmentId={detail.apartment.id} />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2">
@@ -224,8 +237,9 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
                 {apartment.is_verified && <BadgeCheck size={20} className="text-primary shrink-0" />}
               </h1>
               <StatusChip size="sm" tone={STATUS_COLOR[apartment.status] ?? "neutral"} className="capitalize">
-                {apartment.status}
+                {propertyStatusLabel(apartment.status)}
               </StatusChip>
+              <HiddenListingChip hidden={apartment.is_hidden_by_admin} />
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
               {buildAddress(apartment)} · {formatPesoDisplay(apartment.monthly_rent)}/month
@@ -316,6 +330,7 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
               <DetailField label="Furnishing" value={apartment.furnished_type} />
               <DetailField label="Floor Level" value={apartment.floor_level} />
               <DetailField label="Lease Duration" value={apartment.lease_duration} />
+              {apartment.has_own_electricity_meter === true && <DetailField label={OWN_ELECTRICITY_METER_FIELD_LABEL} value={OWN_ELECTRICITY_METER_DETAIL} />}
             </div>
             <div className="rounded-2xl bg-muted px-4 py-3 flex items-center justify-between gap-2">
               <p className="text-xs font-nunito font-semibold text-muted-foreground uppercase tracking-wide">
@@ -407,6 +422,7 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
                     <DetailField label="Lease End" value={formatLeaseDate(tenant.leaseEnd)} />
                   </div>
 
+                  <LeaseRenewalEntry key={`renewal:${tenant.tenancyId}`} tenancyId={tenant.tenancyId} portal="landlord"/>
                   {/* Executed contract: private bucket, one file per tenancy. */}
                   <div className="flex flex-col gap-2 rounded-2xl border border-border p-3">
                     <div className="flex items-center justify-between gap-2">
@@ -480,7 +496,7 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
                 <Card className="shadow-none bg-card rounded-3xl border border-border p-4 md:p-5 flex flex-col gap-3">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-nunito font-semibold text-muted-foreground uppercase tracking-wide">
-                      Recent Rent Payments
+                      Recent Payments
                     </p>
                     <Link href={`/landlord/properties/${apartment.id}/payment-history`} className="text-xs font-medium text-primary hover:underline no-underline">
                       View all
@@ -510,13 +526,21 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
               )}
             </>
           ) : (
-            <Card className="shadow-none bg-card rounded-3xl border border-dashed border-border p-8 flex flex-col items-center gap-3 text-center">
-              <p className="font-nunito font-semibold text-card-foreground">This property is currently vacant.</p>
-              <p className="text-sm text-muted-foreground">Review applications to fill this unit.</p>
-              <Link href="/landlord/applications" className="no-underline">
-                <Button size="sm" variant="secondary">View Applications</Button>
-              </Link>
-            </Card>
+            <EmptyState
+              framed
+              className="py-10"
+              icon={House}
+              title="This property is currently vacant."
+              description="Review applications to fill this unit."
+              action={
+                <Link
+                  href="/landlord/applications"
+                  className={`${buttonVariants({ size: "sm", variant: "secondary" })} cursor-pointer no-underline`}
+                >
+                  View Applications
+                </Link>
+              }
+            />
           )}
 
           {/* Lifecycle actions */}
@@ -524,6 +548,16 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
             <p className="text-xs font-nunito font-semibold text-muted-foreground uppercase tracking-wide">
               Property Actions
             </p>
+            <PropertyVisibilityAction
+              key={apartment.id}
+              apartmentId={apartment.id}
+              status={apartment.status}
+              hasActiveTenancy={Boolean(tenant)}
+              onStatusChanged={(status) => {
+                setApartment((previous) => ({ ...previous, status }));
+                router.refresh();
+              }}
+            />
             {isOccupied && (
               <div className="flex flex-col gap-2 pb-4">
                 <p className="text-sm text-muted-foreground">End the current tenancy and make this unit available.</p>
@@ -599,7 +633,11 @@ export default function PropertyDetailClient({ detail }: { detail: LandlordUnitD
         isOpen={deleteConfirmOpen}
         propertyName={apartment.name}
         isDeleting={deleting}
-        onClose={() => setDeleteConfirmOpen(false)}
+        error={deleteError}
+        onClose={() => {
+          setDeleteConfirmOpen(false);
+          setDeleteError(null);
+        }}
         onConfirm={() => void handleRemove()}
       />
 

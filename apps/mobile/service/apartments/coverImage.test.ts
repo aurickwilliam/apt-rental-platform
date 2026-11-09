@@ -1,4 +1,4 @@
-import { coverImageUrl, pickCoverImage, type ApartmentImageRow } from './coverImage';
+import { coverImageUrl, orderCoverFirst, pickCoverImage, type ApartmentImageRow } from './coverImage';
 
 const image = (overrides: Partial<ApartmentImageRow>): ApartmentImageRow => ({
   url: 'https://cdn.example/full.jpg',
@@ -22,6 +22,35 @@ describe('pickCoverImage', () => {
   it('returns null without photos', () => {
     expect(pickCoverImage([])).toBeNull();
     expect(pickCoverImage(null)).toBeNull();
+  });
+});
+
+describe('orderCoverFirst', () => {
+  it('puts the cover first and keeps the other photos in their given order', () => {
+    const first = image({ url: 'first' });
+    const second = image({ url: 'second' });
+    const cover = image({ url: 'cover', is_cover: true });
+    expect(orderCoverFirst([first, second, cover]).map((photo) => photo.url)).toEqual(['cover', 'first', 'second']);
+  });
+
+  it('keeps the given order when the cover is already first or missing', () => {
+    const a = image({ url: 'a', is_cover: true });
+    const b = image({ url: 'b' });
+    expect(orderCoverFirst([a, b])).toEqual([a, b]);
+    expect(orderCoverFirst([b, image({ url: 'c' })]).map((photo) => photo.url)).toEqual(['b', 'c']);
+  });
+
+  it('treats a null is_cover as not the cover and never mutates its input', () => {
+    const input = [image({ url: 'x', is_cover: null }), image({ url: 'y', is_cover: true })];
+    const copy = [...input];
+    expect(orderCoverFirst(input).map((photo) => photo.url)).toEqual(['y', 'x']);
+    expect(input).toEqual(copy);
+  });
+
+  it('returns an empty list without photos', () => {
+    expect(orderCoverFirst([])).toEqual([]);
+    expect(orderCoverFirst(null)).toEqual([]);
+    expect(orderCoverFirst(undefined)).toEqual([]);
   });
 });
 

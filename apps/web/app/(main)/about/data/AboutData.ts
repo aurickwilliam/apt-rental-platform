@@ -1,56 +1,19 @@
-export type TeamMember = {
-  name: string;
-  role: string;
-  bio: string;
-  image: string;
-  imageHeight: string;
-  github: string | null;
-  linkedin: string | null;
-  // insertt social media links here later if needed
+import { ABOUT_STATS, TEAM_MEMBERS, type TeamMember } from "@repo/constants";
+
+export type { TeamMember };
+
+// Copy is shared with the mobile About screen (`@repo/constants`); only the
+// photos live here because they are served from this app's /public folder.
+const MEMBER_IMAGES: Record<TeamMember["id"], string> = {
+  aurick: "/images/orik.jpg",
+  mhart: "/images/ron.webp",
+  michael: "/images/mija.jpg",
+  charle: "/images/charle.jpg",
 };
 
-export const teamMembers = [
-  {
-    name: "Aurick William Lorenzo",
-    role: "	Lead Developer",
-    bio: "Fullstack engineer with a love for clean code. Built APT's core matching engine and Supabase backend. ============ Kuromi tulong",
-    image: "/images/orik.jpg",
-    imageHeight: "h-63",
-    github: "https://github.com/aurickwilliam",
-    linkedin: "https://www.linkedin.com/in/aurick-william-lorenzo-ba83a73a6/?skipRedirect=true",
-  },
-  {
-    name: "Mhart Aaron Navales",
-    role: "Full-Stack Developer & UI/UX",
-    bio: "Matcha lover, umiiyak kapag nauulanan yung mga stray cats & dogs, academic archiver, 6'7, walang gbf, nakikinig kila daniel caesar, taylor swift, laufey, lana del rey, beabadoobedoobedapdap, w2e, leehi, clairo, niki, malcolm todd, prefers wired earphones, bias si hanni ng newjeans, anime & kdrama lover, malakas mag ml, knows ball, marunong mag gitara, naliligo kahit malamig tubig, emotionally intelligent, good listener, nakikinig sa news, may good sense of humor, galit sa period cramps, okc, kfc, ufc, lakers in 5 (hates corruption btw)",
-    image: "/images/ron.jpg",
-    imageHeight: "h-56",
-    github: "https://github.com/Kaironnnn",
-    linkedin: null,
-  },
-  {
-    name: "Michael Jann Mateo",
-    role: "Backend developer & Project Manager",
-    bio: "A good Project Manager. 67676767. piti piwpiw wiw wiw. (tambay sa fully booked btw)",
-    image: "/images/mija.jpg",
-    imageHeight: "h-63",
-    github: "https://github.com/YuriPatriotic",
-    linkedin: null,
-  },
-  {
-    name: "Charle Fulgencio",
-    role: "Quality Assurance & Documentation",
-    bio: "Exists in theory. Confirmed present during exam week only. Shows up when it matters.",
-    image: "/images/charle.jpg",
-    imageHeight: "h-61",
-    github: "https://github.com/KhromaUnus",
-    linkedin: null,
-  },
-];
+export const teamMembers = TEAM_MEMBERS.map((member) => ({
+  ...member,
+  image: MEMBER_IMAGES[member.id],
+}));
 
-export const stats = [
-  { label: "Team Members", value: "4" },
-  { label: "Based in", value: "Caloocan" },
-  { label: "Built for", value: "Philippines" },
-  { label: "Areas Covered", value: "CAMANAVA" },
-];
+export const stats = ABOUT_STATS;

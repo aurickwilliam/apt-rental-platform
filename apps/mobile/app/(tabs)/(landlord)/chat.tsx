@@ -4,9 +4,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 // Gesture-aware list pieces: on Android a plain FlatList claims the touch on
 // slight vertical drift and cancels the rows' swipe actions.
 import { FlatList } from 'react-native-gesture-handler'
+import type { ComponentRef } from 'react'
+import { useTabScreenScroll } from '@/components/layout/TabBarVisibilityContext'
 
 import { Tabs } from 'heroui-native'
-import { IconMessageQuestion, IconSearchOff, IconUsers } from '@tabler/icons-react-native'
+import { IconMessageQuestion, IconSearchOff, IconUsers, IconAlertCircle } from '@tabler/icons-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import {
@@ -19,7 +21,6 @@ import ConversationListRow from '@/app/(tabs)/components/chat/ConversationListRo
 import ConversationListState from '@/app/(tabs)/components/chat/ConversationListState'
 import ConversationActionOverlays from '@/app/(tabs)/components/chat/ConversationActionOverlays'
 
-import { useColors } from '@/hooks/useTheme'
 import { useConversationRowActions, useConversations } from '@/hooks/chat'
 import { usePullToRefresh } from '@/hooks/usePullToRefresh'
 import {
@@ -56,8 +57,8 @@ const FILTER_EMPTY_STATES: Record<
 
 function Chat() {
   const router = useRouter();
-  const { colors } = useColors();
   const insets = useSafeAreaInsets();
+  const { ref: listRef, onScroll: onTabBarScroll } = useTabScreenScroll<ComponentRef<typeof FlatList<ConversationListItem>>>();
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedFilter, setSelectedFilter] = useState<ConversationFilter>('Tenant');
@@ -70,7 +71,7 @@ function Chat() {
     markConversationRead,
     updatePreferences,
     setBlocked,
-  } = useConversations('landlord');
+  } = useConversations('landlord', { subscribe: false }); // the tab layout owns the channel
 
   const { rowHandlers, overlays } = useConversationRowActions({
     role: 'landlord',
@@ -136,7 +137,7 @@ function Chat() {
   const filterEmptyState = !isSearching && hasConversations && filteredCount === 0 ? (
     <EmptyState
       className='mt-6'
-      icon={<EmptyFilterIcon size={36} color={colors.primary} />}
+      icon={EmptyFilterIcon}
       title={FILTER_EMPTY_STATES[selectedFilter].title}
       description={FILTER_EMPTY_STATES[selectedFilter].description}
     />
@@ -147,6 +148,7 @@ function Chat() {
   ) : error ? (
     <ConversationListState
       variant='illustrated'
+      icon={IconAlertCircle}
       title='Something went wrong'
       description={error}
       actionLabel='Retry'
@@ -172,6 +174,9 @@ function Chat() {
   return (
     <ScreenWrapper noBottomPadding dismissKeyboardOnTouch={false}>
       <FlatList
+        ref={listRef}
+        onScroll={onTabBarScroll}
+        scrollEventThrottle={16}
         data={loading || error ? [] : items}
         keyExtractor={(item) => item.key}
         renderItem={renderItem}

@@ -8,7 +8,9 @@ import { showNotificationToast } from "@/components/display/NotificationToast";
 import { shouldSuppressChatToast } from "@/hooks/notifications/notificationSuppression";
 import { useNotificationPreferences } from "@/hooks/notifications/useNotificationPreferences";
 import { useNotificationRealtime } from "@/hooks/notifications/useNotificationRealtime";
-import { markNotificationRead } from "@/service/notifications/notificationService";
+import { isNotificationVisibleInPortal } from "@repo/utils";
+
+import { markNotificationRead, resolveNotificationAudiences } from "@/service/notifications/notificationService";
 import {
   buildNotificationDeepLink,
   getWebOnlyNotificationNotice,
@@ -16,7 +18,6 @@ import {
 import { authorizedPortal } from "@/service/auth/portalPreference";
 import { usePortalStore } from "@/stores/usePortalStore";
 
-import type { NotificationRow } from "@/service/notifications/notificationService";
 import type { NotificationPreferenceType } from "@/service/notifications/notificationService";
 import type { NotificationData } from "@/utils/notificationDeepLink";
 
@@ -92,29 +93,34 @@ export function useInAppNotificationBanner() {
       // only explicitly-disabled types are suppressed.
       if (!currentPreferences.notifications_enabled || currentPreferences[type] === false) return;
 
-      const data = (row.data ?? null) as unknown as NotificationData | null;
-      const senderAvatarUrl = row.type === "message" ? (data?.senderAvatarUrl ?? null) : null;
+      // The account feed spans both portals: only toast what the portal in use
+      // shows. Chat about an apartment resolves its audience from ownership
+      // (one bounded lookup); anything unresolved stays silent.
+      void resolveNotificationAudiences([row], row.user_id).then(([resolved]) => {
+        const activeRole = roleRef.current;
+        if (!activeRole || !resolved || !isNotificationVisibleInPortal(resolved, activeRole)) return;
 
-      showNotificationToast(toastRef.current, {
-        row,
-        avatarUrl: senderAvatarUrl,
-        onOpen: () => {
-          void markNotificationRead(row.id);
-          const href = buildNotificationDeepLink(row.data, userId, roleRef.current);
-          const webOnlyNotice = getWebOnlyNotificationNotice(
-            row.data,
-            languageRef.current,
-          );
-          if (href) {
-            routerRef.current.push(href);
-          } else if (webOnlyNotice) {
-            toastRef.current.show({ variant: "default", ...webOnlyNotice });
-          } else if (roleRef.current === "landlord") {
-            routerRef.current.push("/landlord-notif");
-          } else {
-            routerRef.current.push("/tenant-notif");
-          }
-        },
+        const data = (row.data ?? null) as unknown as NotificationData | null;
+        const senderAvatarUrl = row.type === "message" ? (data?.senderAvatarUrl ?? null) : null;
+
+        showNotificationToast(toastRef.current, {
+          row,
+          avatarUrl: senderAvatarUrl,
+          onOpen: () => {
+            void markNotificationRead(row.id);
+            const href = buildNotificationDeepLink(row.data, userId, roleRef.current);
+            const webOnlyNotice = getWebOnlyNotificationNotice(row.data);
+            if (href) {
+              routerRef.current.push(href);
+            } else if (webOnlyNotice) {
+              toastRef.current.show({ variant: "default", ...webOnlyNotice });
+            } else if (roleRef.current === "landlord") {
+              routerRef.current.push("/landlord-notif");
+            } else {
+              routerRef.current.push("/tenant-notif");
+            }
+          },
+        });
       });
     },
   });

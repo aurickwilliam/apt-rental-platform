@@ -9,11 +9,14 @@ export interface BrowseApartment {
   bedrooms?: number;
   bathrooms?: number;
   areaSqm?: number;
-  /** Raw city for recommendation scoring; not rendered directly. */
-  city?: string;
-  /** Raw amenity ids for recommendation scoring; absent when not selected. */
-  amenities?: string[];
+  /** Verified preference matches; set only on "Recommended for You" cards. */
+  reasons?: string[];
 }
+
+/** Columns a Browse card needs; every card read selects exactly these. */
+export const BROWSE_CARD_COLUMNS = `id, name, barangay, city, monthly_rent, average_rating,
+  no_bedrooms, no_bathrooms, area_sqm, is_verified,
+  apartment_images(url, url_thumb, is_cover, created_at)`;
 
 export interface BrowseApartmentRow {
   id: string;

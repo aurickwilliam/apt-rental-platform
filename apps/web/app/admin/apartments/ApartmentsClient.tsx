@@ -14,7 +14,6 @@ import type { ActiveFilterTag } from "../_components/filters/types";
 import { useListFilters } from "../_components/filters/use-list-filters";
 import ApartmentsTable from "./components/ApartmentsTable";
 import ApartmentCardList from "./components/ApartmentCardList";
-import ApartmentsEmptyState from "./components/ApartmentsEmptyState";
 import type { AdminApartment } from "./lib/apartment-display";
 import {
   APARTMENT_SORT_OPTIONS,
@@ -29,6 +28,8 @@ import {
   type VerificationFilter,
   type VisibilityFilter,
 } from "./lib/apartment-filters";
+import EmptyState from "@/app/components/display/EmptyState";
+import { IconBuilding } from "@tabler/icons-react";
 
 interface ApartmentsClientProps {
   filters: ApartmentFilters;
@@ -212,7 +213,11 @@ export default function ApartmentsClient({
                   <ApartmentCardList apartments={apartments} />
                 </>
               ) : (
-                <ApartmentsEmptyState />
+                <EmptyState
+      icon={IconBuilding}
+      title="No apartments found"
+      description="Try adjusting your search or filters."
+    />
               )}
             </PendingList>
 

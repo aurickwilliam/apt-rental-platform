@@ -4,7 +4,8 @@ import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 
-import ScreenWrapper from 'components/layout/ScreenWrapper'
+import ScreenWrapper, { type ScreenWrapperScrollRef } from 'components/layout/ScreenWrapper'
+import { useTabScreenScroll } from '@/components/layout/TabBarVisibilityContext'
 import PaymentSummaryCard from '@/app/(tabs)/components/rentals/PaymentSummaryCard'
 import NotificationBellButton from '@/app/(tabs)/components/NotificationBellButton'
 import LandlordCard from 'components/cards/LandlordCard';
@@ -12,6 +13,8 @@ import QuickActionsSection from '@/app/(tabs)/components/rentals/QuickActionsSec
 import ApplicationsList from '../components/rentals/ApplicationList';
 import RentalsSkeleton from '../components/rentals/RentalsSkeleton';
 import MaintenanceSection from '../components/rentals/MaintenanceSection';
+import TenantSignedLeaseCard from '@/components/tenancy/TenantSignedLeaseCard';
+import LeaseRenewalEntry from '@/components/renewals/LeaseRenewalEntry';
 import RentalHero, { useRentalHeroHeight } from '../components/rentals/RentalHero';
 import PendingApplicationsCard from '../components/rentals/PendingApplicationsCard';
 import {
@@ -20,6 +23,7 @@ import {
   getRentalsView,
 } from '@/utils/tenancy/rentalsView';
 import EmptyState from 'components/display/EmptyState';
+import RentalsWelcomeGate from '@/components/profile/RentalsWelcomeGate';
 
 import {
   IconAlertCircle,
@@ -27,7 +31,6 @@ import {
 
 import { useRentalsLayoutHint, useTenancy } from '@/hooks/tenancy';
 import { useProfile } from '@/hooks/auth';
-import { useColors } from '@/hooks/useTheme';
 import { useLightStatusBar } from '@/hooks/useLightStatusBar';
 import { useMaintenanceRequestHistory, type MaintenanceRequest } from '@/hooks/maintenance-requests';
 import { useTenantApplications } from '@/hooks/applications';
@@ -37,7 +40,7 @@ import { buildConversationKey } from '@/service/chat/chatService';
 
 import { Button } from 'heroui-native';
 
-import { formatAddress, formatDate, formatFullName, getCurrentRentStatus } from '@repo/utils';
+import { findPendingOnlinePayment, formatAddress, formatDate, formatFullName, getCurrentRentStatus } from '@repo/utils';
 
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/components/layout/CustomTabBar';
 
@@ -66,17 +69,25 @@ function TabScreen({
   onScroll,
 }: TabScreenProps) {
   const insets = useSafeAreaInsets();
+  const { ref: scrollRef, onScroll: onTabBarScroll } =
+    useTabScreenScroll<ScreenWrapperScrollRef>();
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    onTabBarScroll(event);
+    onScroll?.(event);
+  };
 
   return (
     <View className="flex-1">
       <ScreenWrapper
+      ref={scrollRef}
       scrollable
       className={edgeToEdge ? "px-5 pb-5" : "p-5"}
       noTopPadding={edgeToEdge}
       bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}
       refreshing={refreshing}
       onRefresh={onRefresh}
-      onScroll={onScroll}
+      onScroll={handleScroll}
     >
       {children}
     </ScreenWrapper>
@@ -87,19 +98,20 @@ function TabScreen({
           style={{ height: insets.top }}
         />
       )}
+      <RentalsWelcomeGate />
     </View>
   );
 }
 
 export default function Rentals() {
   const router = useRouter();
-  const { colors } = useColors();
 
   const {
     tenancy,
     loading: tenancyLoading,
     error: tenancyError,
     refetch: refetchTenancy,
+    revalidate: revalidateTenancy,
   } = useTenancy();
   const { profile } = useProfile();
   useMaintenanceFocusRefresh(tenancy?.apartment.id, profile?.id);
@@ -223,6 +235,8 @@ export default function Rentals() {
   if (view === 'tenancy' && tenancy) {
     const { apartment, landlord } = tenancy;
     const rent = getCurrentRentStatus(tenancy, paymentsQuery.data ?? []);
+    // A tenancy without a server bill carries its pending maintenance fees on the tenancy.
+    const legacyFeesTotal = (tenancy.legacyFees ?? []).reduce((sum, fee) => sum + fee.amount, 0);
     const pendingApplicationCount = applications.filter(
       (application) => application.status === 'pending',
     ).length;
@@ -313,7 +327,9 @@ export default function Rentals() {
             periodMonth={formatDate(rent.periodStart, "month")}
             periodYear={formatDate(rent.periodStart, "year")}
             status={rent.status}
-            totalRent={rent.monthlyRent}
+            totalRent={rent.monthlyRent + (tenancy.bill ? 0 : legacyFeesTotal)}
+            hasPendingPayment={tenancy.bill ? Boolean(tenancy.bill.pendingPayment) : findPendingOnlinePayment(paymentsQuery.data ?? [], rent.periodStart) !== null}
+            feesTotal={tenancy.bill ? tenancy.bill.fees.reduce((sum, fee) => sum + fee.amount, 0) : legacyFeesTotal}
             dueDate={formatDate(rent.dueDate, "medium")}
             onPayNowPress={handlePayNow}
             onViewHistoryPress={handleViewPaymentHistory}
@@ -358,6 +374,17 @@ export default function Rentals() {
             onRequestMaintenance={handleRequestMaintenance}
           />
         </View>
+        <View className="mt-3">
+          <LeaseRenewalEntry key={`renewal:${profile?.user_id}:${tenancy.id}`} tenancyId={tenancy.id} portal="tenant"/>
+          <TenantSignedLeaseCard
+            key={`${profile?.user_id}:${tenancy.id}:${tenancy.signed_lease_path ?? 'none'}`}
+            tenancyId={tenancy.id}
+            path={tenancy.signed_lease_path}
+            uploadedAt={tenancy.signed_lease_uploaded_at}
+            acknowledgedAt={tenancy.tenant_acknowledged_at}
+            onAcknowledged={revalidateTenancy}
+          />
+        </View>
       </TabScreen>
     );
   }
@@ -377,8 +404,7 @@ export default function Rentals() {
 
       {view === 'error' ? (
         <EmptyState
-          variant="tenant"
-          icon={<IconAlertCircle size={64} color={colors.primary} />}
+          icon={IconAlertCircle}
           title="Couldn't load your rentals"
           description="Check your connection and try again."
           action={

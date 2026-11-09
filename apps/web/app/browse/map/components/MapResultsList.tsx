@@ -13,6 +13,7 @@ import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { MAP_LIST_GRID_CLASS } from "../../lib/browse-layout";
 import { MAP_RESULT_LIMIT, type MapApartment } from "../../lib/fetch-map-results";
 import { BrowseCardsSkeleton } from "../../components/BrowsePageSkeleton";
+import EmptyState from "@/app/components/display/EmptyState";
 
 interface MapResultsListProps {
   /** Listings inside the visible map area. */
@@ -141,11 +142,11 @@ export default function MapResultsList({
       {initialLoading ? (
         <BrowseCardsSkeleton count={6} className={MAP_LIST_GRID_CLASS} />
       ) : count === 0 && !error ? (
-        <div className="flex flex-col items-center justify-center gap-2 px-4 py-16 text-center text-muted-foreground">
-          <IconMapPin size={32} aria-hidden="true" />
-          <p className="text-base font-medium text-foreground">{t("browse.map.emptyTitle")}</p>
-          <p className="text-sm">{t("browse.map.emptyHint")}</p>
-        </div>
+        <EmptyState
+          icon={IconMapPin}
+          title={t("browse.map.emptyTitle")}
+          description={t("browse.map.emptyHint")}
+        />
       ) : (
         <div className={MAP_LIST_GRID_CLASS}>
           {apartments.map((apartment) => (

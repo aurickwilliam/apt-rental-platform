@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 import { Button, CloseButton } from 'heroui-native'
 
-import { IconBulb, IconChevronLeft, IconFaceId, IconIdBadge } from '@tabler/icons-react-native'
+import { IconBulb, IconChevronLeft, IconEyeOff, IconFaceId, IconIdBadge } from '@tabler/icons-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StepProgress from '@/components/display/StepProgress'
@@ -21,13 +21,15 @@ type GuidelineIcon = typeof IconBulb;
 
 interface SelfieGuideline {
   icon: GuidelineIcon
-  textKey: TranslationKey
+  text: string
+  textKey?: TranslationKey
 }
 
 const SELFIE_GUIDELINES: SelfieGuideline[] = [
-  { icon: IconBulb, textKey: 'authMobile.verify.selfiePrep.lighting' },
-  { icon: IconIdBadge, textKey: 'authMobile.verify.selfiePrep.holdId' },
-  { icon: IconFaceId, textKey: 'authMobile.verify.selfiePrep.face' },
+  { icon: IconBulb, text: 'Use bright, even lighting.', textKey: 'authMobile.verify.selfiePrep.lighting' },
+  { icon: IconIdBadge, text: 'Hold the same ID beside your face.', textKey: 'authMobile.verify.selfiePrep.holdId' },
+  { icon: IconFaceId, text: 'Keep your full face visible in the frame.', textKey: 'authMobile.verify.selfiePrep.face' },
+  { icon: IconEyeOff, text: 'Remove glasses, hats, and other face accessories.' },
 ];
 
 export default function SelfiePrep() {
@@ -90,13 +92,13 @@ export default function SelfiePrep() {
         </View>
 
         <View className='w-full gap-3'>
-          {SELFIE_GUIDELINES.map(({ icon: GuidelineIcon, textKey }) => (
-            <View key={textKey} className='flex-row items-center gap-3 rounded-3xl bg-primary p-2'>
-              <View className='rounded-full bg-white/20 p-2'>
-                <GuidelineIcon size={22} color={colors.white} />
+          {SELFIE_GUIDELINES.map(({ icon: GuidelineIcon, text, textKey }) => (
+            <View key={text} className='flex-row items-center gap-3 rounded-2xl border border-border bg-surface p-3'>
+              <View className='rounded-full bg-primary-light p-2'>
+                <GuidelineIcon size={22} color={colors.primaryLightForeground} />
               </View>
-              <Text className='flex-1 text-sm font-nunitoSemiBold text-white'>
-                {t(textKey)}
+              <Text className='flex-1 text-sm font-nunitoSemiBold text-foreground'>
+                {textKey ? t(textKey) : text}
               </Text>
             </View>
           ))}

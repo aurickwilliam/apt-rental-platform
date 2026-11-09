@@ -172,6 +172,7 @@ export const PAYMENT_METHODS = [
   { key: "GCash", label: "GCash", tileSrc: "/payment-logos/gcash-big-logo.png", chipSrc: "/payment-logos/gcash-logo.png" },
   { key: "Maya", label: "Maya", tileSrc: "/payment-logos/maya-big-logo.jpg", chipSrc: "/payment-logos/maya-logo.png" },
   { key: "QRPh", label: "QRPh", tileSrc: "/payment-logos/qrph-logo.png", chipSrc: "/payment-logos/qrph-logo.png" },
+  { key: "Bank Transfer", label: "Bank Transfer", icon: "bank" as const },
   { key: "Debit/Credit-Card", label: "Debit/Credit Card", tileSrcs: ["/payment-logos/visa-logo.png", "/payment-logos/mastercard-logo.png"], chipSrc: "/payment-logos/visa-logo.png" },
   { key: "Cash", label: "Cash", icon: "cash" as const },
 ] as const;

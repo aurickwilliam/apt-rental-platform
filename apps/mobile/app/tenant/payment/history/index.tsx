@@ -5,6 +5,8 @@ import { IconFilter2, IconReceipt } from '@tabler/icons-react-native'
 
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StandardHeader from '@/components/layout/StandardHeader'
+import { filterPaymentHistory } from '@repo/utils'
+
 import { useColors } from '@/hooks/useTheme'
 import { usePayments } from '@/hooks/payments'
 import { useTenancy } from '@/hooks/tenancy/useTenancy'
@@ -19,6 +21,7 @@ import PaymentHistoryCard, { type PaymentHistoryItem } from './components/Paymen
 import PaymentHistoryFilterSheet, {
   type PaymentHistoryFilters,
 } from './components/PaymentHistoryFilterSheet'
+import EmptyState from "@/components/display/EmptyState";
 
 const EMPTY_FILTERS: PaymentHistoryFilters = {
   years: [],
@@ -34,7 +37,7 @@ const toHistoryItem = (payment: PaymentRecord): FlatPayment => {
   return {
     id: payment.id,
     date: payment.date,
-    month: periodMonthLabel(payment.due_date ?? payment.period_start ?? payment.date),
+    month: payment.billing_kind==='lease_renewal'?'Lease Renewal':periodMonthLabel(payment.due_date ?? payment.period_start ?? payment.date),
     amount: payment.amount ?? 0,
     status: paymentStatusLabel(payment.status),
     apartmentName: payment.apartment_name ?? '—',
@@ -53,12 +56,11 @@ export default function History() {
   const { tenancy, loading: tenancyLoading, error: tenancyError, refetch } = useTenancy()
   const paymentsQuery = usePayments(tenancy?.id ?? null)
 
+  // Failed attempts (backed out or abandoned checkouts) only show under the Failed filter.
+  const showFailed = filters.statuses.includes('Failed')
   const allPayments = useMemo<FlatPayment[]>(
-    () =>
-      (paymentsQuery.data ?? [])
-        .filter((payment) => payment.status !== 'pending')
-        .map(toHistoryItem),
-    [paymentsQuery.data]
+    () => filterPaymentHistory(paymentsQuery.data ?? [], showFailed).map(toHistoryItem),
+    [paymentsQuery.data, showFailed]
   )
 
   const availableYears = useMemo(
@@ -190,15 +192,11 @@ export default function History() {
         )}
         ItemSeparatorComponent={() => <View className='h-3' />}
         ListEmptyComponent={
-          <View className='items-center gap-4 py-20'>
-            <IconReceipt size={64} color={colors.primary} />
-            <Text className='text-xl font-nunitoBold text-foreground'>
-              No payments found
-            </Text>
-            <Text className='text-gray-400 text-base font-inter text-center px-8'>
-              Try adjusting your filters to see more results.
-            </Text>
-          </View>
+          <EmptyState
+            icon={IconReceipt}
+            title='No payments found'
+            description='Try adjusting your filters to see more results.'
+          />
         }
       />
 

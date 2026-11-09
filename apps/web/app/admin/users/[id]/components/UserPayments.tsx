@@ -1,4 +1,4 @@
-import { IconCreditCard } from "@tabler/icons-react";
+import { IconCreditCard, IconReceipt } from "@tabler/icons-react";
 import { Card, Separator } from "@heroui/react";
 import StatusChip from "@/app/components/display/StatusChip";
 import { statusToneFor } from "@/lib/status-tone";
@@ -66,7 +66,7 @@ export default function UserPayments({
           </div>
         </>
       ) : (
-        <DetailEmptyState>No payment history</DetailEmptyState>
+        <DetailEmptyState icon={IconReceipt} title="No payment history" description="Payments will appear here once rent is paid." />
       )}
       </Card.Content>
     </Card>

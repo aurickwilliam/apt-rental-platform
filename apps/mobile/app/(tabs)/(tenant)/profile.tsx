@@ -1,4 +1,5 @@
 import { View, ScrollView, Platform } from 'react-native'
+import { useTabScreenScroll } from '@/components/layout/TabBarVisibilityContext';
 import { useFocusEffect, useRouter } from 'expo-router';
 import type React from 'react';
 import { useCallback } from 'react';
@@ -11,7 +12,6 @@ import {
   IconHeart,
   IconFileText,
   IconClock,
-  IconCreditCard,
   IconSettings,
   IconLogout,
   IconLock,
@@ -28,11 +28,13 @@ import ProfileHeader from '../components/profile/ProfileHeader';
 import VerificationStatus from '../components/profile/VerificationStatus';
 import CompleteProfileCard from '../components/profile/CompleteProfileCard';
 import PortalSwitcher from '../components/profile/PortalSwitcher';
+import AddRoleCard from '../components/profile/AddRoleCard';
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/components/layout/CustomTabBar';
 
 export default function Profile() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { ref: scrollRef, onScroll: onTabBarScroll } = useTabScreenScroll<ScrollView>();
   const { profile, loading, refetch: refetchProfile } = useProfile();
   const { colors } = useColors();
 
@@ -107,11 +109,6 @@ export default function Profile() {
       onPress: () => router.push('/tenant/payment/history')
     },
     {
-      title: 'Payment Preferences',
-      icon: IconCreditCard,
-      onPress: () => router.push('/tenant/payment/saved-methods')
-    },
-    {
       title: 'Settings',
       icon: IconSettings,
       onPress: () => router.push('/settings')
@@ -120,6 +117,9 @@ export default function Profile() {
 
   return (
     <ScrollView
+      ref={scrollRef}
+      onScroll={onTabBarScroll}
+      scrollEventThrottle={16}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       className='bg-background flex-1'
@@ -192,6 +192,7 @@ export default function Profile() {
       </View>
 
       <PortalSwitcher authUserId={profile?.user_id} roles={profile?.roles ?? []} currentPortal="tenant" />
+      <AddRoleCard authUserId={profile?.user_id} roles={profile?.roles ?? []} currentPortal="tenant" />
 
       <View className='p-5'>
         <Button

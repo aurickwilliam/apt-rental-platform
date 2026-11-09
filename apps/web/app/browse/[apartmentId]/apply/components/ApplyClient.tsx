@@ -1,17 +1,19 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Modal, useOverlayState } from "@heroui/react";
-import { IconArrowLeft } from "@tabler/icons-react";
 
-import type { TranslationKey } from "@repo/i18n";
+import { describeApplicationPreferences } from "@repo/utils";
 
+import FormStepper from "@/app/components/layout/FormStepper";
 import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { useApplicationReadiness } from "@/hooks/use-application-readiness";
 import { useSubmitApplication } from "@/hooks/use-submit-application";
 
 import type { ApplicantPersonalInfo } from "@/lib/application-profile";
+import { applicationFormDefaultsFromPreferences, buildApplicationSnapshotFromForm } from "@/lib/application-form-preferences";
+import type { TenantPreferences } from "@/lib/tenant-preferences";
 
 import type { ApplyViewer } from "../lib/load-apply-page";
 import { validatePreferences, validateTenantInfo } from "../lib/validate-application";
@@ -21,7 +23,6 @@ import {
   type ApplicationForm,
   type ApplyApartmentContext,
 } from "../types";
-import ApplicationHeader from "./ApplicationHeader";
 import ApplicationIssues from "./ApplicationIssues";
 import PreferencesStep from "./steps/PreferencesStep";
 import ReviewStep from "./steps/ReviewStep";
@@ -30,34 +31,28 @@ import TenantInfoStep from "./steps/TenantInfoStep";
 
 type Step = "tenant" | "preferences" | "review" | "submitted";
 
-// The three form steps; mobile's `ApplicationHeader` counts the same.
-const WIZARD: Partial<
-  Record<Step, { index: number; currentTitleKey: TranslationKey; nextTitleKey: TranslationKey }>
-> = {
-  tenant: {
-    index: 1,
-    currentTitleKey: "apply.step.tenant",
-    nextTitleKey: "apply.step.preferences",
-  },
-  preferences: {
-    index: 2,
-    currentTitleKey: "apply.step.preferences",
-    nextTitleKey: "apply.step.review",
-  },
-  review: {
-    index: 3,
-    currentTitleKey: "apply.step.review",
-    nextTitleKey: "apply.step.submit",
-  },
-};
-const WIZARD_STEP_COUNT = 3;
+// The three form steps, in order; mobile's `ApplicationHeader` counts the same.
+const WIZARD_STEPS = [
+  { key: "tenant", label: "Tenant Information", short: "Tenant Info" },
+  { key: "preferences", label: "Rental Preferences", short: "Preferences" },
+  { key: "review", label: "Review Application", short: "Review" },
+] as const satisfies readonly { key: Step; label: string; short: string }[];
 const PREVIOUS_STEP: Partial<Record<Step, Step>> = { preferences: "tenant", review: "preferences" };
+
+/** 1-based position in the stepper; 0 once submitted, which has no stepper. */
+function wizardNumber(step: Step): number {
+  return WIZARD_STEPS.findIndex(({ key }) => key === step) + 1;
+}
 
 interface ApplyClientProps {
   apartment: ApplyApartmentContext;
   viewer: ApplyViewer;
   hasActiveApplication: boolean;
+  hasActiveTenancy: boolean;
   personalInfo: ApplicantPersonalInfo;
+  savedPreferences: TenantPreferences | null;
+  /** Sticky offset for the stepper; the public route sits under the navbar. */
+  stepperStickyClassName?: string;
 }
 
 /**
@@ -66,12 +61,28 @@ interface ApplyClientProps {
  * (`ApplyStartModal`). There is no upload step: the APT Passport is attached
  * by reference.
  */
-export default function ApplyClient({ apartment, viewer, hasActiveApplication, personalInfo }: ApplyClientProps) {
+export default function ApplyClient({
+  apartment,
+  viewer,
+  hasActiveApplication,
+  hasActiveTenancy,
+  personalInfo,
+  savedPreferences,
+  stepperStickyClassName,
+}: ApplyClientProps) {
   const router = useRouter();
-  const { t } = useTranslation();
   const discardModal = useOverlayState();
   const [step, setStep] = useState<Step>("tenant");
-  const [form, setForm] = useState<ApplicationForm>(() => ({ ...EMPTY_APPLICATION_FORM, ...personalInfo }));
+  const [furthestStep, setFurthestStep] = useState(1);
+  // The pets, parking, smoking and disability questions (and their details)
+  // start from the saved preferences; the tenant can change any answer for this
+  // application.
+  const prefilled = useMemo(() => applicationFormDefaultsFromPreferences(savedPreferences), [savedPreferences]);
+  const [form, setForm] = useState<ApplicationForm>(() => ({
+    ...EMPTY_APPLICATION_FORM,
+    ...personalInfo,
+    ...prefilled,
+  }));
   const [errors, setErrors] = useState<ApplicationErrors>({});
 
   const readiness = useApplicationReadiness({
@@ -79,9 +90,11 @@ export default function ApplyClient({ apartment, viewer, hasActiveApplication, p
     accountStatus: viewer.accountStatus,
     landlordId: apartment.landlordId,
     hasActiveApplication,
+    hasActiveTenancy,
     // Proof of income only counts once the employment type is known.
     employmentType: form.employmentType || null,
   });
+  const { t } = useTranslation();
   const { submit, isSubmitting, error: submitError } = useSubmitApplication();
 
   const updateForm = useCallback((patch: Partial<ApplicationForm>) => setForm((current) => ({ ...current, ...patch })), []);
@@ -99,6 +112,7 @@ export default function ApplyClient({ apartment, viewer, hasActiveApplication, p
   const goTo = (next: Step) => {
     setErrors({});
     setStep(next);
+    setFurthestStep((current) => Math.max(current, wizardNumber(next)));
     window.scrollTo({ top: 0 });
   };
   const advanceIfValid = (nextErrors: ApplicationErrors, next: Step) => {
@@ -111,101 +125,132 @@ export default function ApplyClient({ apartment, viewer, hasActiveApplication, p
     else discardModal.open();
   };
 
+  // Going back keeps the draft. Going forward re-checks every step before the
+  // target and stops at the first one that needs attention.
+  const handleStepSelect = (number: number) => {
+    const target = WIZARD_STEPS[number - 1].key;
+    if (number > wizardNumber(step)) {
+      const tenantErrors = validateTenantInfo(form, t);
+      if (Object.keys(tenantErrors).length > 0) {
+        goTo("tenant");
+        setErrors(tenantErrors);
+        return;
+      }
+      if (target === "review") {
+        const preferenceErrors = validatePreferences(form, apartment.maxOccupants, t);
+        if (Object.keys(preferenceErrors).length > 0) {
+          goTo("preferences");
+          setErrors(preferenceErrors);
+          return;
+        }
+      }
+    }
+    if (target !== step) goTo(target);
+  };
+
   const handleSubmit = async () => {
     const result = await submit(apartment.id, form);
     if (!result.success) return;
     goTo("submitted");
   };
 
+  // What the landlord will see of the declared details, for the review step.
+  const preferenceLines = useMemo(() => {
+    return describeApplicationPreferences(buildApplicationSnapshotFromForm(form));
+  }, [form]);
+
   const totalMoveIn = (apartment.monthlyRent ?? 0) + (apartment.securityDeposit ?? 0) + (apartment.advanceRent ?? 0);
-  const wizard = WIZARD[step];
+  const currentNumber = wizardNumber(step);
+  const currentTitle = WIZARD_STEPS[currentNumber - 1]?.label;
 
   return (
-    <div className="mx-auto w-full max-w-7xl p-4 pb-12 md:p-6">
-      <div className="mb-4 flex items-center gap-2">
-        {step !== "submitted" ? (
-          <Button variant="outline" size="sm" isDisabled={isSubmitting} onPress={goBack}>
-            <IconArrowLeft size={16} />
-            {t("apply.back")}
-          </Button>
+    <div className="min-h-screen bg-background">
+      {currentTitle ? (
+        <FormStepper
+          steps={WIZARD_STEPS}
+          currentStep={currentNumber}
+          furthestStep={furthestStep}
+          isDisabled={isSubmitting}
+          onStepSelect={handleStepSelect}
+          ariaLabel="Application progress"
+          stickyClassName={stepperStickyClassName}
+        />
+      ) : null}
+
+      <div className="mx-auto w-full max-w-3xl px-6 pt-8 pb-12">
+        {currentTitle ? (
+          <div className="mb-6">
+            <h1 className="mb-1 font-nunito text-2xl font-bold text-primary">{currentTitle}</h1>
+            <p className="text-sm text-muted-foreground">
+              Applying to <span className="font-semibold text-primary">{apartment.name ?? "Listing"}</span>
+            </p>
+          </div>
         ) : null}
-        <div className="ml-auto hidden text-xs text-muted-foreground md:block">
-          {t("apply.applyingTo")}{" "}
-          <span className="font-semibold text-primary">{apartment.name ?? t("apply.listingFallback")}</span>
-        </div>
-      </div>
 
-      {wizard ? (
-        <div className="mb-6">
-          <ApplicationHeader
-            currentTitle={t(wizard.currentTitleKey)}
-            nextTitle={t(wizard.nextTitleKey)}
-            step={wizard.index}
-            totalSteps={WIZARD_STEP_COUNT}
+        {/* Normally caught by the Apply Now modal; covers direct links to this page. */}
+        {(step === "tenant" || step === "preferences") && !readiness.loading && readiness.upfrontIssues.length > 0 ? (
+          <div className="mb-6">
+            <ApplicationIssues issues={readiness.upfrontIssues} accountStatus={viewer.accountStatus} />
+          </div>
+        ) : null}
+
+        {step === "tenant" && (
+          <TenantInfoStep
+            form={form}
+            errors={errors}
+            onChange={updateForm}
+            clearError={clearError}
+            onBack={goBack}
+            onNext={() => advanceIfValid(validateTenantInfo(form, t), "preferences")}
           />
-        </div>
-      ) : null}
+        )}
 
-      {/* Normally caught by the Apply Now modal; covers direct links to this page. */}
-      {(step === "tenant" || step === "preferences") && !readiness.loading && readiness.upfrontIssues.length > 0 ? (
-        <div className="mb-6">
-          <ApplicationIssues issues={readiness.upfrontIssues} />
-        </div>
-      ) : null}
+        {step === "preferences" && (
+          <PreferencesStep
+            form={form}
+            errors={errors}
+            onChange={updateForm}
+            clearError={clearError}
+            maxOccupants={apartment.maxOccupants}
+            isPrefilled={prefilled !== null}
+            onBack={goBack}
+            onNext={() => advanceIfValid(validatePreferences(form, apartment.maxOccupants, t), "review")}
+          />
+        )}
 
-      {step === "tenant" && (
-        <TenantInfoStep
-          form={form}
-          errors={errors}
-          onChange={updateForm}
-          clearError={clearError}
-          onBack={goBack}
-          onNext={() => advanceIfValid(validateTenantInfo(form, t), "preferences")}
-        />
-      )}
+        {step === "review" && (
+          <ReviewStep
+            apartment={apartment}
+            accountStatus={viewer.accountStatus}
+            form={form}
+            preferenceLines={preferenceLines}
+            totalMoveIn={totalMoveIn}
+            readiness={readiness}
+            isSubmitting={isSubmitting}
+            submitError={submitError}
+            onBack={goBack}
+            onSubmit={() => void handleSubmit()}
+          />
+        )}
 
-      {step === "preferences" && (
-        <PreferencesStep
-          form={form}
-          errors={errors}
-          onChange={updateForm}
-          clearError={clearError}
-          maxOccupants={apartment.maxOccupants}
-          onBack={goBack}
-          onNext={() => advanceIfValid(validatePreferences(form, apartment.maxOccupants, t), "review")}
-        />
-      )}
-
-      {step === "review" && (
-        <ReviewStep
-          apartment={apartment}
-          form={form}
-          totalMoveIn={totalMoveIn}
-          readiness={readiness}
-          isSubmitting={isSubmitting}
-          submitError={submitError}
-          onBack={goBack}
-          onSubmit={() => void handleSubmit()}
-        />
-      )}
-
-      {step === "submitted" && <SubmittedStep apartmentName={apartment.name} />}
+        {step === "submitted" && <SubmittedStep apartmentName={apartment.name} />}
+      </div>
 
       <Modal isOpen={discardModal.isOpen} onOpenChange={discardModal.setOpen}>
         <Modal.Backdrop>
           <Modal.Container size="sm">
             <Modal.Dialog>
               <Modal.Header>
-                <Modal.Heading>{t("apply.discard.title")}</Modal.Heading>
+                <Modal.Heading>Discard Application?</Modal.Heading>
               </Modal.Header>
               <Modal.Body>
                 <p className="text-sm text-muted-foreground">
-                  {t("apply.discard.body")}
+                  Your progress will be lost if you leave now. Are you sure you want to cancel?
                 </p>
               </Modal.Body>
               <Modal.Footer className="grid grid-cols-2 gap-2">
                 <Button variant="outline" size="sm" fullWidth className="cursor-pointer" onPress={discardModal.close}>
-                  {t("apply.discard.keepEditing")}
+                  Keep Editing
                 </Button>
                 <Button
                   variant="danger-soft"
@@ -217,7 +262,7 @@ export default function ApplyClient({ apartment, viewer, hasActiveApplication, p
                     router.back();
                   }}
                 >
-                  {t("apply.discard.confirm")}
+                  Discard
                 </Button>
               </Modal.Footer>
             </Modal.Dialog>

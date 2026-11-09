@@ -9,6 +9,7 @@ const mockUseProfile = jest.fn()
 const mockSetIsSubmitting = jest.fn()
 const mockResetForm = jest.fn()
 const mockFetchPassport = jest.fn()
+const mockHasActiveRental = jest.fn()
 
 jest.mock('@repo/supabase', () => ({
   supabase: { from: (...args: unknown[]) => mockFrom(...args) },
@@ -21,6 +22,10 @@ jest.mock('hooks/auth', () => ({
 jest.mock('@/service/passport/passportService', () => ({
   ...jest.requireActual('@/service/passport/passportService'),
   fetchPassportDocumentsWithVerification: (...args: unknown[]) => mockFetchPassport(...args),
+}))
+
+jest.mock('@/service/applications/activeRentalService', () => ({
+  fetchHasActiveRentalAsTenant: (...args: unknown[]) => mockHasActiveRental(...args),
 }))
 
 const mockStoreState = {
@@ -36,8 +41,14 @@ const mockStoreState = {
     moveInDate: new Date('2026-10-01'),
     noOccupants: 1,
     hasPets: false,
+    kindOfPets: [] as string[],
+    noOfPets: 1,
+    nameOfPets: null as string | null,
     isSmoker: false,
     needParking: false,
+    noOfParkingSpots: 1,
+    listOfVehicles: [] as string[],
+    hasDisability: false,
     additionalNotes: '',
   },
   setIsSubmitting: mockSetIsSubmitting,
@@ -87,12 +98,16 @@ const billing: PassportDocumentRow = {
   storage_path: 'tenant-1/passport/residency.pdf',
 }
 
-function mockApartment(landlordId: string, insert = jest.fn().mockResolvedValue({ error: null })) {
-  mockFrom.mockImplementation((table: string) =>
-    table === 'apartments'
-      ? { select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: { landlord_id: landlordId }, error: null }) }) }) }
-      : { insert }
-  )
+function mockApartment(
+  landlordId: string,
+  insert = jest.fn().mockResolvedValue({ error: null }),
+) {
+  mockFrom.mockImplementation((table: string) => {
+    if (table === 'apartments') {
+      return { select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: { landlord_id: landlordId }, error: null }) }) }) }
+    }
+    return { insert }
+  })
   return insert
 }
 
@@ -109,6 +124,7 @@ beforeEach(() => {
   jest.clearAllMocks()
   mockUseProfile.mockReturnValue({ profile: { id: 'tenant-1', account_status: 'verified' } })
   mockFetchPassport.mockResolvedValue([govId, billing])
+  mockHasActiveRental.mockResolvedValue(false)
 })
 
 it('attaches passport documents by reference without uploading', async () => {
@@ -126,6 +142,95 @@ it('attaches passport documents by reference without uploading', async () => {
     })
   )
   expect(mockResetForm).toHaveBeenCalled()
+})
+
+it('stores the answers as a snapshot even when no details apply', async () => {
+  const insert = mockApartment('landlord-1')
+
+  expect(await submitApplication()).toEqual({ success: true })
+  expect(insert).toHaveBeenCalledWith(
+    expect.objectContaining({
+      tenant_preferences: {
+        version: 1,
+        pets: { has: false },
+        parking: { needed: false },
+        smoker: false,
+        householdDisability: false,
+      },
+    })
+  )
+})
+
+it('stores the pet, parking and disability details the tenant declared on the form', async () => {
+  const original = { ...mockStoreState.rentalPreferences }
+  Object.assign(mockStoreState.rentalPreferences, {
+    hasPets: true,
+    kindOfPets: ['Dog'],
+    noOfPets: 1,
+    nameOfPets: 'Max',
+    needParking: true,
+    noOfParkingSpots: 2,
+    listOfVehicles: ['Car'],
+    hasDisability: true,
+  })
+  try {
+    const insert = mockApartment('landlord-1')
+
+    expect(await submitApplication()).toEqual({ success: true })
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        has_pets: true,
+        need_parking: true,
+        tenant_preferences: {
+          version: 1,
+          pets: { has: true, kinds: ['Dog'], count: 1, names: 'Max' },
+          parking: { needed: true, spots: 2, vehicles: ['Car'] },
+          smoker: false,
+          householdDisability: true,
+        },
+      })
+    )
+  } finally {
+    Object.assign(mockStoreState.rentalPreferences, original)
+  }
+})
+
+it('stores the previous landlord number without the spaces the field shows', async () => {
+  const original = { ...mockStoreState.tenantInformation }
+  Object.assign(mockStoreState.tenantInformation, {
+    previousLandlordName: 'Ana',
+    previousLandlordContact: '0917 123 4567',
+  })
+  try {
+    const insert = mockApartment('landlord-1')
+
+    await submitApplication()
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({ prev_landlord_contact: '09171234567' })
+    )
+  } finally {
+    Object.assign(mockStoreState.tenantInformation, original)
+  }
+})
+
+it('shares no pet or parking details when the tenant answers no', async () => {
+  const original = { ...mockStoreState.rentalPreferences }
+  Object.assign(mockStoreState.rentalPreferences, {
+    hasPets: false,
+    kindOfPets: ['Dog'],
+    needParking: false,
+    listOfVehicles: ['Car'],
+  })
+  try {
+    const insert = mockApartment('landlord-1')
+
+    await submitApplication()
+    const payload = insert.mock.calls[0][0]
+    expect(payload.tenant_preferences.pets).toEqual({ has: false })
+    expect(payload.tenant_preferences.parking).toEqual({ needed: false })
+  } finally {
+    Object.assign(mockStoreState.rentalPreferences, original)
+  }
 })
 
 it('omits the ID back when the attached ID is not verification-linked', async () => {
@@ -146,6 +251,16 @@ it('rejects an own-property application', async () => {
     success: false,
     error: 'You cannot apply to your own property.',
   })
+  expect(insert).not.toHaveBeenCalled()
+})
+
+it('blocks a tenant who already has an active rental', async () => {
+  mockHasActiveRental.mockResolvedValue(true)
+  const insert = mockApartment('landlord-1')
+
+  const submission = await submitApplication()
+  expect(submission?.success).toBe(false)
+  expect(submission?.error).toMatch(/active rental/)
   expect(insert).not.toHaveBeenCalled()
 })
 

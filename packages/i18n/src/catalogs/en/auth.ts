@@ -23,6 +23,10 @@ export const auth = {
 
   // Shared credential-flow errors. The reason codes live in `@repo/utils`;
   // only the prose lives here.
+  "auth.error.emailNotRegistered": "We couldn't find an account with that email address.",
+  "auth.error.googleAccount":
+    "This email is linked to a Google account. Sign in with Google instead.",
+  "auth.error.captchaFailed": "The security check failed. Please try again.",
   "auth.error.invalidOrExpiredCode":
     "That code is incorrect or has expired. Check the code or request a new one.",
   "auth.error.wrongCurrentPassword": "Your current password is incorrect.",

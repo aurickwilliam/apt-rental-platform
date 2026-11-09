@@ -5,6 +5,7 @@ import {
   formatPesoDisplay,
   type FinanceData,
 } from "@repo/utils";
+import EmptyState from "@/app/components/display/EmptyState";
 
 interface ExpenseCategoryBarsProps {
   categories: FinanceData["categories"];
@@ -38,17 +39,12 @@ export default function ExpenseCategoryBars({
         </p>
       </div>
       {rows.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 py-8 text-center">
-          <IconReceipt2
-            size={32}
-            className="text-muted-foreground"
-            aria-hidden
-          />
-          <h3 className="font-nunito font-bold">No expenses recorded</h3>
-          <p className="text-sm text-muted-foreground">
-            Nothing recorded this month or the previous month.
-          </p>
-        </div>
+        <EmptyState
+          className="py-8"
+          icon={IconReceipt2}
+          title="No expenses recorded"
+          description="Nothing recorded this month or the previous month."
+        />
       ) : null}
       {rows.map((row) => {
         const amount = row.amount ?? 0;

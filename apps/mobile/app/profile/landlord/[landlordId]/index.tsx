@@ -22,6 +22,9 @@ import { Button, SkeletonGroup } from "heroui-native"
 import { usePublicLandlordProfile, useLandlordOwnershipDocuments } from 'hooks/profiles'
 import { useColors } from 'hooks/useTheme'
 import { getInquiryConversationId } from '@/service/chat/chatRoutes'
+import { useReportDialog } from '@/hooks/reports'
+import { useCurrentUserId } from '@/hooks/auth'
+import ReportUserDialog from '@/app/(tabs)/components/chat/ReportUserDialog'
 
 import {
   IconFlag,
@@ -34,6 +37,7 @@ import {
   IconStar,
   IconStarFilled,
 } from '@tabler/icons-react-native';
+import EmptyState from "@/components/display/EmptyState";
 
 export default function PublicLandlordProfile() {
   const { landlordId, apartmentId } = useLocalSearchParams<{
@@ -89,10 +93,11 @@ export default function PublicLandlordProfile() {
     ? listings
     : listings.slice(0, VISIBLE_LISTING_LIMIT);
 
-  // TODO: Implement function to handle report landlord
-  const handleReportLandlord = () => {
-    console.log("Report Landlord Pressed");
-  }
+  const currentUserId = useCurrentUserId();
+  const report = useReportDialog(
+    resolvedLandlordId ? { kind: 'profile', userId: resolvedLandlordId, role: 'landlord' } : null,
+  );
+  const canReport = Boolean(resolvedLandlordId) && resolvedLandlordId !== currentUserId;
 
   const handleMessageLandlord = () => {
     if (!resolvedLandlordId) return;
@@ -228,15 +233,11 @@ export default function PublicLandlordProfile() {
             </SkeletonGroup>
           </View>
         ) : listings.length === 0 ? (
-          <View className="items-center py-12 px-8 gap-3">
-            <IconBuildingSkyscraper size={64} color={colors.primary} />
-            <Text className="text-foreground text-xl font-nunitoBold text-center">
-              No listings yet
-            </Text>
-            <Text className="text-gray-400 text-base font-inter text-center">
-              This landlord hasn&apos;t published any apartments yet.
-            </Text>
-          </View>
+          <EmptyState
+            icon={IconBuildingSkyscraper}
+            title="No listings yet"
+            description="This landlord hasn't published any apartments yet."
+          />
         ) : (
           <>
             <FlatList
@@ -288,16 +289,11 @@ export default function PublicLandlordProfile() {
             <RatingCardSkeleton />
           </View>
         ) : totalReviews === 0 ? (
-          <View className="items-center py-12 px-8 gap-3">
-            <IconStar size={64} color={colors.primary} />
-            <Text className="text-foreground text-xl font-nunitoBold text-center">
-              No reviews yet
-            </Text>
-            <Text className="text-gray-400 text-base font-inter text-center">
-              Reviews from tenants who rented this landlord&apos;s apartments will
-              appear here.
-            </Text>
-          </View>
+          <EmptyState
+            icon={IconStar}
+            title="No reviews yet"
+            description="Reviews from tenants who rented this landlord's apartments will appear here."
+          />
         ) : (
           <View className="mt-3 gap-3">
             {reviews.map((review) => (
@@ -326,14 +322,25 @@ export default function PublicLandlordProfile() {
       </View>
 
       {/* Report Button */}
-      <View className="mt-12 mb-4 mx-5 flex items-center justify-center">
-        <Button variant="tertiary" size="md" onPress={handleReportLandlord}>
-          <IconFlag size={20} color={colors.danger} />
-          <Button.Label className="text-danger font-nunitoSemiBold">
-            Report {firstName}
-          </Button.Label>
-        </Button>
-      </View>
+      {canReport ? (
+        <View className="mt-12 mb-4 mx-5 flex items-center justify-center">
+          <Button variant="tertiary" size="md" onPress={report.open}>
+            <IconFlag size={20} color={colors.danger} />
+            <Button.Label className="text-danger font-nunitoSemiBold">
+              Report {firstName}
+            </Button.Label>
+          </Button>
+        </View>
+      ) : null}
+
+      <ReportUserDialog
+        isOpen={report.isOpen}
+        name={fullName}
+        isSubmitting={report.isSubmitting}
+        errorMessage={report.errorMessage}
+        onClose={report.close}
+        onSubmit={(reason, details) => void report.submit(reason, details)}
+      />
     </ScreenWrapper>
   );
 }

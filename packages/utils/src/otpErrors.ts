@@ -25,6 +25,11 @@ export function emailCodeRequestErrorMessage(
   return message || translate(language, "errors.generic");
 }
 
+/** English compatibility helper for server and untranslated callers. */
+export function getEmailCodeRequestError(message: string | null | undefined): string {
+  return emailCodeRequestErrorMessage("en", message);
+}
+
 // Wrong-code attempts allowed per sent code before asking for a new one. A
 // convenience on top of Supabase's server-side limits, identical on web and mobile.
 export const MAX_OTP_ATTEMPTS = 5;
@@ -37,4 +42,9 @@ export function otpAttemptErrorMessage(
   return attemptsRemaining === 1
     ? translate(language, "auth.otp.attemptsLeftOne")
     : translate(language, "auth.otp.attemptsLeftOther", { count: attemptsRemaining });
+}
+
+/** English compatibility helper for server and untranslated callers. */
+export function getOtpAttemptError(attemptsRemaining: number): string {
+  return otpAttemptErrorMessage("en", attemptsRemaining);
 }

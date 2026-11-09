@@ -18,6 +18,16 @@ export function pickCoverImage(images: ApartmentImageRow[] | null | undefined): 
   );
 }
 
+// A listing's photos with the cover first, the rest in their given order. A
+// gallery's first photo is its hero, and the listing cards show the cover, so
+// the two must agree; the query's own row order is not guaranteed.
+export function orderCoverFirst<T extends { is_cover: boolean | null }>(
+  images: readonly T[] | null | undefined,
+): T[] {
+  if (!images) return [];
+  return [...images.filter((image) => image.is_cover), ...images.filter((image) => !image.is_cover)];
+}
+
 // Small version for list rows and cards; full size for heroes.
 export function coverImageUrl(
   images: ApartmentImageRow[] | null | undefined,

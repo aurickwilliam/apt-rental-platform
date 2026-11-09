@@ -14,6 +14,10 @@ const mockPush = jest.fn();
 let mockConversations: ConversationWithMeta[] = [];
 let mockTenancy: unknown = null;
 
+jest.mock('@/components/layout/TabBarVisibilityContext', () => ({
+  useTabScreenScroll: () => ({ ref: { current: null }, onScroll: jest.fn() }),
+}));
+
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: mockPush }),
 }));

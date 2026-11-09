@@ -52,6 +52,7 @@ function harness({ collapsed = false, mobile = false } = {}) {
     "@/app/components/i18n/LocaleProvider": locale,
     "@/hooks/use-notifications": { useNotifications: () => ({ notifications: [], unreadCount: 2 }) },
     "@/lib/sidebar-notification-activity": { getUnreadSidebarActivity: () => new Set(["messages"]) },
+    "@/lib/tutorial-controller": { useTutorialNavMenuOpen: () => false, setTutorialLayerHost: () => {} },
     "@/hooks/use-pending-navigation": { usePendingNavigation: () => ({ pendingHref, navigate: href => { pushes.push(href); pendingHref = href; } }) },
     "./SidebarLinkPending": pending,
   }, { window: { localStorage: { getItem: () => String(collapsed) } }, URLSearchParams });

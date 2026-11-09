@@ -18,6 +18,7 @@ import type { FinancePagesResult } from "@/hooks/use-landlord-finances";
 
 import FinanceCard from "./FinanceCard";
 import { financeMoney } from "./FinanceMoneyRow";
+import EmptyState from "@/app/components/display/EmptyState";
 
 const ALL_CATEGORIES = "all";
 const CATEGORY_OPTIONS = [
@@ -193,22 +194,16 @@ export default function ExpenseTransactionsTable({
           </Table>
         ) : null}
         {!rows.length && !expenses.loading && !expenses.error ? (
-          <div className="flex flex-col items-center gap-2 py-8 text-center">
-            <IconReceipt2
-              size={32}
-              className="text-muted-foreground"
-              aria-hidden
-            />
-            <h3 className="font-nunito font-bold">
-              {category
+          <EmptyState
+            className="py-8"
+            icon={IconReceipt2}
+            title={
+              category
                 ? "No expenses in this category"
-                : "No expenses recorded"}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Nothing recorded in {financeMonthLabel(scope.month)}
-              {property ? ` for ${property.name}` : ""}.
-            </p>
-          </div>
+                : "No expenses recorded"
+            }
+            description={`Nothing recorded in ${financeMonthLabel(scope.month)}${property ? ` for ${property.name}` : ""}.`}
+          />
         ) : null}
         {expenses.error ? (
           <div className="space-y-2 py-4 text-center" role="alert">

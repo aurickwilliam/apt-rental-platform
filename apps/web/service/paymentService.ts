@@ -7,7 +7,7 @@ import type { PaymentAllocation } from "@repo/utils";
 // Same `payment` table contract: lowercase DB values, display mapping in
 // app/tenant/payment/utils.ts. Tenants insert cash `pending` only — never flip status.
 
-export type PaymentMethodDb = "gcash" | "maya" | "card" | "cash" | "qrph";
+export type PaymentMethodDb = "gcash" | "maya" | "card" | "cash" | "qrph" | "bank_transfer";
 
 export type PaymentStatusDb = "pending" | "paid" | "partial" | "unpaid";
 
@@ -135,6 +135,7 @@ export async function fetchPaymentByReferenceId(referenceId: string): Promise<Pa
 }
 
 export type CreateCashPaymentParams = {
+  renewalProposalId?: string;
   referenceId: string;
   amount: number;
   date: string;
@@ -151,6 +152,7 @@ export async function createCashPayment(params: CreateCashPaymentParams): Promis
   const { data, error } = await supabase
     .from("payment")
     .insert({
+      ...(params.renewalProposalId ? { renewal_proposal_id: params.renewalProposalId } : {}),
       method: "cash",
       status: "pending",
       date: params.date,

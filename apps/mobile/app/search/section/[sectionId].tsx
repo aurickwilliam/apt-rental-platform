@@ -1,7 +1,11 @@
 import { FlatList } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
+import { parseBrowseRowSpec, type BrowseRowPreferences } from "@repo/utils";
 import { useSearchSectionPage } from "@/hooks/search/useSearchSectionPage";
+import { useBrowseRowPage } from "@/hooks/search/useBrowseRowPage";
+import { fetchRecommendedCards } from "@/service/search/browseRowsService";
+import { RECOMMENDED_SECTION_ID } from "@/service/search/browseDiscoveryService";
 import { useMemo, useState } from "react";
 import { Button } from "heroui-native";
 import { IconSearchOff, IconLayoutGrid, IconLayoutRows } from "@tabler/icons-react-native";
@@ -10,92 +14,70 @@ import ScreenWrapper from "components/layout/ScreenWrapper";
 import StandardHeader from "components/layout/StandardHeader";
 import ApartmentCard from "components/cards/ApartmentCard";
 import EmptyState from "components/display/EmptyState";
-import { supabase } from "@repo/supabase";
-import { useColors } from "hooks/useTheme";
 import { useFavorites } from "@/hooks/favorites";
 import { useUserPreferences } from "@/hooks/preferences/useUserPreferences";
-import { transformApartments, scorePreferences } from "@/hooks/search/useSearchSections";
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/components/layout/CustomTabBar";
 
 
 
+// Recommended's See All lists more than the 15 on the Explore row.
+const RECOMMENDED_SEE_ALL_LIMIT = 50;
+
+// The spec arrives as a route param: rebuild it from known fields only.
+function parseSpecParam(value: string | undefined) {
+  if (!value) return null;
+  try {
+    return parseBrowseRowSpec(JSON.parse(value));
+  } catch {
+    return null;
+  }
+}
+
 export default function SectionDetail() {
-  const { sectionId, title, city, search } = useLocalSearchParams<{
+  const { sectionId, title, city, search, spec } = useLocalSearchParams<{
     sectionId: string;
     title?: string;
     city?: string;
     search?: string;
+    spec?: string;
   }>();
   const router = useRouter();
-  const { colors } = useColors();
   const { isFavorite, toggleFavorite } = useFavorites();
 
   const selectedCity = (city as string) ?? "CAMANAVA";
   const searchQuery = (search as string) ?? "";
-  const { preferences } = useUserPreferences();
+  const { preferences, isLoading: prefsLoading } = useUserPreferences();
 
-  const isPersonalizedSection = sectionId === "for_you" || sectionId === "in_city";
+  const isRecommended = sectionId === RECOMMENDED_SECTION_ID;
+  const rowSpec = useMemo(() => parseSpecParam(spec), [spec]);
 
-  const personalizedQuery = useQuery({
-    enabled: isPersonalizedSection,
-    queryKey: ["searchSectionDetail", sectionId, selectedCity, searchQuery, preferences ? JSON.stringify(preferences) : null],
-    queryFn: async ({ signal }) => {
-      // Personalized sections (for_you, in_city) don't exist server-side: score a pooled result client-side.
-      const { data, error } = await supabase
-        .rpc("get_search_sections", {
-          p_city: selectedCity,
-          p_search: searchQuery || undefined,
-          p_filters: {} as any,
-          p_limit: 50,
-        })
-        .abortSignal(signal as any);
-      if (error) throw error;
-      const sections = (data as any)?.sections ?? [];
-      // Pool all raw apartments from all sections, score by preferences if available
-      const seen = new Set<string>();
-      const pool: any[] = [];
-      for (const s of sections) {
-        for (const raw of s.apartments ?? []) {
-          if (!seen.has(raw.id)) {
-            seen.add(raw.id);
-            pool.push(raw);
-          }
-        }
-      }
-      if (preferences) {
-        const scored = pool
-          .map((raw: any) => ({ raw, score: scorePreferences(raw, preferences) }))
-          .filter((s: any) => s.score > 0)
-          .sort((a: any, b: any) => b.score - a.score || (b.raw.average_rating ?? 0) - (a.raw.average_rating ?? 0));
-        let rawList = scored.map((s: any) => s.raw);
-        if (sectionId === "in_city") {
-          rawList = rawList.filter((r: any) => r.city === selectedCity);
-        }
-        return transformApartments(rawList);
-      }
-      // No preferences: For you fallback to top rated pool
-      let rawList = pool;
-      if (sectionId === "in_city") rawList = rawList.filter((r: any) => r.city === selectedCity);
-      return transformApartments(rawList);
-    },
+  // Recommended has no server cohort: rank a pool of listings by the saved preferences.
+  const recommendedQuery = useQuery({
+    enabled: isRecommended && preferences !== null,
+    queryKey: ["searchSectionRecommended", preferences ? JSON.stringify(preferences) : null] as const,
+    queryFn: ({ signal }) =>
+      fetchRecommendedCards(preferences as BrowseRowPreferences, RECOMMENDED_SEE_ALL_LIMIT, signal),
     staleTime: 30_000,
   });
+
+  const rowQuery = useBrowseRowPage({ spec: rowSpec, enabled: !isRecommended });
 
   const pagedQuery = useSearchSectionPage({
     sectionId: sectionId as string,
     selectedCity,
     committedSearch: searchQuery,
-    enabled: !isPersonalizedSection,
+    enabled: !isRecommended && rowSpec === null,
   });
 
-  const isLoading = isPersonalizedSection ? personalizedQuery.isLoading : pagedQuery.isLoading;
-  const apartments = useMemo(
-    () =>
-      isPersonalizedSection
-        ? personalizedQuery.data ?? []
-        : pagedQuery.data?.pages.flatMap((page) => page.apartments) ?? [],
-    [isPersonalizedSection, personalizedQuery.data, pagedQuery.data],
-  );
+  const activePaged = rowSpec ? rowQuery : pagedQuery;
+  const isLoading = isRecommended
+    ? recommendedQuery.isLoading || (preferences === null && prefsLoading)
+    : activePaged.isLoading;
+  const apartments = useMemo(() => {
+    if (isRecommended) return recommendedQuery.data ?? [];
+    if (rowSpec) return rowQuery.data?.pages.flat() ?? [];
+    return pagedQuery.data?.pages.flatMap((page) => page.apartments) ?? [];
+  }, [isRecommended, rowSpec, recommendedQuery.data, rowQuery.data, pagedQuery.data]);
   const [isGridView, setIsGridView] = useState(true);
 
   if (isLoading) {
@@ -157,8 +139,8 @@ export default function SectionDetail() {
         key={isGridView ? "grid" : "list"}
         data={apartments}
         onEndReached={() => {
-          if (!isPersonalizedSection && pagedQuery.hasNextPage && !pagedQuery.isFetchingNextPage) {
-            void pagedQuery.fetchNextPage();
+          if (!isRecommended && activePaged.hasNextPage && !activePaged.isFetchingNextPage) {
+            void activePaged.fetchNextPage();
           }
         }}
         onEndReachedThreshold={0.5}
@@ -185,8 +167,7 @@ export default function SectionDetail() {
         )}
         ListEmptyComponent={
           <EmptyState
-            variant="tenant"
-            icon={<IconSearchOff size={64} color={colors.primary} />}
+            icon={IconSearchOff}
             title="Nothing here yet"
             description="This section has no listings."
             action={

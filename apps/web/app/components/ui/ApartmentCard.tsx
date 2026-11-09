@@ -25,6 +25,8 @@ interface ApartmentCardProps {
   isVerified?: boolean;
   thumbnailUrl: string;
   onPress?: () => void;
+  /** Verified preference matches shown under the location (Recommended for You only). */
+  reasons?: readonly string[];
   isFavorite?: boolean;
   isFavoriteLoading?: boolean;
   onFavoritePress?: () => void;
@@ -42,6 +44,7 @@ export default function ApartmentCard({
   isVerified = false,
   thumbnailUrl,
   onPress,
+  reasons,
   isFavorite = false,
   isFavoriteLoading = false,
   onFavoritePress,
@@ -96,6 +99,19 @@ export default function ApartmentCard({
                 {location}
               </p>
             </div>
+
+            {reasons && reasons.length > 0 && (
+              <ul data-slot="apartment-card-reasons" className="mt-1 flex flex-wrap gap-1">
+                {reasons.map((reason) => (
+                  <li
+                    key={reason}
+                    className="rounded-full bg-secondary px-1 py-px text-[10px] leading-3 text-secondary-foreground"
+                  >
+                    {reason}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
 

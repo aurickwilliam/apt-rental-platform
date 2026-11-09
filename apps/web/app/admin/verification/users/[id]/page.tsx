@@ -167,7 +167,7 @@ export default async function UserVerificationReviewPage({ params }: PageProps) 
           <UserActivityTimeline
             events={activityEvents}
             title="Verification activity"
-            emptyMessage="No verification activity yet"
+            emptyMessage="Verification decisions for this user will appear here."
           />
         </div>
         <div className="min-w-0">

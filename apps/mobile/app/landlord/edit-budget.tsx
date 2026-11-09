@@ -17,7 +17,6 @@ import EntryFormFooterSkeleton from "@/components/finance/EntryFormFooterSkeleto
 import EntryFormSkeleton from "@/components/finance/EntryFormSkeleton";
 import { useLandlordFinances } from "@/hooks/finance/useLandlordFinances";
 import { useCurrentUser } from "@/hooks/auth";
-import { useColors } from "@/hooks/useTheme";
 import { financeErrorMessage } from "@/service/finance/financeService";
 
 function EditBudget() {
@@ -28,7 +27,6 @@ function EditBudget() {
     amount?: string;
   }>();
   const router = useRouter();
-  const { colors } = useColors();
   const { toast } = useToast();
   const month = financeMonthFromParam(params.month, manilaToday().slice(0, 7));
   const apartmentId =
@@ -96,7 +94,7 @@ function EditBudget() {
         className="p-5"
       >
         <EmptyState
-          icon={<IconTargetArrow size={32} color={colors.gray500} />}
+          icon={IconTargetArrow}
           title="Budget not found"
           description={`This plan is not part of ${financeMonthLabel(month)}'s report. Open the Budget tab and choose a plan to change.`}
         />

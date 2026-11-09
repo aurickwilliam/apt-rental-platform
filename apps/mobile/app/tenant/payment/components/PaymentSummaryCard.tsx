@@ -1,6 +1,7 @@
 import { View, Text } from 'react-native'
 import { Card, Separator } from 'heroui-native'
 import { formatDate, formatPesoDisplay, type TenancyBill } from '@repo/utils'
+import type { TenancyFee } from '@/service/tenancy/tenancyService'
 
 interface PaymentSummaryCardProps {
   month: string
@@ -8,6 +9,8 @@ interface PaymentSummaryCardProps {
   dueDate: string
   monthlyRent: number
   bill?: TenancyBill | null
+  // Pending maintenance fees of a tenancy without a server bill (a bill lists its own).
+  fees?: TenancyFee[]
 }
 
 export default function PaymentSummaryCard({
@@ -16,7 +19,9 @@ export default function PaymentSummaryCard({
   dueDate,
   monthlyRent,
   bill,
+  fees = [],
 }: PaymentSummaryCardProps) {
+  const feesTotal = fees.reduce((sum, fee) => sum + fee.amount, 0)
   return (
     <Card className='shadow-none rounded-3xl my-5'>
       <Card.Header>
@@ -61,7 +66,7 @@ export default function PaymentSummaryCard({
             <Text className='text-sm text-muted font-inter'>The deposit is held separately, not used as rent. {bill.advancePeriodStart ? `Advance covers ${formatDate(bill.advancePeriodStart, 'short')} – ${formatDate(bill.advancePeriodEnd!, 'short')}, once confirmed.` : 'No advance rent is included.'}</Text>
           </> : null}
           {bill?.coveredByAdvance ? <Text className='text-sm text-muted font-inter'>Month 2 rent is covered by your advance payment.</Text> : null}
-          {bill?.fees.map((fee) => <View key={fee.id} className='flex-row justify-between gap-3'>
+          {(bill ? bill.fees : fees).map((fee) => <View key={fee.id} className='flex-row justify-between gap-3'>
             <Text className='text-sm text-foreground font-inter'>{fee.title}</Text>
             <Text className='text-sm text-foreground font-nunitoSemiBold'>{formatPesoDisplay(fee.amount)}</Text>
           </View>)}
@@ -74,7 +79,7 @@ export default function PaymentSummaryCard({
         <View className='flex-row justify-between items-center mt-2'>
           <Text className='text-sm text-accent font-nunitoSemiBold'>Total Payment</Text>
           <Text className='text-sm text-accent font-nunitoSemiBold'>
-            {formatPesoDisplay(bill?.totalDue ?? monthlyRent)}
+            {formatPesoDisplay(bill?.totalDue ?? monthlyRent + feesTotal)}
           </Text>
         </View>
       </Card.Footer>

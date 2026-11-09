@@ -140,6 +140,7 @@ function createFeed({ recipientId = "viewer", ownershipRecords = null } = {}) {
     },
     "@/hooks/use-notifications": hook,
     "@/hooks/use-notification-display-preferences": { useNotificationDisplayPreferences: () => ({ preferences: { entry: "bell", drawerSide }, update: () => {} }) },
+    "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
     "@/lib/notification-fab-position": {},
     "@/lib/notification-calendar": { getLocalCalendarDay: function getLocalCalendarDay() {}, subscribeLocalCalendarDay: () => {} },
     "@/lib/notification-links": drawerLinks,
@@ -385,7 +386,7 @@ test("web feed query uses created_at DESC then id ASC before its limit", async (
     exports,
     require: name => {
       if (name === "@/lib/chat-notification-audience") return {
-        getLegacyChatApartmentIds: () => [], resolveChatNotificationAudiences: rows => rows,
+        resolveChatAudiencesWith: async rows => rows,
       };
       assert.equal(name, "@repo/supabase/browser");
       return { createClient: () => ({ from: () => query }) };

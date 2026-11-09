@@ -36,7 +36,7 @@ test("browse filters map URL params onto the shared query", () => {
     ["gte", "no_bedrooms", 4],
     ["contains", "amenities", ["wifi", "tv"]],
     ["eq", "is_verified", true],
-    ["or", "name.ilike.%Caloocan%,city.ilike.%Caloocan%,barangay.ilike.%Caloocan%"],
+    ["or", 'name.ilike."%Caloocan%",city.ilike."%Caloocan%",barangay.ilike."%Caloocan%"'],
   ]);
 });
 

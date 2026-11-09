@@ -13,8 +13,14 @@ import PropertyOverview from './components/PropertyOverview'
 import PropertyActionMenu from './components/PropertyActionMenu'
 import ConfirmDialog from 'components/display/ConfirmDialog'
 import PropertyOverviewSkeleton from './components/PropertyOverviewSkeleton';
+import HiddenListingBanner from 'components/apartment/HiddenListingBanner'
+import LandlordSignedLeaseCard from '@/components/tenancy/LandlordSignedLeaseCard';
+import LeaseRenewalEntry from '@/components/renewals/LeaseRenewalEntry';
+import { useLandlordTenancyRefresh } from '@/hooks/tenancy/useLandlordTenancyRefresh';
+import { usePortalStore } from '@/stores/usePortalStore';
+import { useListingVisibility } from '@/hooks/apartments/useListingVisibility';
 
-import { Button, Separator } from 'heroui-native'
+import { Button, Separator, Spinner, useToast } from 'heroui-native'
 
 import {
   IconUser,
@@ -34,12 +40,14 @@ import { getLandlordUnitsQueryKey } from 'hooks/apartments/useLandlordUnits'
 import { useLandlordTenancy, getLandlordTenancyQueryKey } from 'hooks/tenancy'
 import { useProfile } from 'hooks/auth'
 
-import { formatDate } from '@repo/utils';
+import { formatDate, propertyStatusLabel } from '@repo/utils';
+import { getErrorMessage } from '@/utils/getErrorMessage';
 
 export default function Index() {
   const router = useRouter()
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>()
   const { colors } = useColors();
+  const { toast } = useToast();
 
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false)
   const [isVacateDialogOpen, setIsVacateDialogOpen] = useState(false)
@@ -47,9 +55,18 @@ export default function Index() {
   const [tenantToRate, setTenantToRate] = useState<{ id: string; name: string } | null>(null)
 
   const { apartment, loading, refetch } = useApartmentDetails(apartmentId);
-  const { tenant, maintenanceRequest, paymentHistory } = useLandlordTenancy(apartmentId);
+  const { tenant, maintenanceRequest, paymentHistory, loading: tenancyLoading, error: tenancyError, refetch: refetchTenancy } = useLandlordTenancy(apartmentId);
+  const leaseAuthId = usePortalStore((state) => state.authUserId);
+  useLandlordTenancyRefresh(apartmentId);
   const { profile } = useProfile();
   const queryClient = useQueryClient();
+  const visibility = useListingVisibility({
+    apartmentId,
+    ownerId: apartment?.landlord?.id ?? null,
+    status: apartment?.status,
+    hasActiveTenancy: !!tenant,
+    tenancyReady: !loading && !tenancyLoading && !tenancyError,
+  });
 
   const handleVacateUnit = () => {
     setIsVacateDialogOpen(true)
@@ -120,6 +137,12 @@ export default function Index() {
     } catch (err) {
       console.error('Error removing unit:', err)
       setIsRemoveDialogOpen(false)
+      // The database message is user-facing (for example "End the active tenancy
+      // before deleting this property."), so show it instead of closing silently.
+      toast.show({
+        variant: 'danger',
+        label: getErrorMessage(err, 'Could not remove this property. Please try again.'),
+      })
     }
   }
 
@@ -169,6 +192,8 @@ export default function Index() {
           <PropertyOverviewSkeleton />
         ) : apartment ? (
           <>
+            <HiddenListingBanner apartmentId={apartmentId ?? null} />
+
             {/* Images + Specs */}
             <PropertyOverview
               name={apartment.name}
@@ -180,6 +205,7 @@ export default function Index() {
               monthly_rent={apartment.monthly_rent}
               type={apartment.type}
               lease_duration={apartment.lease_duration!}
+              has_own_electricity_meter={apartment.has_own_electricity_meter}
               no_bedrooms={apartment.no_bedrooms}
               no_bathrooms={apartment.no_bathrooms}
               furnished_type={apartment.furnished_type!}
@@ -220,13 +246,24 @@ export default function Index() {
                 <Text className="text-base text-foreground font-inter">Status</Text>
                 <IconCircleCheck
                   size={32}
-                  color={isOccupied ? colors.success : colors.primary}
+                  color={visibility.hidden ? colors.warningText : isOccupied ? colors.success : colors.primary}
                 />
-                <Text className="text-base text-foreground font-nunitoSemiBold">
-                  {APARTMENT_STATUS_LABELS[apartment.status]}
+                <Text className="text-base text-foreground font-nunitoSemiBold text-center">
+                  {visibility.hidden ? propertyStatusLabel(apartment.status) : APARTMENT_STATUS_LABELS[apartment.status]}
                 </Text>
               </View>
             </View>
+
+            {!isOccupied && tenancyError ? (
+              <View className="mt-4 gap-2">
+                <Text accessibilityRole="alert" className="text-danger font-inter text-sm">
+                  Could not check this unit&apos;s tenancy. Retry to manage listing visibility.
+                </Text>
+                <Button size="sm" variant="secondary" onPress={() => void refetchTenancy()}>
+                  <Button.Label>Retry tenancy check</Button.Label>
+                </Button>
+              </View>
+            ) : null}
 
             {/* Description Button */}
             <View className="mt-5 flex-row items-center gap-3">
@@ -255,6 +292,13 @@ export default function Index() {
             {/* Occupied vs Vacant */}
             {isOccupied ? (
               <>
+                {tenancyLoading ? <View className="mt-5 flex-row items-center gap-2">
+                  <Spinner size="sm" />
+                  <Text className="text-muted font-inter text-sm">Loading tenant and signed lease…</Text>
+                </View> : tenancyError ? <View className="mt-5 gap-2">
+                  <Text accessibilityRole="alert" className="text-danger font-inter text-sm">Could not refresh tenant and signed lease details.</Text>
+                  <Button size="sm" variant="secondary" onPress={() => void refetchTenancy()}><Button.Label>Retry</Button.Label></Button>
+                </View> : null}
                 {tenant && (
                   <View className="mt-5 flex gap-3">
                     <View className="flex-row gap-2 items-center">
@@ -276,6 +320,18 @@ export default function Index() {
                       }
                       onMessagePress={handleMessageTenant}
                     />
+                    <LeaseRenewalEntry key={`renewal:${leaseAuthId}:${tenant.tenancyId}`} tenancyId={tenant.tenancyId} portal="landlord"/>
+                    <LandlordSignedLeaseCard
+                      key={`${leaseAuthId}:${tenant.tenancyId}`}
+                      tenancyId={tenant.tenancyId}
+                      path={tenant.signedLeasePath}
+                      uploadedAt={tenant.signedLeaseUploadedAt}
+                      acknowledgedAt={tenant.tenantAcknowledgedAt}
+                      onSaved={async () => {
+                        const result = await refetchTenancy();
+                        if (result.error) throw result.error;
+                      }}
+                    />
                   </View>
                 )}
 
@@ -296,7 +352,7 @@ export default function Index() {
                     <View className="flex-row items-center justify-between">
 
                       <Text className="text-foreground text-lg font-nunitoBold">
-                        Recent Rent Payments
+                        Recent Payments
                       </Text>
 
                       <Button
@@ -382,6 +438,24 @@ export default function Index() {
         onVacate={handleVacateUnit}
         onRemove={() => setIsRemoveDialogOpen(true)}
         isOccupied={isOccupied}
+        visibilityLabel={visibility.label}
+        isListingHidden={visibility.hidden}
+        onVisibilityPress={visibility.allowed ? visibility.open : undefined}
+        isBusy={visibility.busy}
+      />
+
+      <ConfirmDialog
+        isOpen={visibility.isOpen && visibility.allowed}
+        onOpenChange={(open) => { if (!open) visibility.close(); }}
+        title={visibility.label}
+        description={visibility.hidden
+          ? 'Make this listing available for browsing again? Any administrator restriction will still apply.'
+          : 'Hide this listing from browsing, search and maps? It will be marked as hidden and under maintenance. Your property and existing records will not be deleted.'}
+        confirmLabel={visibility.busy ? 'Saving…' : visibility.label}
+        confirmVariant="primary"
+        onConfirm={() => void visibility.confirm()}
+        errorMessage={visibility.error}
+        isPending={visibility.busy}
       />
 
       <ConfirmDialog

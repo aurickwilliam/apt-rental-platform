@@ -13,7 +13,6 @@ import { useColors } from '@/hooks/useTheme';
 import { useApartmentDetails } from '@/hooks/apartments';
 import { isGoogleMapsEnabled, MAP_DEFAULT_COORDS } from '@/utils/mapConfig';
 import GoogleMapView from '@/components/maps/GoogleMapView';
-import MapLibreFallbackView from '@/components/maps/MapLibreFallbackView';
 
 import { IconRoute, IconMap, IconCompass, IconNavigation } from '@tabler/icons-react-native';
 
@@ -28,7 +27,6 @@ export default function ApartmentMapViewScreen() {
   const insets = useSafeAreaInsets();
 
   const [isDirectionsModalVisible, setIsDirectionsModalVisible] = useState<boolean>(false);
-  const cameraRef = useRef<any>(null);
   const googleMapRef = useRef<MapView>(null);
 
   const latitude = apartment?.latitude ?? DEFAULT_COORDS.latitude;
@@ -135,35 +133,20 @@ export default function ApartmentMapViewScreen() {
 
   // Handle IconNavigation Button Press/Go Back to Pin Location
   const handleNavigationPress = () => {
-    if (useGoogle) {
-      googleMapRef.current?.animateToRegion(
-        {
-          latitude,
-          longitude,
-          latitudeDelta: 0.015,
-          longitudeDelta: 0.015,
-        },
-        500,
-      );
-      return;
-    }
-    cameraRef.current?.setCamera?.({
-      centerCoordinate: [longitude, latitude],
-      zoomLevel: 15,
-      animationDuration: 500,
-    });
+    googleMapRef.current?.animateToRegion(
+      {
+        latitude,
+        longitude,
+        latitudeDelta: 0.015,
+        longitudeDelta: 0.015,
+      },
+      500,
+    );
   }
 
   // Handle IconCompass Button Press/Refocus to North
   const handleCompassPress = () => {
-    if (useGoogle) {
-      googleMapRef.current?.animateCamera({ heading: 0 }, { duration: 350 });
-      return;
-    }
-    cameraRef.current?.setCamera?.({
-      heading: 0,
-      animationDuration: 350,
-    });
+    googleMapRef.current?.animateCamera({ heading: 0 }, { duration: 350 });
   }
 
   return (
@@ -220,21 +203,24 @@ export default function ApartmentMapViewScreen() {
             pins={hasApartmentCoords ? [{ latitude, longitude }] : []}
           />
         ) : (
-          <MapLibreFallbackView
-            latitude={latitude}
-            longitude={longitude}
-            interactive
-            style={{ flex: 1 }}
-          />
-        )}
-        {/* Hidden MapLibre camera ref for fallback compass/nav when useGoogle=false */}
-        {!useGoogle && (
-          <View style={{ height: 0, width: 0, overflow: 'hidden' }}>
-            {/* keep ref alive via dummy — fallback view handles its own camera */}
+          <View className='flex-1 items-center justify-center gap-3 bg-surface-secondary px-8'>
+            <IconMap size={40} color={colors.textPrimary} />
+            <Text className='text-foreground font-nunitoSemiBold text-lg text-center'>
+              Map unavailable
+            </Text>
+            <Text className='text-muted font-inter text-center'>
+              The map can&apos;t be shown right now. You can still see this place in your maps app.
+            </Text>
+            {hasApartmentCoords ? (
+              <Button size='sm' onPress={handleOpenInMaps}>
+                <Button.Label>Open in Maps</Button.Label>
+              </Button>
+            ) : null}
           </View>
         )}
 
         {/* Floating Action Buttons — consistent with app/tenant/map-search.tsx */}
+        {useGoogle ? (
         <View className="absolute right-5 items-center gap-3" style={{ bottom: insets.bottom + 24 }}>
           <Button
             onPress={handleCompassPress}
@@ -255,6 +241,7 @@ export default function ApartmentMapViewScreen() {
             <IconNavigation size={22} color={colors.primary} />
           </Button>
         </View>
+        ) : null}
       </View>
 
       <Dialog

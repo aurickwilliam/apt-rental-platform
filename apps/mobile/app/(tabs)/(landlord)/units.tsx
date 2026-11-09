@@ -2,7 +2,8 @@ import { View, Text } from "react-native";
 import { useState, useMemo } from "react";
 import { useRouter } from "expo-router";
 
-import ScreenWrapper from "@/components/layout/ScreenWrapper";
+import ScreenWrapper, { type ScreenWrapperScrollRef } from "@/components/layout/ScreenWrapper";
+import { useTabScreenScroll } from "@/components/layout/TabBarVisibilityContext";
 import QuickActionButton from "@/app/(tabs)/components/QuickActionButton";
 import PropertyCard from "../components/units/PropertyCard";
 import PropertyStats from "../components/units/PropertyStats";
@@ -27,6 +28,7 @@ import {
 
 import { useLandlordUnits, useLandlordActionBadges } from "@/hooks/apartments";
 import { CAMANAVA_CITIES, VALID_APARTMENT_STATUSES } from "@repo/constants";
+import { TUTORIAL_TARGETS } from "@repo/utils";
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/components/layout/CustomTabBar";
 import LandlordVerificationGate from "@/components/landlord/LandlordVerificationGate";
 
@@ -44,6 +46,8 @@ function Units() {
 
   const { apartments, monthlyProfit, loading } = useLandlordUnits();
   const { counts } = useLandlordActionBadges();
+  const { ref: scrollRef, onScroll: onTabBarScroll } =
+    useTabScreenScroll<ScreenWrapperScrollRef>();
 
   const [selectedStatus, setSelectedStatus] = useState<string>(statusOptions[0]);
   const [selectedLocation, setSelectedLocation] = useState<string>(locationOptions[0]);
@@ -96,7 +100,7 @@ function Units() {
   };
 
   return (
-    <ScreenWrapper className="p-5" scrollable bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}>
+    <ScreenWrapper ref={scrollRef} onScroll={onTabBarScroll} className="p-5" scrollable bottomPadding={FLOATING_TAB_BAR_HEIGHT + FLOATING_TAB_BAR_BOTTOM_OFFSET}>
       {/* Header */}
       <Text className="text-accent text-3xl font-nunitoBold">
         My Properties
@@ -143,6 +147,7 @@ function Units() {
           <QuickActionButton
             columns={5}
             label={"Tenant Applications"}
+            tourKey={TUTORIAL_TARGETS.mobileQuickTenantApplications}
             icon={IconFileText}
             badgeCount={counts.applications}
             onPress={() => router.push("/landlord/tenant-applications")}
@@ -150,6 +155,7 @@ function Units() {
           <QuickActionButton
             columns={5}
             label={"Payments"}
+            tourKey={TUTORIAL_TARGETS.mobileQuickPayments}
             icon={IconWallet}
             onPress={() => router.push("/landlord/payments")}
           />
@@ -222,6 +228,7 @@ function Units() {
                 thumbnailUrl={apt.coverUrl ?? undefined}
                 onPress={() => handlePropertyPress(apt.id)}
                 isVerified={apt.isVerified}
+                isHiddenByAdmin={apt.isHiddenByAdmin}
                 monthlyRent={apt.monthlyRent}
               />
             ))}

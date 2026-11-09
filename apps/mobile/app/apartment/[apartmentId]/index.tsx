@@ -17,6 +17,7 @@ import {
   IconHeart,
   IconHeartFilled,
   IconChevronLeft,
+  IconFlag,
   IconShare2,
 } from "@tabler/icons-react-native";
 
@@ -33,15 +34,19 @@ import MoveInCostFooter from "./components/sections/MoveInCostFooterSection";
 import ApartmentSkeleton from "./components/ApartmentSkeleton";
 import ApartmentDetailsSection from "./components/sections/ApartmentDetailsSection";
 
-import { useApartmentDetails } from "@/hooks/apartments";
+import { useApartmentAcceptedMethods, useApartmentDetails } from "@/hooks/apartments";
 import { useFavorites, useFavoriteToggle } from "@/hooks/favorites";
 import { useColors } from "@/hooks/useTheme";
 import { useLightStatusBar } from "@/hooks/useLightStatusBar";
 import { useReviewEligibility } from "@/hooks/ratings";
 import { useCurrentUserId } from "@/hooks/auth";
+import { useReportDialog } from "@/hooks/reports";
+import { APARTMENT_REPORT_REASONS } from "@repo/utils";
+import ReportUserDialog from "@/app/(tabs)/components/chat/ReportUserDialog";
 import { getInquiryConversationId } from "@/service/chat/chatRoutes";
 import { buildApartmentShareMessage } from "@/service/apartments/apartmentShare";
 import { getApplyDisabledReason } from "@/service/apartments/applyEligibility";
+import { orderCoverFirst } from "@/service/apartments/coverImage";
 
 import { Button } from "heroui-native";
 
@@ -64,7 +69,11 @@ export default function ApartmentScreen() {
     refetch,
     refetchReviews,
   } = useApartmentDetails(apartmentId);
+  const { data: acceptedMethods } = useApartmentAcceptedMethods(apartmentId ?? null);
   const currentUserId = useCurrentUserId();
+  const report = useReportDialog(apartmentId ? { kind: "apartment", apartmentId } : null);
+  const ownerId = apartment?.landlord?.id ?? null;
+  const canReport = Boolean(apartment) && ownerId !== currentUserId;
   const scrollRef = useRef<ScreenWrapperScrollRef>(null);
   const ratingsOffsetY = useRef(0);
   const sectionsOffsetY = useRef(0);
@@ -77,11 +86,11 @@ export default function ApartmentScreen() {
     reviewableTenancyId,
   } = useReviewEligibility(apartmentId);
 
-  const apartmentImages =
-    apartment?.apartment_images.map((image) => ({
-      id: image.id,
-      image: { uri: image.url },
-    })) ?? [];
+  // Cover first, so the hero photo matches the listing cards.
+  const apartmentImages = orderCoverFirst(apartment?.apartment_images).map((image) => ({
+    id: image.id,
+    image: { uri: image.url },
+  }));
 
   const handleFavoriteToggle = async () => {
     if (!apartmentId) return;
@@ -263,13 +272,36 @@ export default function ApartmentScreen() {
               onWriteReview={handleWriteReview}
             />
           </View>
+
+          {canReport ? (
+            <View className="mt-6 mb-4 items-center">
+              <Button variant="tertiary" size="md" onPress={report.open}>
+                <IconFlag size={20} color={colors.danger} />
+                <Button.Label className="text-danger font-nunitoSemiBold">
+                  Report this listing
+                </Button.Label>
+              </Button>
+            </View>
+          ) : null}
         </View>
       </ScreenWrapper>
+
+      <ReportUserDialog
+        isOpen={report.isOpen}
+        name={apartment?.name ?? "this listing"}
+        reasons={APARTMENT_REPORT_REASONS}
+        subject="listing"
+        isSubmitting={report.isSubmitting}
+        errorMessage={report.errorMessage}
+        onClose={report.close}
+        onSubmit={(reason, details) => void report.submit(reason, details)}
+      />
 
       <MoveInCostFooter
         monthlyRent={apartment?.monthly_rent ?? 0}
         securityDeposit={apartment?.security_deposit}
         advanceRent={apartment?.advance_rent}
+        acceptedMethods={acceptedMethods}
         onApplyNow={handleApplyNow}
         applyDisabledReason={applyDisabledReason}
       />

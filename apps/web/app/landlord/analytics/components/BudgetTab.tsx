@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@heroui/react";
-import { IconPlus } from "@tabler/icons-react";
+import { IconPlus, IconTargetArrow, IconShieldCheck } from "@tabler/icons-react";
 import {
   financeCategoryLabel,
   groupBudgetsByCategory,
@@ -14,6 +14,7 @@ import {
 import BudgetProgressRow from "./BudgetProgressRow";
 import FinanceCard from "./FinanceCard";
 import { financeMoney } from "./FinanceMoneyRow";
+import EmptyState from "@/app/components/display/EmptyState";
 
 interface BudgetCallbacks {
   /** Opens the properties holding one category's plan. */
@@ -61,13 +62,12 @@ export function BudgetActual({
       contentClassName="space-y-3"
     >
       {spending.length === 0 ? (
-        <div className="space-y-1 py-2">
-          <h3 className="font-nunito font-bold">No spending limits yet</h3>
-          <p className="text-sm text-muted-foreground">
-            Set spending limits for repairs, utilities and other property
-            costs.
-          </p>
-        </div>
+        <EmptyState
+          className="py-6"
+          icon={IconTargetArrow}
+          title="No spending limits yet"
+          description="Set spending limits for repairs, utilities and other property costs."
+        />
       ) : null}
       {spending.map((group) => (
         <BudgetProgressRow
@@ -121,13 +121,12 @@ export function BudgetMain({
       contentClassName="space-y-3"
     >
       {reserves.length === 0 ? (
-        <div className="space-y-1 py-2">
-          <h3 className="font-nunito font-bold">No reserve goals yet</h3>
-          <p className="text-sm text-muted-foreground">
-            Plan a buffer for unexpected repairs, late payments, vacancies or
-            replacements.
-          </p>
-        </div>
+        <EmptyState
+          className="py-6"
+          icon={IconShieldCheck}
+          title="No reserve goals yet"
+          description="Plan a buffer for unexpected repairs, late payments, vacancies or replacements."
+        />
       ) : null}
       {reserves.map((group) => {
         const name = financeCategoryLabel(group.category);

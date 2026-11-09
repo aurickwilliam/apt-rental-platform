@@ -101,6 +101,14 @@ export function useTenancy() {
     await tenancyQuery.refetch();
   }, [tenancyQuery, tenantId]);
 
+  // Unlike pull-to-refresh, confirmation needs to know whether reconciliation
+  // succeeded. A failed background read retains the already-loaded rental.
+  const revalidate = useCallback(async (): Promise<boolean> => {
+    if (!tenantId) return false;
+    const result = await tenancyQuery.refetch({ cancelRefetch: false });
+    return !result.error && result.data !== undefined;
+  }, [tenancyQuery, tenantId]);
+
   const refreshing =
     (currentUserQuery.isFetching || tenancyQuery.isFetching) &&
     !(currentUserQuery.isLoading || tenancyQuery.isLoading);
@@ -111,5 +119,6 @@ export function useTenancy() {
     refreshing,
     error: getErrorMessage(currentUserQuery.error ?? tenancyQuery.error),
     refetch,
+    revalidate,
   };
 }

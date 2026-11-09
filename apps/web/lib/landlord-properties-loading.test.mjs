@@ -34,6 +34,7 @@ function load(file, extra = {}) {
     "@/lib/public-apartment-image": { canOptimizePublicApartmentImage: () => false },
     "next-themes": { useTheme: () => ({ resolvedTheme: "light", setTheme: () => {} }) },
     "@/service/signOutService": { signOut: () => {} },
+    "@/components/ui/tooltip": { Tooltip: "Tooltip", TooltipContent: "TooltipContent", TooltipProvider: "TooltipProvider", TooltipTrigger: "TooltipTrigger" },
     "./SidebarLinkPending": { default: () => null },
     "./SidebarNotificationsItem": { default: "SidebarNotificationsItem" },
     "@/hooks/use-pending-navigation": { usePendingNavigation: () => ({ pendingHref: null, navigate: href => extra["next/navigation"].useRouter().push(href) }) },
@@ -43,6 +44,7 @@ function load(file, extra = {}) {
     "@/app/components/settings/ToggleSwitch": { default: "ToggleSwitch" },
     "@/hooks/use-notifications": { useNotifications: () => ({ notifications: [], unreadCount: 0 }) },
     "@/lib/sidebar-notification-activity": { getUnreadSidebarActivity: () => new Set() },
+    "@/lib/tutorial-controller": { useTutorialNavMenuOpen: () => false, setTutorialLayerHost: () => {} },
     "./PropertiesHeader": loadPropertiesHeader(),
     "./components/PropertiesSkeleton": { default: () => load("landlord/properties/components/PropertiesSkeleton.tsx").default() },
     "./components/PropertyDetailSkeleton": { default: () => load("landlord/properties/[apartmentId]/components/PropertyDetailSkeleton.tsx").default() },
@@ -71,7 +73,7 @@ function loadPropertiesHeader() {
 
 function nodes(element) {
   if (!element || typeof element !== "object") return [];
-  const expand = typeof element.type === "function" && ["Sk", "FieldSkeleton", "DescriptionFieldSkeleton", "DescriptionSection", "ReadOnlyField", "EditSectionButton", "PropertiesHeader", "default", "MobileSidebarMenu"].includes(element.type.name);
+  const expand = typeof element.type === "function" && ["EmptyState", "Sk", "FieldSkeleton", "DescriptionFieldSkeleton", "DescriptionSection", "ReadOnlyField", "EditSectionButton", "PropertiesHeader", "default", "MobileSidebarMenu"].includes(element.type.name);
   const children = expand ? element.type(element.props) : element.props?.children;
   return [element, ...[children].flat(Infinity).flatMap(nodes)];
 }
@@ -138,6 +140,7 @@ function descriptionHarness({ tenant = { leaseStart: "2026-10-20", leaseEnd: "20
     react: { useState: initial => { const index = stateIndex++; return [initial, value => updates.push({ index, value })]; } },
     "next/navigation": { useRouter: () => ({ push: () => {}, prefetch: () => {} }) },
     "@repo/utils": { formatPesoDisplay: value => `PHP ${value}` },
+    "@repo/constants": { OWN_ELECTRICITY_METER_DETAIL: "Own meter (electricity and water)", OWN_ELECTRICITY_METER_FIELD_LABEL: "Utility meters" },
     "@/app/tenant/payment/utils": { formatLeaseDate: value => value ?? "—" },
     "../../components/to-property": { toProperty: apartment => ({ ...apartment, thumbnail: "/cover.jpg" }) },
     "../../components/use-lease-viewer": { useLeaseViewer: () => ({ viewing: false, viewLease: async path => { viewed.push(path); return null; } }) },
@@ -204,6 +207,7 @@ function reviewsHarness(reviews) {
   const { default: Client } = load("landlord/properties/[apartmentId]/reviews/components/ReviewsClient.tsx", {
     react: { useMemo: compute => compute(), useState: () => [sort, value => { sort = value; }] },
     "next/navigation": { useRouter: () => ({ prefetch: href => prefetched.push(href), push: href => pushed.push(href) }) },
+    "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
     "@/app/browse/[apartmentId]/components/ReviewCard": { default: "ReviewCard" },
     "@/app/browse/[apartmentId]/components/RatingBreakdown": { default: "RatingBreakdown" },
   });
@@ -215,8 +219,8 @@ test("Reviews empty state fills the page and never presents a zero rating as ten
   const elements = render();
   assert.ok(elements[0].props.className.includes("w-full min-w-0"));
   assert.equal(elements[0].props.className.includes("max-w-5xl"), false);
-  assert.ok(elements.some(node => node.type === "p" && node.props.children === "No ratings yet"));
-  assert.ok(elements.some(node => node.type === "h3" && node.props.children === "No reviews yet"));
+  assert.ok(elements.some(node => node.type === "EmptyStateView" && node.props.children[0] === "No ratings yet"));
+  assert.ok(elements.some(node => node.type === "EmptyStateView" && node.props.children[0] === "No reviews yet"));
   assert.equal(elements.some(node => node.type === "RatingBreakdown"), false);
   assert.equal(elements.some(node => node.type === "Dropdown.Menu"), false);
   const back = elements.find(node => node.type === "Button");
@@ -277,6 +281,7 @@ test("Property reviews link prefetches on pointer and keyboard intent", () => {
 test("Shared rating breakdown keeps its default layout while supporting a stacked landlord summary", () => {
   const { default: Breakdown } = load("browse/[apartmentId]/components/RatingBreakdown.tsx", {
     "@heroui/react": { Meter: compound("Meter", ["Track", "Fill"]) },
+    "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
     "@/app/components/display/StarRating": { default: "StarRating" },
   });
   const props = { overallRate: 4, totalReviews: 1, no5Star: 0, no4Star: 1, no3Star: 0, no2Star: 0, no1Star: 0 };
@@ -287,11 +292,14 @@ test("Shared rating breakdown keeps its default layout while supporting a stacke
 });
 
 test("Property rows prefetch on hover and keyboard focus without changing row activation", () => {
-  const property = { id: "unit-1", name: "Test apartment" };
+  const property = { id: "unit-1", name: "Test apartment", status: "available" };
   const intended = [];
   const opened = [];
   const tree = load("landlord/properties/components/PropertiesTable.tsx", {
     "./propertyConstants": { STATUS_COLOR: {} },
+    "@/lib/property-listing-visibility": { propertyStatusLabel: status => status },
+    "./HiddenListingChip": { default: "HiddenListingChip" },
+    "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
     "@/app/components/display/StatusChip": { default: "StatusChip" },
   }).default({ properties: [property], onRowIntent: item => intended.push(item.id), onRowClick: item => opened.push(item.id) });
   const elements = nodes(tree);
@@ -302,6 +310,19 @@ test("Property rows prefetch on hover and keyboard focus without changing row ac
   assert.deepEqual(opened, []);
   elements.find(node => node.type === "Table.Content").props.onRowAction("unit-1");
   assert.deepEqual(opened, ["unit-1"]);
+});
+
+test("A listing an admin hid shows a Hidden chip next to its status", () => {
+  const load_ = hidden => load("landlord/properties/components/PropertiesTable.tsx", {
+    "./propertyConstants": { STATUS_COLOR: {} },
+    "@/lib/property-listing-visibility": { propertyStatusLabel: status => status },
+    "./HiddenListingChip": { default: "HiddenListingChip" },
+    "@/app/components/display/EmptyState": { default: "EmptyState" },
+    "@/app/components/display/StatusChip": { default: "StatusChip" },
+  }).default({ properties: [{ id: "u", name: "Test", status: "available", is_hidden_by_admin: hidden }], onRowIntent: () => {}, onRowClick: () => {} });
+  const chipFor = hidden => nodes(load_(hidden)).find(node => node.type === "HiddenListingChip");
+  assert.equal(chipFor(true).props.hidden, true);
+  assert.equal(chipFor(false).props.hidden, false);
 });
 
 function galleryHarness(initialImages) {
@@ -316,6 +337,7 @@ function galleryHarness(initialImages) {
       },
     },
     "@/app/components/display/PhotoGalleryModal": { default: "PhotoGalleryModal" },
+    "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
   });
   return (images = initialImages) => {
     cursor = 0;
@@ -357,7 +379,7 @@ test("Property gallery handles deleted selections, a single photo, and an empty 
   assert.equal(single.some(node => node.props["aria-label"] === "Choose property photo"), false);
   const empty = render([]);
   assert.equal(empty.some(node => node.type === "PhotoGalleryModal"), false);
-  assert.ok(empty.some(node => node.type === "p" && node.props.children.includes("No property photos yet")));
+  assert.ok(empty.some(node => node.type === "EmptyStateView" && node.props.children[0] === "No property photos yet"));
 });
 
 test("Edit Property uses a wider scoped dialog and equal-width footer actions", () => {

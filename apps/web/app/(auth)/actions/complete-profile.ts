@@ -4,10 +4,11 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@repo/supabase/server";
 import { PORTAL_COOKIE } from "@/lib/portal-preference";
-import type { Database } from "@repo/supabase";
 import { GENDERS, validatePHMobile } from "@repo/constants";
 import { getBirthDateDatabaseError, validateBirthDate } from "@/lib/birth-date";
 import { validateRegistrationAddress, type RegistrationAddress, type RegistrationAddressErrors } from "@/lib/registration-address";
+import { getRegistrationAcceptanceErrors, readRegistrationAcceptance, validateRegistrationAcceptance, type AcceptanceErrors } from "@/lib/registration-policies";
+import { completeWebRegistration } from "@/service/registrationService";
 
 export type CompleteProfileState = {
   error?: string;
@@ -15,6 +16,7 @@ export type CompleteProfileState = {
   birthDate?: string;
   addressErrors?: RegistrationAddressErrors;
   address?: RegistrationAddress;
+  acceptanceErrors?: AcceptanceErrors;
 };
 
 interface UserRolesProfile {
@@ -76,14 +78,9 @@ export async function completeProfile(
     if ((suspension as { suspended?: boolean } | null)?.suspended) redirect("/suspended");
   }
 
-  if (
-    profile &&
-    (profile.roles.includes("admin") ||
-      profile.mobile_number ||
-      profile.account_status !== "unverified")
-  ) {
-    return { error: "Profile setup is no longer available for this account." };
-  }
+  // The transaction distinguishes a completed retry from a legacy account.
+  // Do not reject here: the previous request may have committed before its
+  // response reached the browser. RLS and eligibility remain RPC-enforced.
   const birthDateError = validateBirthDate(birthDate);
   if (birthDateError) return { birthDateError, birthDate: birthDate ?? "" };
   const requiredFields: Record<string, string> = {
@@ -107,6 +104,10 @@ export async function completeProfile(
 
   const addressErrors = validateRegistrationAddress(address);
   if (Object.keys(addressErrors).length) return { addressErrors, address };
+  if (requestedRole !== "tenant" && requestedRole !== "landlord") return { error: "Please choose a valid account type." };
+  const acceptance = readRegistrationAcceptance(formData);
+  const acceptanceErrors = validateRegistrationAcceptance(acceptance);
+  if (Object.keys(acceptanceErrors).length) return { acceptanceErrors };
 
   const details = {
     first_name: firstName,
@@ -122,30 +123,13 @@ export async function completeProfile(
     postal_code: Number(address.postalCode),
   };
 
-  if (!profile) {
-    if (!user.email) return { error: "Could not verify your account. Please sign in again." };
-    // Same write as sign-up: own row, tenant/landlord role, email = Auth email.
-    const { error: insertError } = await supabase.from("users").insert({
-      user_id: user.id,
-      email: user.email,
-      roles: [role],
-      ...details,
-    } as unknown as Database["public"]["Tables"]["users"]["Insert"]);
-    if (insertError) {
-      const birthDateError = getBirthDateDatabaseError(insertError);
-      return birthDateError ? { birthDateError, birthDate } : { error: insertError.message };
-    }
-  } else {
-    const { error: roleError } = await supabase.rpc("set_onboarding_role", {
-      requested_role: role,
-    });
-    if (roleError) return { error: "Could not select your account type. Please try again." };
-
-    const { error } = await supabase.from("users").update(details).eq("user_id", user.id);
-    if (error) {
-      const birthDateError = getBirthDateDatabaseError(error);
-      return birthDateError ? { birthDateError, birthDate } : { error: error.message };
-    }
+  const { error } = await completeWebRegistration(supabase, details, role, acceptance, "web_profile_completion");
+  if (error) {
+    const acceptanceErrors = getRegistrationAcceptanceErrors(error);
+    if (acceptanceErrors) return { acceptanceErrors };
+    const birthDateError = getBirthDateDatabaseError(error);
+    if (birthDateError) return { birthDateError, birthDate };
+    return { error: error.code === "P0001" ? error.message : "We could not complete your registration. Please try again." };
   }
 
   (await cookies()).set(PORTAL_COOKIE, role, { sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 60 * 60 * 24 * 30 });

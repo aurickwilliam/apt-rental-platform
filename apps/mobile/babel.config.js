@@ -1,9 +1,15 @@
 module.exports = function (api) {
-    api.cache(true);
+    // Cached per environment: the Tabler rewrite below is skipped under Jest,
+    // where tests mock the barrel import (`jest.mock('@tabler/icons-react-native')`).
+    const isTest = api.cache.using(() => process.env.NODE_ENV === "test");
     return {
         presets: [
             ["babel-preset-expo"],
         ],
-        plugins: ["react-native-reanimated/plugin"],
+        plugins: [
+            ...(isTest ? [] : [require("./babel-plugins/tabler-per-icon")]),
+            // Must stay last.
+            "react-native-reanimated/plugin",
+        ],
     };
 };

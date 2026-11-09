@@ -1,20 +1,60 @@
 // Filters, text search and sorting shared by every Browse read (the paged list
 // and the map viewport), so the two can never filter differently. The builders
 // are generic over the PostgREST query: each call returns the same builder.
-interface BrowseQuery<Self> {
+export interface BrowseQuery<Self> {
   in(column: string, values: readonly string[]): Self;
   gte(column: string, value: number | boolean): Self;
   lte(column: string, value: number | boolean): Self;
   eq(column: string, value: number | boolean): Self;
   contains(column: string, value: readonly string[]): Self;
   or(filters: string): Self;
-  order(column: string, options?: { ascending?: boolean }): Self;
+  order(column: string, options?: { ascending?: boolean; nullsFirst?: boolean }): Self;
+}
+
+// Visibility and cover-photo rules every Browse listing read shares (the paged
+// list and the Browse rows), so a card looks the same wherever it appears.
+interface ListingQuery<Self> {
+  is(column: string, value: null): Self;
+  eq(column: string, value: boolean): Self;
+  in(column: string, values: readonly string[]): Self;
+  order(column: string, options?: { ascending?: boolean; foreignTable?: string }): Self;
+  limit(count: number, options?: { foreignTable?: string }): Self;
+}
+
+/** Only listings the public may see: not deleted, not admin-hidden, open for rent. */
+export function applyVisibleListings<Q extends ListingQuery<Q>>(query: Q): Q {
+  return query
+    .is("deleted_at", null)
+    .eq("is_hidden_by_admin", false)
+    .in("status", ["available", "unverified"]);
+}
+
+/**
+ * Cards only ever read the cover image: order covers first and fetch one image
+ * row per apartment instead of the whole gallery. Needs `apartment_images` in
+ * the select.
+ */
+export function applyCoverImageOrder<Q extends ListingQuery<Q>>(query: Q): Q {
+  return query
+    .order("is_cover", { foreignTable: "apartment_images", ascending: false })
+    .order("created_at", { foreignTable: "apartment_images", ascending: true })
+    .limit(1, { foreignTable: "apartment_images" });
 }
 
 const MIN_BUDGET = 1000;
-const MAX_BUDGET = 50000;
+export const MAX_BUDGET = 50000;
 const MIN_SIZE = 10;
 const MAX_SIZE = 300;
+
+/**
+ * A contains-pattern for `.or()`. The text is quoted so commas and brackets
+ * are not read as filter syntax, and `%` / `_` match literally.
+ */
+export function searchPattern(text: string): string {
+  const likeSafe = text.replace(/[\\%_]/g, (char) => `\\${char}`);
+  const quoted = `%${likeSafe}%`.replace(/[\\"]/g, (char) => `\\${char}`);
+  return `"${quoted}"`;
+}
 
 export function applyBrowseFilters<Q extends BrowseQuery<Q>>(
   initial: Q,
@@ -86,8 +126,9 @@ export function applyBrowseFilters<Q extends BrowseQuery<Q>>(
 
   // Text search by name or location
   if (params.search) {
+    const pattern = searchPattern(params.search);
     query = query.or(
-      `name.ilike.%${params.search}%,city.ilike.%${params.search}%,barangay.ilike.%${params.search}%`,
+      `name.ilike.${pattern},city.ilike.${pattern},barangay.ilike.${pattern}`,
     );
   }
 
@@ -109,7 +150,8 @@ export function applyBrowseSort<Q extends BrowseQuery<Q>>(
       query = query.order("monthly_rent", { ascending: false });
       break;
     case "most_popular":
-      query = query.order('average_rating', { ascending: false });
+      // Unrated listings go last; descending order would put them first.
+      query = query.order("average_rating", { ascending: false, nullsFirst: false });
       break;
     default:
       query = query.order("created_at", { ascending: false });

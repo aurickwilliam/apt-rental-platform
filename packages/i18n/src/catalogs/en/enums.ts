@@ -85,6 +85,8 @@ export const enums = {
   "enums.paymentStatus.paid": "Paid",
   "enums.paymentStatus.pending": "Pending",
   "enums.paymentStatus.unpaid": "Unpaid",
+  "enums.paymentStatus.failed": "Failed",
+  "enums.paymentStatus.rejected": "Rejected",
 
   "enums.urgency.low": "Low",
   "enums.urgency.medium": "Medium",

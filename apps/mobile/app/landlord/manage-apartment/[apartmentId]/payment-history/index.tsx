@@ -13,6 +13,7 @@ import type { PaymentHistoryFilters } from '@/app/tenant/payment/history/compone
 import PaymentHistoryFilterSheet from '@/app/tenant/payment/history/components/PaymentHistoryFilterSheet'
 
 import PaymentHistoryCard from '../components/PaymentHistoryCard'
+import EmptyState from "@/components/display/EmptyState";
 
 const EMPTY_FILTERS: PaymentHistoryFilters = {
   years: [],
@@ -211,15 +212,11 @@ export default function PaymentHistoryScreen() {
         )}
         ItemSeparatorComponent={() => <View className='h-2' />}
         ListEmptyComponent={
-          <View className='items-center gap-4 py-20'>
-            <IconWallet size={64} color={colors.primary} />
-            <Text className='text-xl font-nunitoBold text-foreground'>
-              No payments found
-            </Text>
-            <Text className='text-gray-400 text-base font-inter text-center px-8'>
-              Payments for this unit will appear here.
-            </Text>
-          </View>
+          <EmptyState
+            icon={IconWallet}
+            title='No payments found'
+            description='Payments for this unit will appear here.'
+          />
         }
       />
 

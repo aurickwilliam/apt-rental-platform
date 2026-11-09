@@ -28,8 +28,29 @@ jobs:
       - name: Move-in billing database tests
         run: pnpm db:billing:test
 
+      - name: Listing meter database tests
+        run: pnpm db:listing-meter:test
+
+      - name: Application active-rental guard tests (isolated PostgreSQL)
+        run: pnpm db:application-guard:test
+
+      - name: Maintenance authorization tests (isolated PostgreSQL)
+        run: pnpm db:maintenance:test
+
+      - name: Activity email tests (isolated PostgreSQL)
+        run: pnpm db:activity-emails:test
+
+      - name: Admin apartment activity tests (isolated PostgreSQL)
+        run: pnpm db:admin-apartment-activity:test
+
+      - name: Admin role management tests (isolated PostgreSQL)
+        run: pnpm db:admin-roles:test
+
       - name: Mobile lint
         run: pnpm --filter mobile lint
+
+      - name: Mobile registration database tests
+        run: pnpm db:mobile-registration:test
 
       - name: Mobile tests
         run: pnpm --filter mobile exec jest --runInBand --forceExit
@@ -42,3 +63,17 @@ jobs:
 
       - name: Web tests
         run: pnpm --filter web test
+
+      # The web app self-hosts its Google Fonts: a build (which next/font
+      # used to perform at dev/build time against Google's servers) would
+      # 500 every page if the font files ever failed to resolve. CI builds
+      # with no env set; the app degrades to a warning, not a failure, so
+      # keep this step env-less on purpose to catch env-dependent crashes.
+      - name: Web build
+        run: pnpm --filter web build
+
+      - name: Web registration database tests
+        run: pnpm db:web-registration:test
+
+      - name: Auth throttle database tests
+        run: pnpm db:auth-throttle:test

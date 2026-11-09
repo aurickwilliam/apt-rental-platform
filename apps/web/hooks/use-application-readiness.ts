@@ -11,6 +11,7 @@ interface UseApplicationReadinessInput {
   accountStatus: string | null;
   landlordId: string | null;
   hasActiveApplication: boolean;
+  hasActiveTenancy?: boolean;
   /** Unknown until the tenant picks it; proof of income is skipped while null. */
   employmentType?: string | null;
 }
@@ -29,12 +30,13 @@ export function useApplicationReadiness({
   accountStatus,
   landlordId,
   hasActiveApplication,
+  hasActiveTenancy = false,
   employmentType = null,
 }: UseApplicationReadinessInput) {
   const { documents, loading, error, refresh } = usePassportDocuments(userId);
 
   const readiness = useMemo(() => {
-    const base = { accountStatus, tenantId: userId, landlordId, hasActiveApplication, passportDocs: documents };
+    const base = { accountStatus, tenantId: userId, landlordId, hasActiveApplication, hasActiveTenancy, passportDocs: documents };
     const current = evaluateApplicationReadiness({ ...base, employmentType });
     return {
       ...current,
@@ -44,7 +46,7 @@ export function useApplicationReadiness({
       // A required document is missing or expired, so "submitted automatically" doesn't apply yet.
       isPassportIncomplete: current.issues.some(isPassportIssue),
     };
-  }, [accountStatus, userId, landlordId, hasActiveApplication, documents, employmentType]);
+  }, [accountStatus, userId, landlordId, hasActiveApplication, hasActiveTenancy, documents, employmentType]);
 
   return { ...readiness, loading, error, refresh };
 }

@@ -115,6 +115,7 @@ export async function fetchPaymentByReferenceId(referenceId: string): Promise<Pa
 }
 
 export type CreateCashPaymentParams = {
+  renewalProposalId?: string
   referenceId: string
   amount: number
   date: string
@@ -130,6 +131,7 @@ export async function createCashPayment(params: CreateCashPaymentParams): Promis
   const { data, error } = await supabase
     .from('payment')
     .insert({
+      ...(params.renewalProposalId ? { renewal_proposal_id: params.renewalProposalId } : {}),
       method: 'cash',
       status: 'pending',
       date: params.date,
@@ -163,6 +165,7 @@ const METHOD_LABELS: Record<string, string> = {
   card: 'Debit/Credit Card',
   cash: 'Cash',
   qrph: 'QR Ph',
+  bank_transfer: 'Bank Transfer',
 }
 
 export function methodLabel(method: string | null): string {
@@ -173,6 +176,8 @@ const STATUS_LABELS: Record<string, PaymentStatus> = {
   paid: 'Paid',
   pending: 'Pending',
   unpaid: 'Unpaid',
+  failed: 'Failed',
+  rejected: 'Rejected',
 }
 
 export function paymentStatusLabel(status: string): PaymentStatus {

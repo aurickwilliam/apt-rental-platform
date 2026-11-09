@@ -1,23 +1,29 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Linking,
-} from "react-native";
+import { View, Text, Linking } from "react-native";
 import { Image } from "expo-image";
 import * as Updates from "expo-updates";
 
-import { IconBrandGithub, IconGlobe, IconMail, IconBrandFacebook, IconBrandInstagram } from '@tabler/icons-react-native';
+import { IconEye, IconMapPin, IconTarget } from "@tabler/icons-react-native";
+
+import {
+  ABOUT_COVERAGE,
+  ABOUT_MISSION,
+  ABOUT_OFFICE_ADDRESS,
+  ABOUT_STATS,
+  ABOUT_VISION,
+  TEAM_MEMBERS,
+  type TeamMember,
+} from "@repo/constants";
 
 import StandardHeader from "@/components/layout/StandardHeader";
 import ScreenWrapper from "@/components/layout/ScreenWrapper";
 
-import { useTranslation } from "@/hooks/i18n/useTranslation";
 import { useColors } from "@/hooks/useTheme";
 import { getInstalledAppVersion } from "@/service/appRelease/appReleaseService";
 import { describeRunningBuild } from "@/service/appRelease/otaUpdateService";
 
-import { Separator } from "heroui-native";
+import TeamMemberCard from "@/components/about/TeamMemberCard";
+
+import { Separator, useToast } from "heroui-native";
 
 // The version baked into this build; it was a stale hard-coded "1.0.0".
 const APP_VERSION = getInstalledAppVersion() ?? "Unknown";
@@ -28,61 +34,55 @@ const RUNNING_BUILD = describeRunningBuild({
   channel: Updates.channel,
 });
 
-const developers = [
-  { id: 1, name: "Aurick William E. Lorenzo", role: "Full Stack Developer" },
-  { id: 2, name: "Bryl Lim", role: "UI/UX Designer" },
-  { id: 3, name: "Bill Gates", role: "Backend Developer" },
-  { id: 4, name: "Linus Torvalds", role: "Mobile Developer" },
-];
+const TEAM_PHOTOS: Record<TeamMember["id"], number> = {
+  aurick: require("@/assets/images/team/orik.webp"),
+  mhart: require("@/assets/images/team/ron.webp"),
+  michael: require("@/assets/images/team/mija.webp"),
+  charle: require("@/assets/images/team/charle.webp"),
+};
 
-const socials = [
-  {
-    id: 1,
-    label: "Website",
-    icon: IconGlobe,
-    url: "https://apt.com",
-  },
-  {
-    id: 2,
-    label: "Facebook",
-    icon: IconBrandFacebook,
-    url: "https://facebook.com/apt",
-  },
-  {
-    id: 3,
-    label: "Instagram",
-    icon: IconBrandInstagram,
-    url: "https://instagram.com/apt",
-  },
-  {
-    id: 4,
-    label: "Email",
-    icon: IconMail,
-    url: "mailto:support@apt.com",
-  },
-  {
-    id: 5,
-    label: "GitHub",
-    icon: IconBrandGithub,
-    url: "https://github.com/apt",
-  },
-];
+interface PurposeCardProps {
+  icon: typeof IconTarget;
+  eyebrow: string;
+  title: string;
+  body: string;
+  iconColor: string;
+}
+
+function PurposeCard({ icon: Icon, eyebrow, title, body, iconColor }: PurposeCardProps) {
+  return (
+    <View className="bg-surface rounded-2xl p-4 border border-border">
+      <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center mb-3">
+        <Icon size={20} color={iconColor} />
+      </View>
+      <Text className="text-xs font-nunitoBold uppercase tracking-widest text-accent mb-1">
+        {eyebrow}
+      </Text>
+      <Text className="text-base font-nunitoBold text-foreground mb-1">{title}</Text>
+      <Text className="text-sm text-muted leading-5">{body}</Text>
+    </View>
+  );
+}
 
 export default function AboutScreen() {
   const { colors } = useColors();
-  const { t } = useTranslation();
+  const { toast } = useToast();
 
-  const handleLink = (url: string) => {
-    Linking.openURL(url);
+  const handleLink = async (url: string) => {
+    try {
+      await Linking.openURL(url);
+    } catch {
+      toast.show({ variant: "danger", label: "Couldn't open the link" });
+    }
   };
 
   return (
     <ScreenWrapper
-      header={<StandardHeader title={t("settings.help.about")} />}
+      header={<StandardHeader title="About Us" />}
       scrollable
       className="px-5"
     >
-     {/* App Info */}
+      {/* App info */}
       <View className="items-center pt-8 pb-6">
         <Image
           source={require("@/assets/images/logo.png")}
@@ -90,12 +90,10 @@ export default function AboutScreen() {
           contentFit="contain"
         />
         <Text className="mt-4 text-2xl font-nunitoBold text-foreground">APT</Text>
-        <Text className="text-muted text-sm mt-1">
-          A Place to Thrive
-        </Text>
+        <Text className="text-muted text-sm mt-1">A Place to Thrive</Text>
         <View className="mt-3 px-3 py-1 rounded-full bg-primary/10">
           <Text className="text-accent text-xs font-nunitoSemiBold">
-            {t("settings.mobile.version", { version: APP_VERSION })}
+            Version {APP_VERSION}
           </Text>
         </View>
         {RUNNING_BUILD ? (
@@ -103,94 +101,99 @@ export default function AboutScreen() {
         ) : null}
       </View>
 
-      {/* Divider */}
-      <Separator className="my-6" />
-
       {/* Description */}
-      <View className="mb-6">
-        <Text className="text-sm font-nunitoSemiBold text-foreground mb-2">
-          {t("settings.mobile.about.app")}
-        </Text>
-        <Text className="text-sm text-muted leading-6">
-          APT is a property rental platform designed for the Philippine
-          market, primarily targeting Metro Manila. It connects tenants and
-          landlords, making the rental process seamless — from searching for a
-          place to managing leases and payments, all in one app.
+      <View className="mb-5">
+        <Text className="text-sm text-muted leading-6 text-center">
+          APT is a rental platform built for the Philippines, starting with
+          Caloocan, Malabon, Navotas and Valenzuela. It brings tenants and
+          landlords together, from finding a place to signing the lease and
+          paying rent, all in one app.
         </Text>
       </View>
 
-      {/* Divider */}
-      <Separator className="my-6" />
+      {/* Stats */}
+      <View className="flex-row flex-wrap gap-3 mb-6">
+        {ABOUT_STATS.map((stat) => (
+          <View
+            key={stat.label}
+            className="bg-surface rounded-xl border border-border px-4 py-3"
+            style={{ flexGrow: 1, flexBasis: "45%" }}
+          >
+            <Text className="text-lg font-nunitoBold text-accent">{stat.value}</Text>
+            <Text className="text-xs text-muted">{stat.label}</Text>
+          </View>
+        ))}
+      </View>
 
-      {/* Meet the Team */}
-      <View className="mb-6">
-        <Text className="text-sm font-nunitoSemiBold text-foreground mb-3">
-          {t("settings.mobile.about.team")}
+      {/* Mission & Vision */}
+      <View className="gap-3 mb-6">
+        <PurposeCard
+          icon={IconTarget}
+          eyebrow="Mission"
+          title="What we are here to do"
+          body={ABOUT_MISSION}
+          iconColor={colors.primary}
+        />
+        <PurposeCard
+          icon={IconEye}
+          eyebrow="Vision"
+          title="Where we are headed"
+          body={ABOUT_VISION}
+          iconColor={colors.primary}
+        />
+      </View>
+
+      <Separator className="my-2" />
+
+      {/* Team */}
+      <View className="my-6">
+        <Text className="text-xs font-nunitoBold uppercase tracking-widest text-accent mb-1">
+          Team
         </Text>
+        <Text className="text-lg font-nunitoBold text-foreground">
+          The people who built this
+        </Text>
+        <Text className="text-sm text-muted mt-1 mb-4">Students of STI College Caloocan.</Text>
         <View className="gap-3">
-          {developers.map((dev) => (
-            <View
-              key={dev.id}
-              className="flex-row items-center gap-3 bg-surface rounded-xl px-4 py-3"
-            >
-              <View className="w-9 h-9 rounded-full bg-surface-tertiary items-center justify-center">
-                <Text className="text-accent font-nunitoSemiBold text-sm">
-                  {dev.name.charAt(0)}
-                </Text>
-              </View>
-              <View>
-                <Text className="text-sm font-nunitoSemiBold text-foreground">
-                  {dev.name}
-                </Text>
-                <Text className="text-xs text-muted">{dev.role}</Text>
-              </View>
-            </View>
+          {TEAM_MEMBERS.map((member) => (
+            <TeamMemberCard
+              key={member.id}
+              member={member}
+              photo={TEAM_PHOTOS[member.id]}
+              onOpenLink={handleLink}
+            />
           ))}
         </View>
       </View>
 
-      {/* Divider */}
-      <Separator className="my-6" />
+      <Separator className="my-2" />
 
-      {/* Social Links */}
-      <View className="mb-6">
-        <Text className="text-sm font-nunitoSemiBold text-foreground mb-3">
-          {t("settings.mobile.about.connect")}
-        </Text>
-        <View className="gap-2">
-          {socials.map((social) => {
-            const Icon = social.icon;
-            return (
-              <TouchableOpacity
-                key={social.id}
-                onPress={() => handleLink(social.url)}
-                className="flex-row items-center gap-3 bg-surface rounded-xl px-4 py-3 active:opacity-70"
-              >
-                <Icon size={18} color={colors.primary} />
-                <Text className="text-sm text-foreground">
-                  {social.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+      {/* Location */}
+      <View className="my-6 flex-row items-start gap-3 bg-surface rounded-2xl border border-border p-4">
+        <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center">
+          <IconMapPin size={20} color={colors.primary} />
+        </View>
+        <View className="flex-1">
+          <Text className="text-xs font-nunitoBold uppercase tracking-widest text-accent mb-1">
+            Office
+          </Text>
+          <Text className="text-sm font-nunitoSemiBold text-foreground">
+            {ABOUT_OFFICE_ADDRESS}
+          </Text>
+          <Text className="text-xs text-muted mt-1 leading-5">{ABOUT_COVERAGE}</Text>
         </View>
       </View>
 
-      {/* Divider */}
-      <Separator className="my-6" />
-
-      {/* STI Branding */}
-      <View className="items-center">
+      {/* Footer */}
+      <View className="items-center pb-6">
         <Text className="text-xs text-muted text-center leading-5">
-          {t("settings.mobile.about.capstone")}
+          Developed as a capstone project at
         </Text>
         <Text className="text-xs font-nunitoSemiBold text-muted text-center">
           STI College Caloocan
         </Text>
         <Text className="text-xs text-muted text-center mt-1">
-          {t("settings.mobile.about.rights", {
-            year: String(new Date().getFullYear()),
-          })}
+          © {new Date().getFullYear()} APT. All rights reserved.
         </Text>
       </View>
     </ScreenWrapper>

@@ -7,18 +7,12 @@
 //     (the payment resource carries payment_intent_id); the same event also
 //     arrives for e-wallet payments — those rows are settled by the session
 //     event above, so the intent match no-ops for them
-//   - transfer.outward.successful    -> payout completed (idempotent)
-//   - transfer.outward.failed        -> payout failed + payments requeued.
-//     The transfer resource is a wallet_transaction; matching prefers its
-//     transfer_id (== the tr_... id stored by process-payouts), falling back
-//     to the resource id. Failure reasons come from provider_error.
-//     (PayMongo's catalog has no transfer.outward.returned event.)
-//   - payment.refund.updated         -> refund row settled by resource status
-//   - payment.refunded               -> refund succeeded (terminal, never
-//     downgraded)
+//
+// Payouts and refunds do not exist in this simulation (their tables were
+// dropped), so transfer and refund events are acknowledged and ignored.
 //
 // Tenant-side notifications fire from the existing DB triggers
-// (notify_payment_created / notify_refund_status_changed / ...).
+// (notify_payment_created / ...).
 //
 // Security:
 //   - Requests are rejected unless the Paymongo-Signature header verifies:
@@ -99,15 +93,9 @@ type ParsedEvent = {
   resourceId: string
   referenceNumber?: string
   paymentIntentId?: string
-  // FIX 1 — PayMongo payment resource id + exact rail (payment method type),
-  // captured so refund eligibility can be derived server-side.
+  // PayMongo payment resource id + exact rail (payment method type).
   paymentId?: string
   paymentMethodType?: string
-  resourceStatus?: string
-  errorMessage?: string
-  // Wallet-transaction events carry the transfer id the payout row matches on.
-  transferId?: string
-  failureReason?: string
 }
 
 // PayMongo event envelopes vary by endpoint. The current shape is:
@@ -152,12 +140,6 @@ function parseEvent(rawBody: string): ParsedEvent | null {
     type?: string
     // Payment resources nest the rail under source.type.
     source?: { type?: string }
-    status?: string
-    error_message?: string
-    transfer_id?: string
-    provider_error?: string
-    provider_error_code?: string
-    failure_reason?: string
     payments?: {
       id?: string
       attributes?: { status?: string; type?: string; source?: { type?: string } }
@@ -186,10 +168,6 @@ function parseEvent(rawBody: string): ParsedEvent | null {
     paymentMethodType: isPaymentResource
       ? railType(resourceAttrs)
       : railType(firstPaidPayment?.attributes),
-    resourceStatus: resourceAttrs.status,
-    errorMessage: resourceAttrs.error_message,
-    transferId: resourceAttrs.transfer_id,
-    failureReason: resourceAttrs.provider_error ?? resourceAttrs.failure_reason ?? resourceAttrs.error_message,
   }
 }
 
@@ -210,10 +188,9 @@ async function markPaymentPaid(
   return data !== null
 }
 
-// FIX 1 — capture refund-eligibility metadata. Runs regardless of whether the
-// flip above matched (card rows are already 'paid' at insert; they still need
-// paymongo_payment_id for refunds). Never clobbers a captured value, but a
-// late-learned rail type backfills a null one.
+// Capture the PayMongo payment id and rail type. Runs regardless of whether the
+// flip above matched (card rows are already 'paid' at insert). Never clobbers a
+// captured value, but a late-learned rail type backfills a null one.
 async function capturePaymentMetadata(
   matchColumn: 'paymongo_session_id' | 'paymongo_intent_id',
   matchValue: string,
@@ -242,66 +219,6 @@ async function capturePaymentMetadata(
 
     if (typeError) throw typeError
   }
-}
-
-type PayoutStatus = 'completed' | 'failed'
-
-// FIX 3 — payout settlement. Idempotent: only pending/processing rows move,
-// so a settled payout (completed/failed) is never downgraded by a duplicate
-// or late event. Failed payouts requeue their payments for the next run —
-// the 3-attempt cap (payment.payout_attempts) still applies.
-async function settlePayout(transferId: string, status: PayoutStatus, failureReason?: string): Promise<void> {
-  const { data: payout, error } = await dbClient
-    .from('payout')
-    .update({
-      status,
-      ...(status === 'completed' ? { completed_at: new Date().toISOString() } : {}),
-      ...(failureReason ? { failure_reason: failureReason } : {}),
-    })
-    .eq('paymongo_transfer_id', transferId)
-    .in('status', ['pending', 'processing'])
-    .select('id')
-    .maybeSingle()
-
-  if (error) throw error
-  if (!payout) return
-
-  if (status === 'failed') {
-    // Requeue: the payments become claimable by the next process-payouts run.
-    await dbClient.from('payment').update({ payout_id: null }).eq('payout_id', payout.id)
-  }
-}
-
-// payment.refund.updated carries the authoritative status on the resource;
-// payment.refunded is terminal success.
-function refundStatusFor(event: ParsedEvent): string | null {
-  if (event.type === 'payment.refunded') return 'succeeded'
-  if (event.type === 'payment.refund.updated') {
-    return ['pending', 'processing', 'succeeded', 'failed'].includes(event.resourceStatus ?? '')
-      ? event.resourceStatus!
-      : null
-  }
-  return null
-}
-
-// Idempotent: succeeded/failed refunds are terminal — never downgraded.
-// Returns whether a refund row was matched, so unmatched events can be
-// inspected (payload shape is verified against real deliveries).
-async function settleRefund(refundId: string, status: string, failureReason?: string): Promise<boolean> {
-  const { data, error } = await dbClient
-    .from('refund')
-    .update({
-      status,
-      ...(status === 'succeeded' ? { completed_at: new Date().toISOString() } : {}),
-      ...(failureReason ? { failure_reason: failureReason } : {}),
-    })
-    .eq('paymongo_refund_id', refundId)
-    .in('status', ['pending', 'processing'])
-    .select('id')
-    .maybeSingle()
-
-  if (error) throw error
-  return data !== null
 }
 
 Deno.serve(async (req) => {
@@ -343,24 +260,6 @@ Deno.serve(async (req) => {
       }
       if (!updated && event.paymentId) {
         await markPaymentPaid('paymongo_payment_id', event.paymentId)
-      }
-    } else if (event.type === 'transfer.outward.successful') {
-      await settlePayout(event.transferId ?? event.resourceId, 'completed')
-    } else if (event.type === 'transfer.outward.failed') {
-      await settlePayout(
-        event.transferId ?? event.resourceId,
-        'failed',
-        event.failureReason ?? 'Transfer failed.'
-      )
-    } else {
-      const refundStatus = refundStatusFor(event)
-      if (refundStatus) {
-        const matched = await settleRefund(event.resourceId, refundStatus, event.failureReason)
-        if (!matched) {
-          // No row matched: log the full payload so extraction can be verified
-          // against a real refund delivery.
-          console.warn('paymongo-webhook: unmatched refund event:', rawBody)
-        }
       }
     }
 

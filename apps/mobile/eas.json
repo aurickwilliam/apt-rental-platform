@@ -8,7 +8,7 @@
       "channel": "development",
       "developmentClient": true,
       "distribution": "internal",
-      "pnpm": "10.25.0",
+      "pnpm": "10.34.5",
       "ios": {
         "simulator": true
       }
@@ -19,7 +19,7 @@
       "android": {
         "buildType": "apk"
       },
-      "pnpm": "10.25.0"
+      "pnpm": "10.34.5"
     },
     "production": {
       "channel": "production",
@@ -27,7 +27,7 @@
       "android": {
         "buildType": "apk"
       },
-      "pnpm": "10.25.0"
+      "pnpm": "10.34.5"
     }
   },
   "submit": {

@@ -4,6 +4,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import ErrorDialog from '@/components/display/ErrorDialog'
+import AuthLockoutDialog from '@/components/auth/AuthLockoutDialog'
 
 import { IconChevronLeft } from '@tabler/icons-react-native'
 
@@ -12,7 +13,12 @@ import { supabase } from '@repo/supabase'
 import { useRegistrationStore } from '@/stores/useRegistrationStore'
 import { usePortalStore } from '@/stores/usePortalStore'
 import { clearQueryClient } from '@/utils/queryClient'
+import { useAuthLockout } from '@/hooks/auth/useAuthLockout'
+import { useCaptcha } from '@/hooks/auth/useCaptcha'
+import { verifyCodeViaServer } from '@/service/auth/serverAuthService'
 import { isProfileMissing, profileMissingRoute } from '@/service/auth/profileMissingService'
+import { completeMobileRegistration } from '@/service/auth/registrationService'
+import { getRegistrationAcceptanceErrors, requireRegistrationAcceptance } from '@/service/auth/registrationAcceptance'
 
 import {
   MAX_OTP_ATTEMPTS,
@@ -20,6 +26,11 @@ import {
   otpAttemptErrorMessage,
   getProfileSubmitError,
   parseResendWaitSeconds,
+  CAPTCHA_FAILED_MESSAGE,
+  CAPTCHA_PENDING_MESSAGE,
+  isCaptchaError,
+  formatLockoutClock,
+  isInvalidOtpError,
 } from '@repo/utils'
 
 import { useColors } from 'hooks/useTheme'
@@ -37,6 +48,7 @@ import {
 const OTP_VALIDITY_DURATION = 60 // seconds
 
 export default function OTPVerification() {
+  const { widget: captchaWidget, take: takeCaptcha } = useCaptcha()
   const router = useRouter()
   const { email, mode } = useLocalSearchParams()
   // Opened from sign-in for an account whose email was never confirmed: there
@@ -50,6 +62,7 @@ export default function OTPVerification() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [errorDialogOpen, setErrorDialogOpen] = useState(false)
+  const [acceptanceError, setAcceptanceError] = useState<string | null>(null)
 
   const [otp, setOtp] = useState('')
   const [otpError, setOtpError] = useState<string | null>(null)
@@ -65,6 +78,11 @@ export default function OTPVerification() {
 
   const emailValue = Array.isArray(email) ? email[0] : email
 
+  // Attempt limit: the server counts wrong codes (shared with the website) and
+  // reports a lock, which the dialog and the disabled Verify button show. A
+  // reminder on the device keeps it visible after the app is closed.
+  const lockout = useAuthLockout('signup_otp', emailValue || data.email || '')
+
   const clearOtp = () => {
     setOtp('')
     otpRef.current?.clear()
@@ -74,6 +92,20 @@ export default function OTPVerification() {
   // Then resend the OTP to the user email
   const handleResend = async () => {
     if (resendLoading) return
+    if (!isConfirmMode) {
+      try {
+        requireRegistrationAcceptance(data.acceptance)
+      } catch (err) {
+        setAcceptanceError(err instanceof Error ? err.message : 'Please read and accept both policies.')
+        return
+      }
+    }
+
+    const captcha = takeCaptcha()
+    if (captcha.pending) {
+      setOtpError(CAPTCHA_PENDING_MESSAGE)
+      return
+    }
 
     setResendLoading(true)
     setOtpError(null)
@@ -82,6 +114,7 @@ export default function OTPVerification() {
       const { error: resendError } = await supabase.auth.resend({
         type: 'signup',
         email: emailValue || data.email!,
+        options: captcha.token ? { captchaToken: captcha.token } : undefined,
       })
 
       if (resendError) {
@@ -92,7 +125,7 @@ export default function OTPVerification() {
           resetCountdown(waitSeconds)
           return
         }
-        setError(emailCodeRequestErrorMessage(language, resendError.message))
+        setError(isCaptchaError(resendError) ? CAPTCHA_FAILED_MESSAGE : emailCodeRequestErrorMessage(language, resendError.message))
         setErrorDialogOpen(true)
         return
       }
@@ -108,8 +141,25 @@ export default function OTPVerification() {
 
   // Check the OTP code and create the user account,
   // then insert the user profile to the database
-  const handleVerify = async () => {
-    if (loading || otpLocked || otp.length < 6) return
+  const handleVerify = async (completedCode?: string) => {
+    // The input reports the finished code itself when the sixth digit is typed. The
+    // `otp` state in this closure is still one digit short at that moment, so reading
+    // it would swallow the auto-submit and leave people pressing Verify. The Verify
+    // button calls this with no code and uses the state.
+    const code = typeof completedCode === 'string' ? completedCode : otp
+    if (loading || otpLocked || lockout.isLocked || code.length < 6) return
+    if (!isConfirmMode) {
+      try {
+        requireRegistrationAcceptance(data.acceptance)
+        if (!data.email || (emailValue && emailValue.trim().toLowerCase() !== data.email.trim().toLowerCase())) {
+          setAcceptanceError('Your signup details are no longer available. Return to signup and review the policies again.')
+          return
+        }
+      } catch (err) {
+        setAcceptanceError(err instanceof Error ? err.message : 'Please read and accept both policies.')
+        return
+      }
+    }
 
     setLoading(true)
     setOtpError(null)
@@ -117,19 +167,33 @@ export default function OTPVerification() {
     let emailVerified = false
 
     try {
-      const { data: authData, error: verifyError } = await supabase.auth.verifyOtp({
+      // Checked through the web server, which counts every wrong code in the same
+      // database windows as the website: the limit cannot be reset from this phone
+      // and a lock set on web shows here too.
+      const { data: verified, error: verifyError } = await verifyCodeViaServer({
         email: emailValue || data.email!,
-        token: otp,
-        type: 'signup',
+        code,
+        flow: 'signup',
       })
 
-      if (verifyError || !authData.user) throw verifyError ?? new Error('Verification failed')
+      if (verifyError?.retryAfterSeconds) {
+        // Attempt limit reached (including by this very code): the server says how
+        // long it lasts, and the dialog replaces the inline error.
+        clearOtp()
+        lockout.lockFor(verifyError.retryAfterSeconds)
+        return
+      }
+      if (verifyError || !verified.user) {
+        throw verifyError ?? new Error('Verification failed')
+      }
+      const authUser = verified.user
       emailVerified = true
+      void lockout.clear()
 
       if (isConfirmMode) {
         clearQueryClient()
-        if (await isProfileMissing(authData.user.id)) {
-          router.replace(profileMissingRoute(authData.user.email))
+        if (await isProfileMissing(authUser.id)) {
+          router.replace(profileMissingRoute(authUser.email))
         } else {
           router.replace('/')
         }
@@ -139,28 +203,19 @@ export default function OTPVerification() {
       const userSide = data.userSide
       if (userSide !== 'tenant' && userSide !== 'landlord') throw new Error('Invalid account type.')
 
-      const { error: insertError } = await supabase.from('users').insert({
-        user_id: authData.user.id,
-        // Auth's canonical (lowercased) address: the profile email must match it.
-        email: authData.user.email ?? (emailValue || data.email!).trim().toLowerCase(),
-        roles: [userSide],
-        first_name: data.firstName,
-        last_name: data.lastName,
-        middle_name: data.middleName || null,
-        suffix: data.suffixName || null,
-        gender: data.gender,
-        mobile_number: data.mobileNumber,
-        birth_date: data.birthDate,
-        street_address: data.streetAddress,
-        barangay: data.barangay,
-        city: data.city,
-        province: data.province,
-        postal_code: parseInt(data.postalCode!, 10),
+      if (!data.profileDetails || !authUser.email || authUser.email.toLowerCase() !== data.email?.trim().toLowerCase()) {
+        throw new Error('Your signup details are no longer available. Please sign in to finish setting up your profile.')
+      }
+      requireRegistrationAcceptance(data.acceptance)
+      await completeMobileRegistration({
+        details: data.profileDetails,
+        role: userSide,
+        acceptance: data.acceptance,
+        source: 'mobile_registration',
+        expectedAuthId: authUser.id,
       })
 
-      if (insertError) throw insertError
-
-      await usePortalStore.getState().switchTo(authData.user.id, [userSide], userSide)
+      await usePortalStore.getState().switchTo(authUser.id, [userSide], userSide)
       reset()
 
       router.dismissAll()
@@ -171,12 +226,23 @@ export default function OTPVerification() {
       }
 
     } catch (err: any) {
+      const acceptanceErrors = getRegistrationAcceptanceErrors(err)
+      if (acceptanceErrors) {
+        if (emailVerified) {
+          clearQueryClient()
+          await supabase.auth.signOut()
+        }
+        reset()
+        setAcceptanceError(acceptanceErrors.version ?? 'Please return to signup and read and accept both policies.')
+        return
+      }
       const msg: string = (err as any)?.message ?? ''
       // Supabase answers a wrong code and an old code with the same
       // "Token has expired or is invalid", so both are treated as an
       // incorrect-or-expired code; the resend link only appears after its
       // countdown, never because of this error.
       const isInvalidOtp =
+        isInvalidOtpError(err) ||
         msg.includes('Token has expired') ||
         msg.includes('otp_expired') ||
         msg.includes('invalid_otp') ||
@@ -254,7 +320,7 @@ export default function OTPVerification() {
               }}
               onComplete={handleVerify}
               isInvalid={!!otpError}
-              isDisabled={loading || otpLocked}
+              isDisabled={loading || otpLocked || lockout.isLocked}
               pattern={REGEXP_ONLY_DIGITS}
               inputMode="numeric"
               textInputProps={{
@@ -278,6 +344,17 @@ export default function OTPVerification() {
               </Text>
             )}
           </View>
+          {acceptanceError && (
+            <View className="gap-2 mt-4">
+              <Text accessibilityRole="alert" className="text-danger text-sm">{acceptanceError}</Text>
+              <Text className="text-sm text-muted">If your email is already verified, sign in to finish your profile and review the policies.</Text>
+              <Button variant="secondary" onPress={() => { reset(); router.replace('/sign-in') }}>
+                <Button.Label>Back to sign in</Button.Label>
+              </Button>
+            </View>
+          )}
+
+          {captchaWidget}
 
           {/* Resend Link and Countdown */}
           <View className="flex-row items-center">
@@ -305,20 +382,28 @@ export default function OTPVerification() {
 
         {/* Verify Button */}
         <Button
-          onPress={handleVerify}
-          isDisabled={loading || otpLocked || otp.length < 6}
+          onPress={() => handleVerify()}
+          isDisabled={loading || otpLocked || lockout.isLocked || otp.length < 6 || !!acceptanceError}
         >
           <Button.Label>
-            {loading
-              ? isConfirmMode
-                ? t("auth.otp.verifying")
-                : t("auth.form.creatingAccount")
-              : isConfirmMode
-                ? t("auth.signIn.verifyEmail")
-                : t("auth.otp.verifyCreateAccount")}
+            {lockout.isLocked
+              ? `Try again in ${formatLockoutClock(lockout.secondsLeft)}`
+              : loading
+                ? isConfirmMode
+                  ? t("auth.otp.verifying")
+                  : t("auth.form.creatingAccount")
+                : isConfirmMode
+                  ? t("auth.signIn.verifyEmail")
+                  : t("auth.otp.verifyCreateAccount")}
           </Button.Label>
         </Button>
       </View>
+
+      <AuthLockoutDialog
+        isOpen={lockout.dialogOpen}
+        onOpenChange={lockout.setDialogOpen}
+        secondsLeft={lockout.secondsLeft}
+      />
 
       {/* Error Dialog */}
       <ErrorDialog

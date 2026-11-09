@@ -83,6 +83,8 @@ export const enums: Record<keyof typeof enEnums, string> = {
   "enums.paymentStatus.paid": "Bayad na",
   "enums.paymentStatus.pending": "Pending",
   "enums.paymentStatus.unpaid": "Hindi pa bayad",
+  "enums.paymentStatus.failed": "Nabigo",
+  "enums.paymentStatus.rejected": "Tinanggihang",
 
   "enums.urgency.low": "Mababa",
   "enums.urgency.medium": "Katamtaman",

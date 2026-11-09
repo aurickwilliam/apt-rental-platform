@@ -31,6 +31,7 @@ import { PassportPageHeader, PassportPageShell } from "./PassportPageLayout";
 import PassportReadinessCard from "./PassportReadinessCard";
 import { PassportWalletSkeleton } from "./PassportSkeleton";
 import ValidIdCard from "./ValidIdCard";
+import EmptyState from "@/app/components/display/EmptyState";
 
 interface PassportClientProps {
   userId: string;
@@ -232,25 +233,23 @@ export default function PassportClient({
             </div>
 
             {supportingDocs.length === 0 ? (
-              <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-border px-4 py-12 text-center">
-                <IconFileUpload
-                  size={48}
-                  className="text-primary"
-                  aria-hidden="true"
-                />
-                <p className="font-nunito text-lg font-bold text-card-foreground">
-                  {t("passport.supporting.emptyTitle")}
-                </p>
-                <p className="max-w-md text-sm text-muted-foreground">
-                  {portal === "landlord"
+              <EmptyState
+                framed
+                className="py-12"
+                icon={IconFileUpload}
+                title={t("passport.supporting.emptyTitle")}
+                description={
+                  portal === "landlord"
                     ? t("passport.supporting.emptyBody.landlord")
-                    : t("passport.supporting.emptyBody.tenant")}
-                </p>
-                <Button onPress={() => openAdd()}>
-                  <IconPlus size={18} aria-hidden="true" />
-                  {t("passport.supporting.addDocument")}
-                </Button>
-              </div>
+                    : t("passport.supporting.emptyBody.tenant")
+                }
+                action={
+                  <Button size="sm" onPress={() => openAdd()}>
+                    <IconPlus size={16} aria-hidden="true" />
+                    {t("passport.supporting.addDocument")}
+                  </Button>
+                }
+              />
             ) : (
               <div
                 className={

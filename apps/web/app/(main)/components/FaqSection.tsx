@@ -40,13 +40,13 @@ const FAQS = [
     id: "list-property",
     question: "How do I list my property?",
     answer:
-      "Create a landlord account, then add the property from Properties. Add the CAMANAVA address, rent and deposit terms, amenities, and photos, then publish it for review.",
+      "Create a landlord account, then add the property from My Properties. Add the CAMANAVA address, rent and deposit terms, amenities, and photos, then publish it for review.",
   },
   {
     id: "verify-account",
     question: "How do I verify my account?",
     answer:
-      "Open Profile and choose Verify Account. On the web, APT shows a QR code that hands the ID and selfie capture to your phone; if approved, your verified status appears across your profile and Passport.",
+      "Open your profile and choose Verify Account. Phones and tablets capture your government ID and a selfie right in the browser; on a desktop you can scan a QR code to continue on your phone or use your webcam — and if approved, your verified status appears across your profile and Passport.",
   },
 ] as const;
 

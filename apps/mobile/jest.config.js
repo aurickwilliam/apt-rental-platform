@@ -1,6 +1,7 @@
 /** @type {import('jest').Config} */
 module.exports = {
   preset: 'jest-expo',
+  setupFiles: ['react-native-gesture-handler/jestSetup.js'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   // The shared-input regression tests exercise the installed HeroUI patch rather
   // than a stub. Keep Expo's exclusions, allowing this ESM package through Babel.
