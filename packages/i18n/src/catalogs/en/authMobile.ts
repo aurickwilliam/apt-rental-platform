@@ -308,8 +308,18 @@ export const authMobile = {
     "Select the number of parking you need",
   "authMobile.personalization.vehiclesQuestion":
     "Select the kinds of vehicles you have:",
+  "authMobile.personalization.vehiclesSheet": "Select your Vehicles",
+  "authMobile.personalization.vehiclesPlaceholder":
+    "Select the kinds of vehicles you have",
   "authMobile.personalization.disabilityQuestion":
     "Do you have any household members with a disability?",
+  "authMobile.personalization.checkPets": "Check your pets",
+  "authMobile.personalization.accountLoadFailed": "Couldn't load your account",
+  "authMobile.personalization.tryFinish":
+    "Please try again to finish personalization.",
+  "authMobile.personalization.networkFailed": "Something went wrong",
+  "authMobile.personalization.saving": "Saving...",
+  "authMobile.personalization.loadingAccount": "Loading account...",
   "authMobile.personalization.saveFailed": "Couldn't save your preferences",
   "authMobile.personalization.tryAgain": "Please try again.",
   "authMobile.personalization.networkBody":

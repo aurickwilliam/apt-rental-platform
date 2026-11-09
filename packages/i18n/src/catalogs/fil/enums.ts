@@ -85,6 +85,12 @@ export const enums: Record<keyof typeof enEnums, string> = {
   "enums.paymentStatus.unpaid": "Hindi pa bayad",
   "enums.paymentStatus.failed": "Nabigo",
   "enums.paymentStatus.rejected": "Tinanggihang",
+  "enums.paymentMethod.gcash": "GCash",
+  "enums.paymentMethod.maya": "Maya",
+  "enums.paymentMethod.qrph": "QRPh",
+  "enums.paymentMethod.bankTransfer": "Bank Transfer",
+  "enums.paymentMethod.calCard": "Debit/Credit Card",
+  "enums.paymentMethod.cash": "Cash",
 
   "enums.urgency.low": "Mababa",
   "enums.urgency.medium": "Katamtaman",

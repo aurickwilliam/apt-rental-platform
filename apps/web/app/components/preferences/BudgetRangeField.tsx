@@ -181,14 +181,14 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
           onRangeChange(values[0], values[1]);
         }}
       >
-        <Label>Monthly rent</Label>
+        <Label>{t("settings.budget.title")}</Label>
         <Slider.Output>
           {() => `₱${budgetMin.toLocaleString("en-PH")} – ₱${budgetMax.toLocaleString("en-PH")}`}
         </Slider.Output>
         <Slider.Track>
           <Slider.Fill />
-          <Slider.Thumb index={0} aria-label="Minimum monthly rent" />
-          <Slider.Thumb index={1} aria-label="Maximum monthly rent" />
+          <Slider.Thumb index={0} aria-label={t("settings.budget.minimum")} />
+          <Slider.Thumb index={1} aria-label={t("settings.budget.maximum")} />
         </Slider.Track>
       </Slider>
     );

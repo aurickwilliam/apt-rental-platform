@@ -1,5 +1,7 @@
 import { Description, Input, Label, TextField } from "heroui-native";
 
+import { useTranslation } from "@/hooks/i18n";
+
 import DropdownField from "components/inputs/DropdownField";
 
 import {
@@ -33,12 +35,13 @@ export default function PetDetailsFields({
   onNameChange,
   error,
 }: PetDetailsFieldsProps) {
+  const { t } = useTranslation();
   return (
     <>
       <DropdownField
-        label="How many pets do you have?"
-        bottomSheetLabel="Select your Pets"
-        placeholder="Select the number of pets you have"
+        label={t("authMobile.personalization.petCountQuestion")}
+        bottomSheetLabel={t("authMobile.personalization.petCountSheet")}
+        placeholder={t("authMobile.personalization.petCountPlaceholder")}
         options={PET_COUNT_OPTIONS}
         onSelect={(value) => {
           const count = value ? optionToPetCount(value) : 1
@@ -51,9 +54,9 @@ export default function PetDetailsFields({
       />
 
       <DropdownField
-        label="If yes, what kinds of pets do you have?"
-        bottomSheetLabel="Select your Pets"
-        placeholder="Select the kinds of pets you have"
+        label={t("authMobile.personalization.petsQuestion")}
+        bottomSheetLabel={t("authMobile.personalization.petSheet")}
+        placeholder={t("authMobile.personalization.petPlaceholder")}
         options={PETS}
         multiple
         values={kindOfPets}
@@ -64,13 +67,13 @@ export default function PetDetailsFields({
 
       {kindOfPets.includes(OTHER_PET) && (
         <TextField isRequired>
-          <Label>Please specify the kind of pet you have</Label>
+          <Label>{t("authMobile.personalization.petSpecify")}</Label>
           <Input
-            placeholder="Type the kind of pet you have"
+            placeholder={t("authMobile.personalization.petType")}
             value={nameOfPets || ""}
             onChangeText={(value) => onNameChange(value || null)}
           />
-          <Description>e.g., Poodle, Siamese</Description>
+          <Description>{t("settings.rental.petOther.placeholder")}</Description>
         </TextField>
       )}
     </>

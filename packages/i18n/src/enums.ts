@@ -136,6 +136,15 @@ export const PAYMENT_STATUS_KEYS: EnumKeyMap = {
   Rejected: "enums.paymentStatus.rejected",
 };
 
+export const PAYMENT_METHOD_KEYS: EnumKeyMap = {
+  GCash: "enums.paymentMethod.gcash",
+  Maya: "enums.paymentMethod.maya",
+  QRPh: "enums.paymentMethod.qrph",
+  "Bank Transfer": "enums.paymentMethod.bankTransfer",
+  "Debit/Credit-Card": "enums.paymentMethod.calCard",
+  Cash: "enums.paymentMethod.cash",
+};
+
 /** Review sort options keep their stored English values; only labels translate. */
 export const REVIEW_SORT_KEYS: EnumKeyMap = {
   "Most Recent": "reviews.sort.mostRecent",

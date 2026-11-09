@@ -87,6 +87,12 @@ export const enums = {
   "enums.paymentStatus.unpaid": "Unpaid",
   "enums.paymentStatus.failed": "Failed",
   "enums.paymentStatus.rejected": "Rejected",
+  "enums.paymentMethod.gcash": "GCash",
+  "enums.paymentMethod.maya": "Maya",
+  "enums.paymentMethod.qrph": "QRPh",
+  "enums.paymentMethod.bankTransfer": "Bank Transfer",
+  "enums.paymentMethod.calCard": "Debit/Credit Card",
+  "enums.paymentMethod.cash": "Cash",
 
   "enums.urgency.low": "Low",
   "enums.urgency.medium": "Medium",

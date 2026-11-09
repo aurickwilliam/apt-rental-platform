@@ -1,3 +1,5 @@
+import { useTranslation } from "@/hooks/i18n";
+
 import DropdownField from "components/inputs/DropdownField";
 
 import { VEHICLE_OPTIONS } from "@repo/constants";
@@ -22,12 +24,13 @@ export default function ParkingDetailsFields({
   onChange,
   error,
 }: ParkingDetailsFieldsProps) {
+  const { t } = useTranslation();
   return (
     <>
       <DropdownField
-        label="If yes, how many cars or motorcycles do you have?"
-        bottomSheetLabel="Select your Parking"
-        placeholder="Select the number of parking you need"
+        label={t("authMobile.personalization.parkingQuestion")}
+        bottomSheetLabel={t("authMobile.personalization.parkingSheet")}
+        placeholder={t("authMobile.personalization.parkingPlaceholder")}
         options={PARKING_SPOT_OPTIONS}
         onSelect={(value) => {
           const spots = value ? Number(value) : 1;
@@ -39,9 +42,9 @@ export default function ParkingDetailsFields({
       />
 
       <DropdownField
-        label="Select the kinds of vehicles you have:"
-        bottomSheetLabel="Select your Vehicles"
-        placeholder="Select the kinds of vehicles you have"
+        label={t("authMobile.personalization.vehiclesQuestion")}
+        bottomSheetLabel={t("authMobile.personalization.vehiclesSheet")}
+        placeholder={t("authMobile.personalization.vehiclesPlaceholder")}
         options={VEHICLE_OPTIONS}
         multiple
         values={listOfVehicles}

@@ -288,8 +288,18 @@ export const authMobile: Record<keyof typeof enAuthMobile, string> = {
     "Piliin ang bilang ng parking na kailangan mo",
   "authMobile.personalization.vehiclesQuestion":
     "Piliin ang mga klaseng sasakyan mo:",
+  "authMobile.personalization.vehiclesSheet": "Piliin ang mga Sasakyan Mo",
+  "authMobile.personalization.vehiclesPlaceholder":
+    "Piliin ang mga klaseng sasakyan mo",
   "authMobile.personalization.disabilityQuestion":
     "May household member ka bang may disability?",
+  "authMobile.personalization.checkPets": "I-check ang alaga mo",
+  "authMobile.personalization.accountLoadFailed": "Hindi ma-load ang account mo",
+  "authMobile.personalization.tryFinish":
+    "Subukan muli para matapos ang personalization.",
+  "authMobile.personalization.networkFailed": "May nangyaring mali",
+  "authMobile.personalization.saving": "Sini-save...",
+  "authMobile.personalization.loadingAccount": "Naglo-load ng account...",
   "authMobile.personalization.saveFailed":
     "Hindi na-save ang preferences mo",
   "authMobile.personalization.tryAgain": "Subukan muli.",
