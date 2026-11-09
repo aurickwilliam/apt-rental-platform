@@ -2,7 +2,9 @@
 // Keeps sessions on AGENTS.md's Graphify-first rule while graphify-out/graph.json
 // exists. For each session the plugin:
 //   - prepends a reminder to the first (up to three) shell commands, until a
-//     graphify command has actually run in that session;
+//     graphify command has actually run in that session; one copy of the
+//     plugin (or of a reminder) claims a command, additional copies loaded
+//     from other locations never add a second reminder to it;
 //   - refuses the session's first dedicated grep/glob search once with the
 //     same guidance, so an agent that starts with raw grepping reads the
 //     instruction and runs graphify query itself. Everything is allowed again
@@ -20,6 +22,8 @@
 // which both corrupts tool output and silently executes the very graphify
 // command we are only suggesting. The refusal travels as the tool error, and
 // plain words render fine in opencode's TUI.
+//
+// Behavioral coverage: node scripts/graphify-plugin.test.mjs
 import { existsSync } from "fs";
 import { join } from "path";
 
@@ -35,9 +39,13 @@ const REFUSAL =
 const SEARCH_TOOLS = new Set(["grep", "glob"]);
 const REMINDER_LIMIT = 3;
 
-// A real graphify use is a `graphify <command>` invocation, not prose in an
-// echoed reminder. Handlers test the raw command before prepending anything.
-const GRAPHIFY_USE = /\bgraphify\s+\S/;
+// A real graphify use is a `graphify <command>` invocation in a command
+// position, not prose in an echoed reminder or a quoted search pattern.
+// Handlers always receive and test raw commands (see owedReminder's guard).
+// The lookbehind keeps quoted mentions (grep -rn "graphify hook status") out;
+// a residual mismatch only over-allows (fewer reminders, one refusal at
+// most), never over-blocks.
+const GRAPHIFY_USE = /(?<!["'])\bgraphify\s+\S/;
 
 const hasGraph = (directory) => existsSync(join(directory, "graphify-out", "graph.json"));
 
@@ -64,7 +72,13 @@ function markGraphifyUse(state, command) {
 }
 
 // Returns true when the command still owes a reminder; the caller rewrites it.
+// Later hook callbacks see earlier callbacks' rewrites (a second copy of this
+// plugin loaded from another location, or a retried call): those commands
+// carry the reminder prefix and must never be reminded or use-detected again,
+// otherwise the reminder prose ("run graphify query...") would latch
+// usedGraphify and disable the session's search refusal.
 function oweReminder(state, command) {
+  if (command.startsWith(REMINDER)) return false;
   if (markGraphifyUse(state, command)) return false;
   if (state.usedGraphify || state.reminders >= REMINDER_LIMIT) return false;
   state.reminders += 1;
