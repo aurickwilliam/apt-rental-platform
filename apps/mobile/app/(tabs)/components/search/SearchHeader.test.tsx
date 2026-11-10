@@ -25,17 +25,17 @@ const props = {
 };
 
 describe("SearchHeader", () => {
-  it("shows the title as a header, without the old location dropdown", () => {
-    render(<SearchHeader {...props} />);
+  it("shows the title as a header, without the old location dropdown", async () => {
+    await render(<SearchHeader {...props} />);
     expect(screen.getByRole("header")).toHaveTextContent("Find your next home");
     expect(screen.queryByText("Select Location")).toBeNull();
   });
 
-  it("opens Ava, Favorites and the map from the title row, Ava first", () => {
-    render(<SearchHeader {...props} />);
-    fireEvent.press(screen.getByLabelText("Ask Ava, the APT Virtual Assistant"));
-    fireEvent.press(screen.getByLabelText("Favorites"));
-    fireEvent.press(screen.getByLabelText("Map search"));
+  it("opens Ava, Favorites and the map from the title row, Ava first", async () => {
+    await render(<SearchHeader {...props} />);
+    await fireEvent.press(screen.getByLabelText("Ask Ava, the APT Virtual Assistant"));
+    await fireEvent.press(screen.getByLabelText("Favorites"));
+    await fireEvent.press(screen.getByLabelText("Map search"));
     expect(props.onAskAvaPress).toHaveBeenCalledTimes(1);
     expect(props.onFavoritesPress).toHaveBeenCalledTimes(1);
     expect(props.onMapPress).toHaveBeenCalledTimes(1);
@@ -43,16 +43,16 @@ describe("SearchHeader", () => {
     expect(order.indexOf("Ask Ava")).toBeLessThan(order.indexOf("Favorites"));
   });
 
-  it("omits Ava when there is no entry for it", () => {
-    render(<SearchHeader {...props} onAskAvaPress={undefined} />);
+  it("omits Ava when there is no entry for it", async () => {
+    await render(<SearchHeader {...props} onAskAvaPress={undefined} />);
     expect(screen.queryByLabelText("Ask Ava, the APT Virtual Assistant")).toBeNull();
   });
 
-  it("offers the view toggle only outside discovery", () => {
-    const { rerender } = render(<SearchHeader {...props} isNetflixMode />);
+  it("offers the view toggle only outside discovery", async () => {
+    const { rerender } = await render(<SearchHeader {...props} isNetflixMode />);
     expect(screen.queryByLabelText("Toggle view")).toBeNull();
-    rerender(<SearchHeader {...props} />);
-    fireEvent.press(screen.getByLabelText("Toggle view"));
+    await rerender(<SearchHeader {...props} />);
+    await fireEvent.press(screen.getByLabelText("Toggle view"));
     expect(props.onToggleView).toHaveBeenCalledTimes(1);
   });
 });

@@ -39,8 +39,8 @@ jest.mock("@/components/display/ErrorDialog", () => {
 
 const EMAIL = "tenant@example.com";
 
-function enterEmail(value: string) {
-  fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), value);
+async function enterEmail(value: string) {
+  await fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), value);
 }
 
 describe("Forgot password email screen", () => {
@@ -49,30 +49,30 @@ describe("Forgot password email screen", () => {
     usePasswordRecoveryStore.getState().reset();
   });
 
-  it("shows the Google sign-in note without looking anything up", () => {
-    render(<ForgotPassword />);
+  it("shows the Google sign-in note without looking anything up", async () => {
+    await render(<ForgotPassword />);
     expect(screen.getByText("Signed up with Google?")).toBeTruthy();
     expect(mockRequest).not.toHaveBeenCalled();
   });
 
-  it("validates the email before sending", () => {
-    render(<ForgotPassword />);
+  it("validates the email before sending", async () => {
+    await render(<ForgotPassword />);
 
-    fireEvent.press(screen.getByText("Send Code"));
+    await fireEvent.press(screen.getByText("Send Code"));
     expect(screen.getByText("Please enter your email address.")).toBeTruthy();
 
-    enterEmail("not-an-email");
-    fireEvent.press(screen.getByText("Send Code"));
+    await enterEmail("not-an-email");
+    await fireEvent.press(screen.getByText("Send Code"));
     expect(screen.getByText("Please enter a valid email address.")).toBeTruthy();
     expect(mockRequest).not.toHaveBeenCalled();
   });
 
   it("sends the code, keeps the email in memory and opens the code screen", async () => {
     mockRequest.mockResolvedValueOnce(undefined);
-    render(<ForgotPassword />);
+    await render(<ForgotPassword />);
 
-    enterEmail(`  ${EMAIL} `);
-    fireEvent.press(screen.getByText("Send Code"));
+    await enterEmail(`  ${EMAIL} `);
+    await fireEvent.press(screen.getByText("Send Code"));
 
     await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith("/forgot-password/otp-verification"));
     expect(mockRequest).toHaveBeenCalledWith(EMAIL, undefined);
@@ -83,24 +83,26 @@ describe("Forgot password email screen", () => {
   it("shows the pending state and ignores repeat presses", async () => {
     let resolveRequest: () => void = () => {};
     mockRequest.mockReturnValueOnce(new Promise<void>((resolve) => { resolveRequest = resolve; }));
-    render(<ForgotPassword />);
+    await render(<ForgotPassword />);
 
-    enterEmail(EMAIL);
-    fireEvent.press(screen.getByText("Send Code"));
+    await enterEmail(EMAIL);
+    // fireEvent settles the handler's promise, which stays pending until we resolve it.
+    const firstPress = fireEvent.press(screen.getByText("Send Code"));
     expect(await screen.findByText("Sending Code...")).toBeTruthy();
-    fireEvent.press(screen.getByText("Sending Code..."));
+    await fireEvent.press(screen.getByText("Sending Code..."));
     expect(mockRequest).toHaveBeenCalledTimes(1);
 
     await act(async () => resolveRequest());
+    await firstPress;
     expect(mockRouter.push).toHaveBeenCalledTimes(1);
   });
 
   it("surfaces server errors and stays on the screen", async () => {
     mockRequest.mockRejectedValueOnce(new PasswordError("rate_limited"));
-    render(<ForgotPassword />);
+    await render(<ForgotPassword />);
 
-    enterEmail(EMAIL);
-    fireEvent.press(screen.getByText("Send Code"));
+    await enterEmail(EMAIL);
+    await fireEvent.press(screen.getByText("Send Code"));
 
     expect(await screen.findByText(/Too many attempts/)).toBeTruthy();
     expect(mockRouter.push).not.toHaveBeenCalled();
@@ -109,20 +111,20 @@ describe("Forgot password email screen", () => {
 
   it("shows an email Supabase rejects under the field", async () => {
     mockRequest.mockRejectedValueOnce(new PasswordError("invalid_email"));
-    render(<ForgotPassword />);
+    await render(<ForgotPassword />);
 
-    enterEmail(EMAIL);
-    fireEvent.press(screen.getByText("Send Code"));
+    await enterEmail(EMAIL);
+    await fireEvent.press(screen.getByText("Send Code"));
 
     expect(await screen.findByText("Enter a valid email address.")).toBeTruthy();
     expect(screen.queryByText(/^Error:/)).toBeNull();
   });
 
-  it("clears the remembered email when leaving the flow", () => {
+  it("clears the remembered email when leaving the flow", async () => {
     usePasswordRecoveryStore.getState().setEmail(EMAIL);
-    render(<ForgotPassword />);
+    await render(<ForgotPassword />);
 
-    fireEvent.press(screen.getByLabelText("Go back"));
+    await fireEvent.press(screen.getByLabelText("Go back"));
     expect(mockRouter.back).toHaveBeenCalled();
     expect(usePasswordRecoveryStore.getState().email).toBe("");
   });

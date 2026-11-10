@@ -42,27 +42,27 @@ jest.mock("heroui-native", () => {
 beforeEach(() => mockPush.mockClear());
 
 describe("Units tab property actions", () => {
-  it("lists the four existing actions and then a Payments action, in that order", () => {
-    render(<Units />);
+  it("lists the four existing actions and then a Payments action, in that order", async () => {
+    await render(<Units />);
     const labels = screen.getAllByRole("button").map((node) => node.props.accessibilityLabel);
     expect(labels).toEqual(["Add Property", "Maintenance Request", "Visit Request", "Tenant Applications", "Payments"]);
   });
 
-  it("fits all five actions in one compact row, as the five-column layout", () => {
-    render(<Units />);
+  it("fits all five actions in one compact row, as the five-column layout", async () => {
+    await render(<Units />);
     const hints = screen.getAllByRole("button").map((node) => node.props.accessibilityHint);
     expect(hints).toEqual(Array(5).fill("columns 5"));
   });
 
-  it("opens the all-units Payments screen from the Payments action", () => {
-    render(<Units />);
-    fireEvent.press(screen.getByLabelText("Payments"));
+  it("opens the all-units Payments screen from the Payments action", async () => {
+    await render(<Units />);
+    await fireEvent.press(screen.getByLabelText("Payments"));
     expect(mockPush).toHaveBeenCalledWith("/landlord/payments");
   });
 
-  it("keeps the other actions going where they went", () => {
-    render(<Units />);
-    fireEvent.press(screen.getByLabelText("Tenant Applications"));
+  it("keeps the other actions going where they went", async () => {
+    await render(<Units />);
+    await fireEvent.press(screen.getByLabelText("Tenant Applications"));
     expect(mockPush).toHaveBeenCalledWith("/landlord/tenant-applications");
   });
 });

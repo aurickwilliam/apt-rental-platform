@@ -15,8 +15,8 @@ afterEach(() => {
   mockIsDark = false;
 });
 
-it("uses the specified semantic backgrounds, foregrounds and 1px borders in both themes", () => {
-  const { result, rerender } = renderHook(useStatusChipStyles);
+it("uses the specified semantic backgrounds, foregrounds and 1px borders in both themes", async () => {
+  const { result, rerender } = await renderHook(useStatusChipStyles);
   expect(result.current).toEqual(STATUS_COLORS.light);
   expect(statusChipSurface(result.current.warning)).toEqual({
     backgroundColor: "#FEF3C7",
@@ -28,7 +28,7 @@ it("uses the specified semantic backgrounds, foregrounds and 1px borders in both
   expect(result.current.neutral.textColor).toBe("#334155");
 
   mockIsDark = true;
-  rerender(undefined);
+  await rerender(undefined);
   expect(result.current).toEqual(STATUS_COLORS.dark);
   expect(result.current.success.textColor).toBe("#BBF7D0");
   expect(result.current.warning.textColor).toBe("#FDE68A");
@@ -36,10 +36,10 @@ it("uses the specified semantic backgrounds, foregrounds and 1px borders in both
   expect(result.current.neutral.textColor).toBe("#E2E8F0");
 });
 
-it("maps payment, maintenance and visit statuses to the same semantic palette", () => {
-  const payments = renderHook(usePaymentStatusStyles);
-  const maintenance = renderHook(useMaintenanceRequestStatusStyles);
-  const visits = renderHook(useVisitRequestStatusStyles);
+it("maps payment, maintenance and visit statuses to the same semantic palette", async () => {
+  const payments = await renderHook(usePaymentStatusStyles);
+  const maintenance = await renderHook(useMaintenanceRequestStatusStyles);
+  const visits = await renderHook(useVisitRequestStatusStyles);
 
   expect(payments.result.current.Paid).toBe(STATUS_COLORS.light.success);
   expect(payments.result.current.Pending).toBe(STATUS_COLORS.light.warning);

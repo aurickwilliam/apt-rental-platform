@@ -22,33 +22,33 @@ function request(id: string, status: MaintenanceRequest["status"], created_at = 
 const onOpen = jest.fn();
 const onViewAll = jest.fn();
 const onRequest = jest.fn();
-function show(requests: MaintenanceRequest[]) {
-  return render(<MaintenanceSection requests={requests} onOpenRequest={onOpen} onViewAll={onViewAll} onRequestMaintenance={onRequest} />);
+async function show(requests: MaintenanceRequest[]) {
+  return await render(<MaintenanceSection requests={requests} onOpenRequest={onOpen} onViewAll={onViewAll} onRequestMaintenance={onRequest} />);
 }
 beforeEach(() => { jest.clearAllMocks(); });
 
-it("shows only three active requests and keeps the request button available with multiple open repairs", () => {
+it("shows only three active requests and keeps the request button available with multiple open repairs", async () => {
   const rows = [request("closed", "Resolved"), request("cancelled", "Cancelled"), ...Array.from({ length: 4 }, (_, i) => request(String(i), i === 0 ? "In Progress" : "Pending"))];
-  show(rows);
+  await show(rows);
   for (const id of ["0", "1", "2"]) expect(screen.getByText(`Repair ${id}`)).toBeTruthy();
   for (const id of ["closed", "cancelled", "3"]) expect(screen.queryByText(`Repair ${id}`)).toBeNull();
   expect(screen.getByText("4 Active")).toBeTruthy();
   expect(screen.queryByText(/You can file a new request once/)).toBeNull();
-  fireEvent.press(screen.getByText("Request Maintenance"));
+  await fireEvent.press(screen.getByText("Request Maintenance"));
   expect(onRequest).toHaveBeenCalledTimes(1);
-  fireEvent.press(screen.getByText("Repair 0"));
+  await fireEvent.press(screen.getByText("Repair 0"));
   expect(onOpen).toHaveBeenCalledWith(rows[2]);
-  fireEvent.press(screen.getByText("View all"));
+  await fireEvent.press(screen.getByText("View all"));
   expect(onViewAll).toHaveBeenCalledTimes(1);
 });
 
-it("shows just the latest resolution, not the latest submission or a cancelled request, when nothing is active", () => {
+it("shows just the latest resolution, not the latest submission or a cancelled request, when nothing is active", async () => {
   const rows = [
     request("cancelled", "Cancelled", "2026-11-05"),
     request("recent-submission", "Resolved", "2026-11-03", "2026-11-03T08:00:00Z"),
     request("latest-resolution", "Resolved", "2026-10-01", "2026-11-04T08:00:00Z"),
   ];
-  show(rows);
+  await show(rows);
   expect(screen.getByText("Repair latest-resolution")).toBeTruthy();
   expect(screen.queryByText("Repair recent-submission")).toBeNull();
   expect(screen.queryByText("Repair cancelled")).toBeNull();
@@ -57,24 +57,24 @@ it("shows just the latest resolution, not the latest submission or a cancelled r
   expect(rows.map((row) => row.id)).toEqual(["cancelled", "recent-submission", "latest-resolution"]);
 });
 
-it("falls back to the submission date for legacy resolved requests", () => {
-  show([request("older", "Resolved", "2026-10-01"), request("newer", "Resolved", "2026-11-01")]);
+it("falls back to the submission date for legacy resolved requests", async () => {
+  await show([request("older", "Resolved", "2026-10-01"), request("newer", "Resolved", "2026-11-01")]);
   expect(screen.getByText("Repair newer")).toBeTruthy();
   expect(screen.queryByText("Repair older")).toBeNull();
 });
 
-it("shows an empty state when there are only cancelled requests but keeps history and new-request entry points", () => {
-  show([request("cancelled", "Cancelled")]);
+it("shows an empty state when there are only cancelled requests but keeps history and new-request entry points", async () => {
+  await show([request("cancelled", "Cancelled")]);
   expect(screen.getByText("No active maintenance requests")).toBeTruthy();
   expect(screen.queryByText("Repair cancelled")).toBeNull();
   expect(screen.getByText("View all")).toBeTruthy();
-  fireEvent.press(screen.getByText("Request Maintenance"));
+  await fireEvent.press(screen.getByText("Request Maintenance"));
   expect(onRequest).toHaveBeenCalledTimes(1);
 });
 
-it("allows the first maintenance request when no records exist", () => {
-  show([]);
+it("allows the first maintenance request when no records exist", async () => {
+  await show([]);
   expect(screen.getByText("No active maintenance requests")).toBeTruthy();
-  fireEvent.press(screen.getByText("Request Maintenance"));
+  await fireEvent.press(screen.getByText("Request Maintenance"));
   expect(onRequest).toHaveBeenCalledTimes(1);
 });

@@ -100,18 +100,18 @@ jest.mock("@/hooks/applications", () => ({
   }),
 }));
 
-function withApplication(patch: Partial<typeof mockApplication>, run: () => void) {
+async function withApplication(patch: Partial<typeof mockApplication>, run: () => void | Promise<void>) {
   const original = { ...mockApplication };
   Object.assign(mockApplication, patch);
   try {
-    run();
+    await run();
   } finally {
     Object.assign(mockApplication, original);
   }
 }
 
-it("groups the information into titled sections", () => {
-  render(<TenantApplicationDetails />);
+it("groups the information into titled sections", async () => {
+  await render(<TenantApplicationDetails />);
 
   for (const title of [
     "Application",
@@ -129,34 +129,34 @@ it("groups the information into titled sections", () => {
   expect(screen.getByText("ratings:tenant-1:Case Oh")).toBeTruthy();
 });
 
-it("lists the ID front and back among the documents", () => {
-  render(<TenantApplicationDetails />);
+it("lists the ID front and back among the documents", async () => {
+  await render(<TenantApplicationDetails />);
 
   expect(screen.getByText("doc:Government ID")).toBeTruthy();
   expect(screen.getByText("doc:Government ID (Back)")).toBeTruthy();
 });
 
-it("shows dashes and a fallback message for empty optional details", () => {
-  render(<TenantApplicationDetails />);
+it("shows dashes and a fallback message for empty optional details", async () => {
+  await render(<TenantApplicationDetails />);
 
   expect(screen.getAllByText("-")).toHaveLength(2);
   expect(screen.getByText("No message provided.")).toBeTruthy();
 });
 
-it("offers the approve / reject actions only while the application is pending", () => {
-  render(<TenantApplicationDetails />);
+it("offers the approve / reject actions only while the application is pending", async () => {
+  await render(<TenantApplicationDetails />);
   expect(screen.getByText("decision-bar")).toBeTruthy();
-  screen.unmount();
+  await screen.unmount();
 
-  withApplication({ status: "Approved" }, () => {
-    render(<TenantApplicationDetails />);
+  await withApplication({ status: "Approved" }, async () => {
+    await render(<TenantApplicationDetails />);
     expect(screen.queryByText("decision-bar")).toBeNull();
   });
 });
 
-it("shows the rejection reason when there is one", () => {
-  withApplication({ status: "Rejected", rejected_reason: "Incomplete documents" }, () => {
-    render(<TenantApplicationDetails />);
+it("shows the rejection reason when there is one", async () => {
+  await withApplication({ status: "Rejected", rejected_reason: "Incomplete documents" }, async () => {
+    await render(<TenantApplicationDetails />);
 
     expect(screen.getByText("Rejection Reason")).toBeTruthy();
     expect(screen.getByText("Incomplete documents")).toBeTruthy();

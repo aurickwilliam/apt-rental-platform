@@ -49,7 +49,7 @@ describe("useTenantApplications", () => {
     ]);
     const { QueryWrapper } = createWrapper();
 
-    const { result, unmount } = renderHook(() => useTenantApplications(), {
+    const { result, unmount } = await renderHook(() => useTenantApplications(), {
       wrapper: QueryWrapper,
     });
 
@@ -58,7 +58,7 @@ describe("useTenantApplications", () => {
     expect(result.current.applications[0]?.id).toBe("application-1");
     expect(result.current.error).toBeNull();
 
-    unmount();
+    await unmount();
   });
 
   it("does not fetch before the current user resolves", async () => {
@@ -69,27 +69,27 @@ describe("useTenantApplications", () => {
     });
     const { QueryWrapper } = createWrapper();
 
-    const { result, unmount } = renderHook(() => useTenantApplications(), {
+    const { result, unmount } = await renderHook(() => useTenantApplications(), {
       wrapper: QueryWrapper,
     });
 
     expect(mockFetchTenantApplications).not.toHaveBeenCalled();
     expect(result.current.loading).toBe(true);
 
-    unmount();
+    await unmount();
   });
 
   it("surfaces a fetch failure as an error message", async () => {
     mockFetchTenantApplications.mockRejectedValue(new Error("RLS blocked"));
     const { QueryWrapper } = createWrapper();
 
-    const { result, unmount } = renderHook(() => useTenantApplications(), {
+    const { result, unmount } = await renderHook(() => useTenantApplications(), {
       wrapper: QueryWrapper,
     });
 
     await waitFor(() => expect(result.current.error).toBe("RLS blocked"));
     expect(result.current.applications).toEqual([]);
 
-    unmount();
+    await unmount();
   });
 });

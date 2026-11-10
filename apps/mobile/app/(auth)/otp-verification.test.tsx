@@ -59,7 +59,7 @@ const profileDetails = {
 
 // Typing the sixth digit submits by itself, like the Verify button does.
 async function verify() {
-  fireEvent.changeText(screen.getByLabelText("Recovery code"), "123456");
+  await fireEvent.changeText(screen.getByLabelText("Recovery code"), "123456");
 }
 
 beforeEach(() => {
@@ -77,7 +77,7 @@ beforeEach(() => {
 });
 
 it("commits signup profile and the explicitly selected revisions together after email verification", async () => {
-  render(<OTPVerification />);
+  await render(<OTPVerification />);
   await verify();
   await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/personalization/step-one"));
   expect(mockRpc).toHaveBeenCalledWith("complete_mobile_registration", {
@@ -88,19 +88,19 @@ it("commits signup profile and the explicitly selected revisions together after 
 });
 
 it("submits by itself when the sixth digit is typed, without pressing Verify", async () => {
-  render(<OTPVerification />);
+  await render(<OTPVerification />);
   // Only the code is typed: the screen's own state is still one digit short when the input
   // reports it is complete, so the check must use the code the input hands over.
-  fireEvent.changeText(screen.getByLabelText("Recovery code"), "123456");
+  await fireEvent.changeText(screen.getByLabelText("Recovery code"), "123456");
   await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/personalization/step-one"));
   expect(mockVerifyOtp).toHaveBeenCalledWith(expect.objectContaining({ token: "123456", type: "signup" }));
 });
 
 it("blocks verification and resending if acceptance was lost", async () => {
   useRegistrationStore.getState().setData({ acceptance: emptyRegistrationAcceptance() });
-  render(<OTPVerification />);
+  await render(<OTPVerification />);
   await verify();
-  fireEvent.press(screen.getByText("Resend"));
+  await fireEvent.press(screen.getByText("Resend"));
   expect(mockVerifyOtp).not.toHaveBeenCalled();
   expect(mockResend).not.toHaveBeenCalled();
   expect(screen.getByText("Please read and accept the Privacy Policy.")).toBeTruthy();
@@ -108,7 +108,7 @@ it("blocks verification and resending if acceptance was lost", async () => {
 
 it("does not let a different email consume the staged acceptance", async () => {
   mockParams.email = "other@example.test";
-  render(<OTPVerification />);
+  await render(<OTPVerification />);
   await verify();
   expect(mockVerifyOtp).not.toHaveBeenCalled();
   expect(registrationCalls()).toHaveLength(0);
@@ -116,10 +116,10 @@ it("does not let a different email consume the staged acceptance", async () => {
 
 it("retains the selections on a wrong code and on resend", async () => {
   mockVerifyOtp.mockResolvedValue({ data: {}, error: { message: "Token has expired or is invalid" } });
-  render(<OTPVerification />);
+  await render(<OTPVerification />);
   await verify();
   await waitFor(() => expect(mockVerifyOtp).toHaveBeenCalled());
-  fireEvent.press(screen.getByText("Resend"));
+  await fireEvent.press(screen.getByText("Resend"));
   await waitFor(() => expect(mockResend).toHaveBeenCalledWith({ type: "signup", email: "a@example.test" }));
   expect(useRegistrationStore.getState().data.acceptance).toEqual(acceptance);
   expect(mockSignOut).not.toHaveBeenCalled();
@@ -128,7 +128,7 @@ it("retains the selections on a wrong code and on resend", async () => {
 
 it("signs out a verified session on stale acceptance, with inline recovery instructions and no portal entry", async () => {
   mockRpc.mockResolvedValue({ data: null, error: { message: POLICY_UPDATE_MESSAGE } });
-  render(<OTPVerification />);
+  await render(<OTPVerification />);
   await verify();
   await waitFor(() => expect(mockSignOut).toHaveBeenCalled());
   expect(screen.getByText(POLICY_UPDATE_MESSAGE)).toBeTruthy();
@@ -141,7 +141,7 @@ it("preserves confirm-email recovery without requiring nonexistent signup data",
   useRegistrationStore.getState().reset();
   mockParams.mode = "confirm";
   mockMissing.mockResolvedValue(true);
-  render(<OTPVerification />);
+  await render(<OTPVerification />);
   await verify();
   await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/finish-profile"));
   expect(registrationCalls()).toHaveLength(0);
@@ -153,7 +153,7 @@ it("shows a lock the server reports, disables Verify and never reaches the profi
     status: 429,
     json: async () => ({ ok: false, error: { code: "auth_locked", message: "Too many attempts." }, retryAfterSeconds: 700 }),
   }) as unknown as typeof fetch;
-  render(<OTPVerification />);
+  await render(<OTPVerification />);
 
   await verify();
 

@@ -40,7 +40,7 @@ describe("useBrowseRowPage", () => {
     });
     mockState.client = recorder.client;
 
-    const { result } = renderHook(() => useBrowseRowPage({ spec }), { wrapper: createWrapper() });
+    const { result } = await renderHook(() => useBrowseRowPage({ spec }), { wrapper: createWrapper() });
 
     await waitFor(() => expect(result.current.data?.pages).toHaveLength(1));
     expect(result.current.hasNextPage).toBe(true);
@@ -55,11 +55,11 @@ describe("useBrowseRowPage", () => {
     expect(result.current.hasNextPage).toBe(false);
   });
 
-  it("does not fetch without a spec or when disabled", () => {
+  it("does not fetch without a spec or when disabled", async () => {
     const recorder = createSupabaseRecorder({ answer: () => [] });
     mockState.client = recorder.client;
-    renderHook(() => useBrowseRowPage({ spec: null }), { wrapper: createWrapper() });
-    renderHook(() => useBrowseRowPage({ spec, enabled: false }), { wrapper: createWrapper() });
+    await renderHook(() => useBrowseRowPage({ spec: null }), { wrapper: createWrapper() });
+    await renderHook(() => useBrowseRowPage({ spec, enabled: false }), { wrapper: createWrapper() });
     expect(recorder.calls).toHaveLength(0);
   });
 });

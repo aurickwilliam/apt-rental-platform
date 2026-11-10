@@ -21,8 +21,8 @@ function props(initialMethods: PaymentMethod[] = ALL) {
 
 beforeEach(() => mockToastShow.mockClear());
 
-it("lists every method, all on when the landlord has not limited them", () => {
-  render(<AcceptedPaymentMethodsForm {...props()} />);
+it("lists every method, all on when the landlord has not limited them", async () => {
+  await render(<AcceptedPaymentMethodsForm {...props()} />);
   const boxes = screen.getAllByRole("checkbox");
   expect(boxes).toHaveLength(6);
   expect(boxes.every((box) => box.props.accessibilityState.checked)).toBe(true);
@@ -31,28 +31,28 @@ it("lists every method, all on when the landlord has not limited them", () => {
 
 it("saves only the methods left on, as method names", async () => {
   const options = props();
-  render(<AcceptedPaymentMethodsForm {...options} />);
-  fireEvent.press(screen.getByLabelText("Accept GCash"));
-  fireEvent.press(screen.getByLabelText("Accept QRPh"));
-  await act(async () => { fireEvent.press(screen.getByText("Save methods")); });
+  await render(<AcceptedPaymentMethodsForm {...options} />);
+  await fireEvent.press(screen.getByLabelText("Accept GCash"));
+  await fireEvent.press(screen.getByLabelText("Accept QRPh"));
+  await act(async () => { await fireEvent.press(screen.getByText("Save methods")); });
   expect(options.onSave).toHaveBeenCalledWith(["Maya", "Bank Transfer", "Debit/Credit-Card", "Cash"]);
   expect(options.onCancel).toHaveBeenCalledTimes(1);
 });
 
-it("will not save an empty list and explains why", () => {
+it("will not save an empty list and explains why", async () => {
   const options = props(["Cash"]);
-  render(<AcceptedPaymentMethodsForm {...options} />);
-  fireEvent.press(screen.getByLabelText("Accept Cash"));
+  await render(<AcceptedPaymentMethodsForm {...options} />);
+  await fireEvent.press(screen.getByLabelText("Accept Cash"));
   expect(screen.getByText("Keep at least one payment method on.")).toBeTruthy();
-  fireEvent.press(screen.getByText("Save methods"));
+  await fireEvent.press(screen.getByText("Save methods"));
   expect(options.onSave).not.toHaveBeenCalled();
 });
 
 it("keeps the draft and shows the error when saving fails", async () => {
   const options = { ...props(), onSave: jest.fn(async () => { throw new Error("Verify your account to use landlord features."); }) };
-  render(<AcceptedPaymentMethodsForm {...options} />);
-  fireEvent.press(screen.getByLabelText("Accept Cash"));
-  await act(async () => { fireEvent.press(screen.getByText("Save methods")); });
+  await render(<AcceptedPaymentMethodsForm {...options} />);
+  await fireEvent.press(screen.getByLabelText("Accept Cash"));
+  await act(async () => { await fireEvent.press(screen.getByText("Save methods")); });
   expect(screen.getByText("Verify your account to use landlord features.")).toBeTruthy();
   expect(screen.getByLabelText("Accept Cash").props.accessibilityState.checked).toBe(false);
   expect(options.onCancel).not.toHaveBeenCalled();

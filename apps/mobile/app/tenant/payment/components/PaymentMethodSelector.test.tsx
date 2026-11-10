@@ -20,13 +20,13 @@ function props(selectedMethod: PaymentMethod | null = null) {
   };
 }
 
-it("lists every method the landlord accepts as one choice list with nothing preselected", () => {
+it("lists every method the landlord accepts as one choice list with nothing preselected", async () => {
   const options = props();
-  render(<PaymentMethodSelector {...options} />);
+  await render(<PaymentMethodSelector {...options} />);
   const radios = screen.getAllByRole("radio");
   expect(radios).toHaveLength(6);
   expect(radios.every((radio) => !radio.props.accessibilityState.selected)).toBe(true);
-  fireEvent.press(screen.getByLabelText("Cash"));
+  await fireEvent.press(screen.getByLabelText("Cash"));
   expect(options.onPaymentMethodChange).toHaveBeenCalledWith("Cash");
   // Preferences are gone: no preferred section, default badge or manage button.
   expect(screen.queryByText("Manage preferences")).toBeNull();
@@ -34,48 +34,48 @@ it("lists every method the landlord accepts as one choice list with nothing pres
   expect(screen.queryByText("Default")).toBeNull();
 });
 
-it("marks the method the tenant chose", () => {
-  render(<PaymentMethodSelector {...props("Maya")} />);
+it("marks the method the tenant chose", async () => {
+  await render(<PaymentMethodSelector {...props("Maya")} />);
   expect(screen.getByLabelText("Maya").props.accessibilityState.selected).toBe(true);
   expect(screen.getByLabelText("GCash").props.accessibilityState.selected).toBe(false);
 });
 
-it("offers only the methods the landlord accepts", () => {
-  render(<PaymentMethodSelector {...props()} acceptedMethods={["Maya", "Cash"]} />);
+it("offers only the methods the landlord accepts", async () => {
+  await render(<PaymentMethodSelector {...props()} acceptedMethods={["Maya", "Cash"]} />);
   expect(screen.getAllByRole("radio")).toHaveLength(2);
   expect(screen.queryByLabelText("GCash")).toBeNull();
   expect(screen.getByLabelText("Maya")).toBeTruthy();
   expect(screen.getByLabelText("Cash")).toBeTruthy();
 });
 
-it("offers nothing while the accepted methods load, instead of guessing", () => {
-  render(<PaymentMethodSelector {...props()} acceptedMethods={[]} methodsLoading />);
+it("offers nothing while the accepted methods load, instead of guessing", async () => {
+  await render(<PaymentMethodSelector {...props()} acceptedMethods={[]} methodsLoading />);
   expect(screen.queryAllByRole("radio")).toHaveLength(0);
   expect(screen.getByText("Loading payment methods…")).toBeTruthy();
 });
 
-it("offers nothing when the accepted methods fail to load and lets the tenant retry", () => {
+it("offers nothing when the accepted methods fail to load and lets the tenant retry", async () => {
   const options = { ...props(), acceptedMethods: [] as PaymentMethod[], methodsError: "Couldn't load the payment methods your landlord accepts. Please try again." };
-  render(<PaymentMethodSelector {...options} />);
+  await render(<PaymentMethodSelector {...options} />);
   expect(screen.queryAllByRole("radio")).toHaveLength(0);
   expect(screen.getByText(options.methodsError)).toBeTruthy();
-  fireEvent.press(screen.getByText("Retry"));
+  await fireEvent.press(screen.getByText("Retry"));
   expect(options.onRetryMethods).toHaveBeenCalledTimes(1);
 });
 
-it("has no in-app card form: card is entered on PayMongo's hosted page", () => {
-  render(<PaymentMethodSelector {...props("Debit/Credit-Card")} />);
+it("has no in-app card form: card is entered on PayMongo's hosted page", async () => {
+  await render(<PaymentMethodSelector {...props("Debit/Credit-Card")} />);
   expect(screen.getByLabelText("Debit/Credit Card").props.accessibilityState.selected).toBe(true);
   expect(screen.queryByText("Card Details")).toBeNull();
   expect(screen.queryByPlaceholderText("**** **** **** ****")).toBeNull();
 });
 
-it("shows the banks for Bank Transfer and disables one over its limit with the reason", () => {
+it("shows the banks for Bank Transfer and disables one over its limit with the reason", async () => {
   const options = { ...props("Bank Transfer"), amount: 80000 };
-  render(<PaymentMethodSelector {...options} />);
+  await render(<PaymentMethodSelector {...options} />);
   expect(screen.getByText("Choose your bank")).toBeTruthy();
   expect(screen.getByLabelText("BPI, unavailable. BPI allows up to ₱50,000 per payment.").props.accessibilityState.disabled).toBe(true);
   expect(screen.getByLabelText("UnionBank").props.accessibilityState.disabled).toBe(false);
-  fireEvent.press(screen.getByLabelText("UnionBank"));
+  await fireEvent.press(screen.getByLabelText("UnionBank"));
   expect(options.onBankChange).toHaveBeenCalledWith("ubp");
 });

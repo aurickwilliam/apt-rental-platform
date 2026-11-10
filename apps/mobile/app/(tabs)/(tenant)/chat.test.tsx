@@ -181,7 +181,7 @@ beforeEach(() => {
 });
 
 describe('tenant Messages tab', () => {
-  it('pins the current landlord on top, then a separator, with no section headers', () => {
+  it('pins the current landlord on top, then a separator, with no section headers', async () => {
     mockTenancy = activeTenancy;
     mockConversations = [
       makeConversation({ conversation_key: 'other', other_user_name: 'Other Landlord' }),
@@ -193,13 +193,13 @@ describe('tenant Messages tab', () => {
       }),
     ];
 
-    render(<Chat />);
+    await render(<Chat />);
 
     expect(renderedRows()).toEqual(['row:Lara Cruz:locked', 'separator', 'row:Other Landlord']);
     expect(screen.queryByText('Current Landlord')).toBeNull();
   });
 
-  it('puts user-pinned chats after the landlord and leaves archived chats out', () => {
+  it('puts user-pinned chats after the landlord and leaves archived chats out', async () => {
     mockTenancy = activeTenancy;
     mockConversations = [
       makeConversation({ conversation_key: 'a', other_user_name: 'Archived One', is_archived: true }),
@@ -213,7 +213,7 @@ describe('tenant Messages tab', () => {
       makeConversation({ conversation_key: 'o', other_user_name: 'Other' }),
     ];
 
-    render(<Chat />);
+    await render(<Chat />);
 
     expect(renderedRows()).toEqual([
       'row:Lara Cruz:locked',
@@ -223,20 +223,20 @@ describe('tenant Messages tab', () => {
     ]);
   });
 
-  it('opens archived chats from the header button', () => {
-    render(<Chat />);
+  it('opens archived chats from the header button', async () => {
+    await render(<Chat />);
 
-    fireEvent.press(screen.getByLabelText('Archived chats'));
+    await fireEvent.press(screen.getByLabelText('Archived chats'));
 
     expect(mockPush).toHaveBeenCalledWith({ pathname: '/chat/archived', params: { portal: 'tenant' } });
   });
 
-  it('offers a pinned shortcut to message the current landlord before any chat exists', () => {
+  it('offers a pinned shortcut to message the current landlord before any chat exists', async () => {
     mockTenancy = activeTenancy;
 
-    render(<Chat />);
+    await render(<Chat />);
 
-    fireEvent.press(screen.getByLabelText('shortcut:Lara Cruz'));
+    await fireEvent.press(screen.getByLabelText('shortcut:Lara Cruz'));
 
     expect(mockPush).toHaveBeenCalledWith({
       pathname: '/chat/[conversationId]',
@@ -249,8 +249,8 @@ describe('tenant Messages tab', () => {
     expect(JSON.stringify(mockPush.mock.calls[0][0])).not.toContain('Phone');
   });
 
-  it('shows the empty state with no tenancy and no conversations', () => {
-    render(<Chat />);
+  it('shows the empty state with no tenancy and no conversations', async () => {
+    await render(<Chat />);
 
     expect(screen.getByText('No Messages Yet')).toBeTruthy();
   });

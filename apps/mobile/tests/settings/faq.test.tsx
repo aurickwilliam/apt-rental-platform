@@ -17,16 +17,16 @@ jest.mock("@/components/layout/ScreenWrapper", () => ({
 jest.mock("@/components/layout/StandardHeader", () => ({ __esModule: true, default: () => null }));
 
 describe("FAQ screen", () => {
-  it("renders every question and its answer", () => {
-    render(<Faq />);
+  it("renders every question and its answer", async () => {
+    await render(<Faq />);
     for (const faq of FAQ_ITEMS) {
       expect(screen.getByText(faq.question)).toBeTruthy();
       expect(screen.getByText(faq.answer)).toBeTruthy();
     }
   });
 
-  it("names the controls the app actually shows", () => {
-    render(<Faq />);
+  it("names the controls the app actually shows", async () => {
+    await render(<Faq />);
     expect(screen.getByText(/Pay Now/)).toBeTruthy();
     expect(screen.getByText(/Request Maintenance/)).toBeTruthy();
     expect(screen.getByText(/View document/)).toBeTruthy();
@@ -35,8 +35,8 @@ describe("FAQ screen", () => {
     expect(screen.getByText(/Apply for Verification/)).toBeTruthy();
   });
 
-  it("never brings back labels the app stopped using", () => {
-    render(<Faq />);
+  it("never brings back labels the app stopped using", async () => {
+    await render(<Faq />);
     // Removed flows must not creep back into the copy.
     expect(screen.queryByText(/Chat Landlord|Pay Rent|Verify Account/)).toBeNull();
   });

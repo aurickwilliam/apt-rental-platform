@@ -46,12 +46,12 @@ describe('SelfiePrep', () => {
     useVerificationStore.setState({ ...initialVerificationState });
   });
 
-  it('shows the illustrated selfie guidance after all required ID captures are complete', () => {
+  it('shows the illustrated selfie guidance after all required ID captures are complete', async () => {
     useVerificationStore.setState({
       selectedId: 'National ID (PhilSys/PhilID)',
       captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
     });
-    render(<SelfiePrep />);
+    await render(<SelfiePrep />);
 
     expect(screen.getByText('Get ready for your selfie')).toBeTruthy();
     expect(screen.getByText('Use bright, even lighting.')).toBeTruthy();
@@ -62,42 +62,42 @@ describe('SelfiePrep', () => {
     expect(screen.getByText("I'm Ready")).toBeTruthy();
   });
 
-  it('opens the Take a Selfie page when the user is ready', () => {
+  it('opens the Take a Selfie page when the user is ready', async () => {
     useVerificationStore.setState({
       selectedId: 'National ID (PhilSys/PhilID)',
       captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
     });
-    render(<SelfiePrep />);
+    await render(<SelfiePrep />);
 
-    fireEvent.press(screen.getByText("I'm Ready"));
+    await fireEvent.press(screen.getByText("I'm Ready"));
 
     expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/upload-selfie');
   });
 
-  it('redirects to ID selection without an active verification session', () => {
-    render(<SelfiePrep />);
+  it('redirects to ID selection without an active verification session', async () => {
+    await render(<SelfiePrep />);
 
     expect(mockReplace).toHaveBeenCalledWith('/(auth)/verify-account/select-id');
   });
 
-  it('redirects to Upload ID when one or more required ID captures are missing', () => {
+  it('redirects to Upload ID when one or more required ID captures are missing', async () => {
     useVerificationStore.setState({
       selectedId: 'National ID (PhilSys/PhilID)',
       captures: { front: FRONT_CAPTURE },
     });
-    render(<SelfiePrep />);
+    await render(<SelfiePrep />);
 
     expect(mockReplace).toHaveBeenCalledWith('/(auth)/verify-account/upload-id');
   });
 
-  it('returns to the completed ID summary from its close control', () => {
+  it('returns to the completed ID summary from its close control', async () => {
     useVerificationStore.setState({
       selectedId: 'National ID (PhilSys/PhilID)',
       captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
     });
-    render(<SelfiePrep />);
+    await render(<SelfiePrep />);
 
-    fireEvent.press(screen.getByTestId('close-button'));
+    await fireEvent.press(screen.getByTestId('close-button'));
 
     expect(mockBack).toHaveBeenCalledTimes(1);
   });

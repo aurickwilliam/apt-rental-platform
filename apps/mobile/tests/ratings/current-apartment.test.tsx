@@ -35,53 +35,53 @@ jest.mock("heroui-native", () => {
 
 beforeEach(() => { jest.clearAllMocks(); mockTenancy = tenancy; mockLoading = false; mockError = null; });
 
-it("places Ratings & Reviews immediately after the lease action and opens the current apartment", () => {
-  const screen = render(<CurrentApartmentDetails />);
+it("places Ratings & Reviews immediately after the lease action and opens the current apartment", async () => {
+  const screen = await render(<CurrentApartmentDetails />);
   const actions = screen.getAllByRole("button");
   expect(actions).toHaveLength(2);
   expect(actions[0]).toBe(screen.getByRole("button", { name: "View Lease" }));
   expect(actions[1]).toBe(screen.getByRole("button", { name: "Ratings & Reviews" }));
-  fireEvent.press(actions[1]);
+  await fireEvent.press(actions[1]);
   expect(mockPush).toHaveBeenCalledWith({ pathname: "/apartment/[apartmentId]/ratings", params: { apartmentId: "cozy-cove" } });
-  fireEvent.press(actions[0]);
+  await fireEvent.press(actions[0]);
   expect(mockOpenLease).toHaveBeenCalledWith("cozy-cove/lease.pdf");
 });
 
-it("keeps reviews available when there is no lease file", () => {
+it("keeps reviews available when there is no lease file", async () => {
   mockTenancy = { ...tenancy, apartment: { ...apartment, lease_agreement_url: "" } };
-  const screen = render(<CurrentApartmentDetails />);
+  const screen = await render(<CurrentApartmentDetails />);
   expect(screen.getByRole("button", { name: "View Lease" })).toBeDisabled();
   expect(screen.getByRole("button", { name: "Ratings & Reviews" })).toBeEnabled();
-  fireEvent.press(screen.getByText("Ratings & Reviews"));
+  await fireEvent.press(screen.getByText("Ratings & Reviews"));
   expect(mockPush).toHaveBeenCalledWith(expect.objectContaining({ params: { apartmentId: "cozy-cove" } }));
 });
 
-it("keeps both icon-label pairs compact and centered inside full-width actions", () => {
-  const screen = render(<CurrentApartmentDetails />);
+it("keeps both icon-label pairs compact and centered inside full-width actions", async () => {
+  const screen = await render(<CurrentApartmentDetails />);
   for (const name of ["View Lease", "Ratings & Reviews"]) {
     const button = screen.getByRole("button", { name });
     expect(button.props.className).toBe("w-full");
     expect(screen.getByText(name).props.className).toBe("shrink-0 grow-0 text-center");
-    const rows = button.findAllByType(View);
+    const rows = button.queryAll((node) => String(node.type) === "View");
     expect(rows.some(row => row.props.className === "max-w-full self-center flex-row items-center justify-center gap-2")).toBe(true);
     expect(rows.some(row => row.props.className === "size-5 shrink-0 items-center justify-center")).toBe(true);
   }
   expect(screen.queryByText("View Lease Agreement")).toBeNull();
 });
 
-it("uses the newly loaded current apartment rather than retaining a previous destination", () => {
-  const screen = render(<CurrentApartmentDetails />);
+it("uses the newly loaded current apartment rather than retaining a previous destination", async () => {
+  const screen = await render(<CurrentApartmentDetails />);
   mockTenancy = { ...tenancy, apartment: { ...apartment, id: "new-current-apartment" } };
-  screen.rerender(<CurrentApartmentDetails />);
-  fireEvent.press(screen.getByText("Ratings & Reviews"));
+  await await screen.rerender(<CurrentApartmentDetails />);
+  await fireEvent.press(screen.getByText("Ratings & Reviews"));
   expect(mockPush).toHaveBeenCalledWith(expect.objectContaining({ params: { apartmentId: "new-current-apartment" } }));
 });
 
-it.each(["loading", "no tenancy", "error"])("does not offer review navigation during %s", state => {
+it.each(["loading", "no tenancy", "error"])("does not offer review navigation during %s", async state => {
   mockLoading = state === "loading";
   mockTenancy = state === "no tenancy" ? null : tenancy;
   mockError = state === "error" ? "Unable to load tenancy" : null;
-  const screen = render(<CurrentApartmentDetails />);
+  const screen = await render(<CurrentApartmentDetails />);
   expect(screen.queryByText("Ratings & Reviews")).toBeNull();
   expect(mockPush).not.toHaveBeenCalled();
 });

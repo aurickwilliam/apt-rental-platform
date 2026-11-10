@@ -10,7 +10,7 @@ jest.mock("expo-router", () => ({ useFocusEffect: (callback: () => void) => mock
 jest.mock("@/stores/usePortalStore", () => ({ usePortalStore: { getState: () => ({ portal: mockPortal }) } }));
 jest.mock("./useLandlordTenancy", () => ({ getLandlordTenancyQueryKey: (id: string) => ["landlord-tenancy", id] }));
 
-it("refreshes the exact tenancy on focus and foreground, removing the listener on blur", () => {
+it("refreshes the exact tenancy on focus and foreground, removing the listener on blur", async () => {
   mockPortal = "landlord";
   const client = new QueryClient();
   const invalidate = jest.spyOn(client, "invalidateQueries");
@@ -21,32 +21,32 @@ it("refreshes the exact tenancy on focus and foreground, removing the listener o
     return { remove };
   });
   const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
-  const { unmount } = renderHook(() => useLandlordTenancyRefresh("apartment-1"), { wrapper });
+  const { unmount } = await renderHook(() => useLandlordTenancyRefresh("apartment-1"), { wrapper });
   let blur!: () => void;
-  act(() => { blur = mockFocus.mock.calls.at(-1)[0](); });
+  await act(() => { blur = mockFocus.mock.calls.at(-1)[0](); });
   expect(invalidate).toHaveBeenCalledWith({ queryKey: ["landlord-tenancy", "apartment-1"], exact: true }, { cancelRefetch: false });
-  act(() => onChange("background"));
+  await act(() => onChange("background"));
   expect(invalidate).toHaveBeenCalledTimes(1);
-  act(() => onChange("active"));
+  await act(() => onChange("active"));
   expect(invalidate).toHaveBeenCalledTimes(2);
   mockPortal = "tenant";
-  act(() => onChange("active"));
+  await act(() => onChange("active"));
   expect(invalidate).toHaveBeenCalledTimes(2);
-  act(blur);
+  await act(blur);
   expect(remove).toHaveBeenCalledTimes(1);
-  unmount();
+  await unmount();
   client.clear();
   subscription.mockRestore();
 });
 
-it("does not refresh when the property is unidentified", () => {
+it("does not refresh when the property is unidentified", async () => {
   mockPortal = "landlord";
   const client = new QueryClient();
   const invalidate = jest.spyOn(client, "invalidateQueries");
   const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
-  const { unmount } = renderHook(() => useLandlordTenancyRefresh(undefined), { wrapper });
-  act(() => { mockFocus.mock.calls.at(-1)[0](); });
+  const { unmount } = await renderHook(() => useLandlordTenancyRefresh(undefined), { wrapper });
+  await act(() => { mockFocus.mock.calls.at(-1)[0](); });
   expect(invalidate).not.toHaveBeenCalled();
-  unmount();
+  await unmount();
   client.clear();
 });

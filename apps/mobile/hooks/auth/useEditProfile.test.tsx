@@ -19,13 +19,13 @@ jest.mock("@/utils/queryClient", () => ({ CURRENT_USER_QUERY_KEY: ["current-user
 
 const photo = { uri: "file:///new-photo.jpg", width: 800, height: 800 };
 
-function setup() {
+async function setup() {
   const client = new QueryClient({ defaultOptions: {
     queries: { retry: false, gcTime: Infinity }, mutations: { retry: false, gcTime: Infinity },
   } });
   client.setQueryData(CURRENT_USER_QUERY_KEY, profileFixture);
   const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
-  const hook = renderHook(({ profile }: { profile: typeof profileFixture }) => useEditProfile(profile), {
+  const hook = await renderHook(({ profile }: { profile: typeof profileFixture }) => useEditProfile(profile), {
     wrapper, initialProps: { profile: profileFixture },
   });
   return { ...hook, client };
@@ -40,19 +40,19 @@ describe("useEditProfile", () => {
     mockPick.mockResolvedValue(photo);
   });
 
-  it("starts pristine and keeps draft edits across background profile refreshes", () => {
-    const { result, rerender } = setup();
+  it("starts pristine and keeps draft edits across background profile refreshes", async () => {
+    const { result, rerender } = await setup();
     expect(result.current.dirty).toBe(false);
-    act(() => result.current.updateField("street_address", "Draft address"));
-    rerender({ profile: { ...profileFixture, street_address: "Server address", account_status: "pending" } });
+    await act(() => result.current.updateField("street_address", "Draft address"));
+    await rerender({ profile: { ...profileFixture, street_address: "Server address", account_status: "pending" } });
     expect(result.current.fields.street_address).toBe("Draft address");
     expect(result.current.dirty).toBe(true);
-    act(() => result.current.updateField("street_address", profileFixture.street_address!));
+    await act(() => result.current.updateField("street_address", profileFixture.street_address!));
     expect(result.current.dirty).toBe(false);
   });
 
   it("ignores an unchanged save, including after a cancelled photo picker", async () => {
-    const { result } = setup();
+    const { result } = await setup();
     await act(async () => { await result.current.save(); });
     expect(mockSave).not.toHaveBeenCalled();
     mockPick.mockResolvedValueOnce(null);
@@ -62,19 +62,19 @@ describe("useEditProfile", () => {
     expect(mockSave).not.toHaveBeenCalled();
   });
 
-  it("resets dependent address selections and lets users correct auto-filled postal codes", () => {
-    const { result } = setup();
-    act(() => result.current.updateField("province", "Bulacan"));
+  it("resets dependent address selections and lets users correct auto-filled postal codes", async () => {
+    const { result } = await setup();
+    await act(() => result.current.updateField("province", "Bulacan"));
     expect(result.current.fields).toMatchObject({ city: "", barangay: "", postal_code: "" });
-    act(() => result.current.updateField("city", "Malolos"));
+    await act(() => result.current.updateField("city", "Malolos"));
     expect(result.current.fields.barangay).toBe("");
-    act(() => result.current.changePostal("30x00"));
+    await act(() => result.current.changePostal("30x00"));
     expect(result.current.fields.postal_code).toBe("3000");
   });
 
   it.each(["09", "+631234567890", "08001234567"])("rejects invalid mobile number %s", async (phone) => {
-    const { result } = setup();
-    act(() => result.current.changeMobile(phone));
+    const { result } = await setup();
+    await act(() => result.current.changeMobile(phone));
     let firstError: string | null = null;
     await act(async () => { firstError = await result.current.save(); });
     expect(firstError).toBe("mobile_number");
@@ -83,16 +83,16 @@ describe("useEditProfile", () => {
   });
 
   it.each(["", "999", "0000"])("rejects invalid postal code %s", async (zip) => {
-    const { result } = setup();
-    act(() => result.current.changePostal(zip));
+    const { result } = await setup();
+    await act(() => result.current.changePostal(zip));
     await act(async () => { await result.current.save(); });
     expect(result.current.errors.postal_code).toBeTruthy();
     expect(mockSave).not.toHaveBeenCalled();
   });
 
   it("validates all required fields and the gender whitelist before saving", async () => {
-    const { result } = setup();
-    act(() => {
+    const { result } = await setup();
+    await act(() => {
       result.current.updateField("gender", "invalid");
       result.current.updateField("street_address", " ");
       result.current.updateField("province", "");
@@ -106,7 +106,7 @@ describe("useEditProfile", () => {
   });
 
   it("stages photos without saving and does not lose a previous selection on picker cancel", async () => {
-    const { result } = setup();
+    const { result } = await setup();
     await act(async () => { await result.current.pickPhoto("avatar"); });
     expect(result.current.photos.avatar).toEqual(photo);
     expect(result.current.dirty).toBe(true);
@@ -117,12 +117,13 @@ describe("useEditProfile", () => {
   });
 
   it("saves a spaced mobile number in the 09 format, clears drafts and refreshes the shared profile on success", async () => {
-    const { result, client } = setup();
+    const { result, client } = await setup();
     const invalidate = jest.spyOn(client, "invalidateQueries");
-    act(() => result.current.changeMobile("0918 123 4567"));
+    await act(() => result.current.changeMobile("0918 123 4567"));
     await act(async () => { await result.current.pickPhoto("background"); });
     await act(async () => { await result.current.save(); });
-    expect(mockSave).toHaveBeenCalledWith(expect.objectContaining({
+    // React Query 5.107 hands mutationFn its context as a second argument, so assert on the payload itself.
+    expect(mockSave.mock.lastCall?.[0]).toEqual(expect.objectContaining({
       authUserId: "auth-1", fields: expect.objectContaining({ mobile_number: "09181234567" }), photos: { avatar: null, background: photo },
     }));
     expect(result.current.fields.mobile_number).toBe("0918 123 4567");
@@ -136,7 +137,7 @@ describe("useEditProfile", () => {
   it("retains drafts/photos on failure and never logs backend PII", async () => {
     const consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
     mockSave.mockRejectedValueOnce(new Error("backend echoed 09181234567 and private address"));
-    const { result } = setup();
+    const { result } = await setup();
     await act(async () => { await result.current.pickPhoto("avatar"); });
     await act(async () => { await result.current.save(); });
     expect(result.current.photos.avatar).toEqual(photo);
@@ -157,8 +158,8 @@ describe("useEditProfile", () => {
       message: "backend echoed 09181234567 and private address",
       details: "private profile details", hint: "private account hint",
     });
-    const { result } = setup();
-    act(() => result.current.changeMobile("09181234567"));
+    const { result } = await setup();
+    await act(() => result.current.changeMobile("09181234567"));
     await act(async () => { await result.current.save(); });
     expect(consoleError).toHaveBeenCalledWith("Profile edit failed:", {
       name: undefined, code: "42501", status: 403,
@@ -173,10 +174,10 @@ describe("useEditProfile", () => {
   it("prevents repeated saves and photo selection while saving", async () => {
     let finish: (value: unknown) => void = () => {};
     mockSave.mockReturnValueOnce(new Promise((resolve) => { finish = resolve; }));
-    const { result } = setup();
-    act(() => result.current.changeMobile("09181234567"));
+    const { result } = await setup();
+    await act(() => result.current.changeMobile("09181234567"));
     let saving: Promise<unknown> = Promise.resolve();
-    act(() => { saving = result.current.save(); });
+    await act(() => { saving = result.current.save(); });
     await waitFor(() => expect(result.current.busy).toBe(true));
     await act(async () => {
       await result.current.save();

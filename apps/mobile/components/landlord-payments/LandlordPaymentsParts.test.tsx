@@ -23,8 +23,8 @@ const summary = {
 };
 
 describe("LandlordPaymentsSummary", () => {
-  it("shows the four figures with their captions", () => {
-    render(<LandlordPaymentsSummary summary={summary} scopeLabel="All years" />);
+  it("shows the four figures with their captions", async () => {
+    await render(<LandlordPaymentsSummary summary={summary} scopeLabel="All years" />);
     expect(screen.getByText("Collected")).toBeTruthy();
     expect(screen.getByText(/All years · 2 paid payments/)).toBeTruthy();
     expect(screen.getByText("1 payment waiting")).toBeTruthy();
@@ -32,16 +32,16 @@ describe("LandlordPaymentsSummary", () => {
     expect(screen.getByText("Rejected, failed or unpaid")).toBeTruthy();
   });
 
-  it("paints every tile title in the brand color", () => {
-    render(<LandlordPaymentsSummary summary={summary} scopeLabel="All years" />);
+  it("paints every tile title in the brand color", async () => {
+    await render(<LandlordPaymentsSummary summary={summary} scopeLabel="All years" />);
     for (const title of ["Collected", "Cash to confirm", "Last payment", "Declined or failed"]) {
       expect(screen.getByText(title).props.className).toContain("text-primary");
       expect(screen.getByText(title).props.className).toContain("font-nunitoSemiBold");
     }
   });
 
-  it("is calm when nothing is waiting or declined, and has no last payment", () => {
-    render(
+  it("is calm when nothing is waiting or declined, and has no last payment", async () => {
+    await render(
       <LandlordPaymentsSummary
         summary={{ ...summary, collected: 0, paidCount: 0, awaitingCount: 0, awaitingAmount: 0, declinedCount: 0, lastPaid: null }}
         scopeLabel="2026"
@@ -53,32 +53,32 @@ describe("LandlordPaymentsSummary", () => {
     expect(screen.getByText(/2026 · 0 paid payments/)).toBeTruthy();
   });
 
-  it("makes Cash to confirm tappable only while cash is waiting", () => {
+  it("makes Cash to confirm tappable only while cash is waiting", async () => {
     const onPress = jest.fn();
-    const waiting = render(<LandlordPaymentsSummary summary={summary} scopeLabel="All years" onPressCashToConfirm={onPress} />);
-    fireEvent.press(screen.getByLabelText(/^Cash to confirm/));
+    const waiting = await render(<LandlordPaymentsSummary summary={summary} scopeLabel="All years" onPressCashToConfirm={onPress} />);
+    await fireEvent.press(screen.getByLabelText(/^Cash to confirm/));
     expect(onPress).toHaveBeenCalledTimes(1);
-    waiting.unmount();
+    await waiting.unmount();
 
     const none = jest.fn();
-    render(<LandlordPaymentsSummary summary={{ ...summary, awaitingCount: 0, awaitingAmount: 0 }} scopeLabel="All years" onPressCashToConfirm={none} />);
+    await render(<LandlordPaymentsSummary summary={{ ...summary, awaitingCount: 0, awaitingAmount: 0 }} scopeLabel="All years" onPressCashToConfirm={none} />);
     expect(screen.queryByLabelText(/^Cash to confirm/)).toBeNull();
     expect(none).not.toHaveBeenCalled();
   });
 });
 
 describe("CashToConfirmCard", () => {
-  it("names the count and total, and opens the waiting payments", () => {
+  it("names the count and total, and opens the waiting payments", async () => {
     const onPress = jest.fn();
-    render(<CashToConfirmCard count={3} amount={30000} onPress={onPress} />);
+    await render(<CashToConfirmCard count={3} amount={30000} onPress={onPress} />);
     expect(screen.getByText("Needs attention")).toBeTruthy();
     expect(screen.getByText(/3 cash payments to confirm/)).toBeTruthy();
-    fireEvent.press(screen.getByLabelText(/Needs attention: 3 cash payments to confirm/));
+    await fireEvent.press(screen.getByLabelText(/Needs attention: 3 cash payments to confirm/));
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
-  it("uses the singular for one payment", () => {
-    render(<CashToConfirmCard count={1} amount={5000} onPress={jest.fn()} />);
+  it("uses the singular for one payment", async () => {
+    await render(<CashToConfirmCard count={1} amount={5000} onPress={jest.fn()} />);
     expect(screen.getByText(/1 cash payment to confirm/)).toBeTruthy();
   });
 });
@@ -86,17 +86,17 @@ describe("CashToConfirmCard", () => {
 describe("Dashboard Collected this month card", () => {
   const thisMonth = { collected: 20000, expected: 40000, pending: 0, outstanding: 20000 };
 
-  it("stays informational without an entry point", () => {
-    render(<MonthCollectionCard thisMonth={thisMonth} />);
+  it("stays informational without an entry point", async () => {
+    await render(<MonthCollectionCard thisMonth={thisMonth} />);
     expect(screen.queryByText("View all payments")).toBeNull();
     expect(screen.queryByRole("button")).toBeNull();
   });
 
-  it("opens every payment when given an entry point", () => {
+  it("opens every payment when given an entry point", async () => {
     const onPress = jest.fn();
-    render(<MonthCollectionCard thisMonth={thisMonth} onPressViewPayments={onPress} />);
+    await render(<MonthCollectionCard thisMonth={thisMonth} onPressViewPayments={onPress} />);
     expect(screen.getByText("View all payments")).toBeTruthy();
-    fireEvent.press(screen.getByRole("button"));
+    await fireEvent.press(screen.getByRole("button"));
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 });

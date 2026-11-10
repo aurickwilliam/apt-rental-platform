@@ -19,15 +19,15 @@ function buildSection(id: string): SearchSectionType {
 }
 
 describe("SearchSection", () => {
-  it("shows a See All button for a regular section", () => {
-    render(
+  it("shows a See All button for a regular section", async () => {
+    await render(
       <SearchSection section={buildSection("verified")} isFavorite={() => false} onToggleFavorite={jest.fn()} onPressApartment={jest.fn()} />,
     );
     expect(screen.getByLabelText("See all Verified")).toBeTruthy();
   });
 
-  it("hides See All for the All Results fallback", () => {
-    render(
+  it("hides See All for the All Results fallback", async () => {
+    await render(
       <SearchSection section={buildSection("all_results")} isFavorite={() => false} onToggleFavorite={jest.fn()} onPressApartment={jest.fn()} />,
     );
     expect(screen.queryByLabelText("See all All Results")).toBeNull();
@@ -36,8 +36,8 @@ describe("SearchSection", () => {
 
   beforeEach(() => mockPush.mockClear());
 
-  it("shows the subtitle under the title", () => {
-    render(
+  it("shows the subtitle under the title", async () => {
+    await render(
       <SearchSection
         section={{ ...buildSection("pets"), title: "Pet-Friendly Homes", subtitle: "Because you have pets." }}
         isFavorite={() => false}
@@ -49,20 +49,20 @@ describe("SearchSection", () => {
     expect(screen.getByText("Because you have pets.")).toBeTruthy();
   });
 
-  it("opens a fixed row by its id alone", () => {
-    render(
+  it("opens a fixed row by its id alone", async () => {
+    await render(
       <SearchSection section={buildSection("verified")} isFavorite={() => false} onToggleFavorite={jest.fn()} onPressApartment={jest.fn()} />,
     );
-    fireEvent.press(screen.getByLabelText("See all Verified"));
+    await fireEvent.press(screen.getByLabelText("See all Verified"));
     expect(mockPush).toHaveBeenCalledWith({
       pathname: "/search/section/[sectionId]",
       params: { sectionId: "verified", title: "Verified" },
     });
   });
 
-  it("opens a spec-built row with its spec so See All can list the whole row", () => {
+  it("opens a spec-built row with its spec so See All can list the whole row", async () => {
     const spec = { id: "pets", title: "Pet-Friendly Homes", subtitle: "", criteria: { amenities: ["petfriendly"] }, sort: "rating" as const };
-    render(
+    await render(
       <SearchSection
         section={{ ...buildSection("pets"), title: "Pet-Friendly Homes", spec }}
         isFavorite={() => false}
@@ -70,7 +70,7 @@ describe("SearchSection", () => {
         onPressApartment={jest.fn()}
       />,
     );
-    fireEvent.press(screen.getByLabelText("See all Pet-Friendly Homes"));
+    await fireEvent.press(screen.getByLabelText("See all Pet-Friendly Homes"));
     expect(mockPush).toHaveBeenCalledWith({
       pathname: "/search/section/[sectionId]",
       params: { sectionId: "pets", title: "Pet-Friendly Homes", spec: JSON.stringify(spec) },

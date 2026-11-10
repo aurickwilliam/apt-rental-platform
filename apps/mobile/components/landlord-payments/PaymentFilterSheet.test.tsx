@@ -72,8 +72,8 @@ const props = () => ({
 });
 
 describe("PaymentFilterSheet", () => {
-  it("holds the two dropdowns, Year and Sort, showing their current values", () => {
-    render(<PaymentFilterSheet {...props()} year="2026" sort="Oldest" />);
+  it("holds the two dropdowns, Year and Sort, showing their current values", async () => {
+    await render(<PaymentFilterSheet {...props()} year="2026" sort="Oldest" />);
     expect(screen.getByText("Filters")).toBeTruthy();
     expect(screen.getByText("Year")).toBeTruthy();
     expect(screen.getByText("Sort")).toBeTruthy();
@@ -87,17 +87,17 @@ describe("PaymentFilterSheet", () => {
     expect(mockItems["2025"].className).toBeUndefined();
   });
 
-  it("opens at an explicit snap point and keeps its popovers above it", () => {
-    render(<PaymentFilterSheet {...props()} />);
+  it("opens at an explicit snap point and keeps its popovers above it", async () => {
+    await render(<PaymentFilterSheet {...props()} />);
     expect(mockSheet.open).toBe(true);
     expect(mockSheet.content).toMatchObject({ snapPoints: ["50%"], enableDynamicSizing: false, contentContainerClassName: "h-full" });
     expect(mockSheet.portal).toMatchObject({ disableFullWindowOverlay: true });
-    render(<PaymentFilterSheet {...props()} isOpen={false} />);
+    await render(<PaymentFilterSheet {...props()} isOpen={false} />);
     expect(mockSheet.open).toBe(false);
   });
 
-  it("keeps Done at the very bottom, below the dropdowns, clear of the home indicator", () => {
-    render(<PaymentFilterSheet {...props()} />);
+  it("keeps Done at the very bottom, below the dropdowns, clear of the home indicator", async () => {
+    await render(<PaymentFilterSheet {...props()} />);
     const text = JSON.stringify(screen.toJSON());
     expect(text.indexOf("Done")).toBeGreaterThan(text.indexOf("Sort"));
     // The column fills the sheet and pushes Done down; it pads for the bottom inset (34 + 8).
@@ -105,27 +105,27 @@ describe("PaymentFilterSheet", () => {
     expect(text.lastIndexOf("Done")).toBeGreaterThan(text.lastIndexOf("Oldest"));
   });
 
-  it("reports a picked year and a picked sort", () => {
+  it("reports a picked year and a picked sort", async () => {
     const p = props();
-    render(<PaymentFilterSheet {...p} />);
-    fireEvent.press(screen.getByText("2025"));
+    await render(<PaymentFilterSheet {...p} />);
+    await fireEvent.press(screen.getByText("2025"));
     expect(p.onYearChange).toHaveBeenCalledWith("2025");
-    fireEvent.press(screen.getByText("Oldest"));
+    await fireEvent.press(screen.getByText("Oldest"));
     expect(p.onSortChange).toHaveBeenCalledWith("Oldest");
   });
 
-  it("enables Reset only when something differs, and Done closes the sheet", () => {
+  it("enables Reset only when something differs, and Done closes the sheet", async () => {
     const unchanged = props();
-    const first = render(<PaymentFilterSheet {...unchanged} />);
-    fireEvent.press(screen.getByText("Reset"));
+    const first = await render(<PaymentFilterSheet {...unchanged} />);
+    await fireEvent.press(screen.getByText("Reset"));
     expect(unchanged.onReset).not.toHaveBeenCalled();
-    first.unmount();
+    await first.unmount();
 
     const changed = props();
-    render(<PaymentFilterSheet {...changed} isChanged />);
-    fireEvent.press(screen.getByText("Reset"));
+    await render(<PaymentFilterSheet {...changed} isChanged />);
+    await fireEvent.press(screen.getByText("Reset"));
     expect(changed.onReset).toHaveBeenCalledTimes(1);
-    fireEvent.press(screen.getByText("Done"));
+    await fireEvent.press(screen.getByText("Done"));
     expect(changed.onOpenChange).toHaveBeenCalledWith(false);
   });
 });
@@ -133,26 +133,26 @@ describe("PaymentFilterSheet", () => {
 describe("DropdownButton selected highlight", () => {
   beforeEach(() => { for (const key of Object.keys(mockItems)) delete mockItems[key]; });
 
-  it("tints only the selected option soft blue, without the press animation that would repaint it, and colors its check", () => {
-    render(<DropdownButton options={["A", "B"]} value="B" onSelect={jest.fn()} highlightSelected />);
+  it("tints only the selected option soft blue, without the press animation that would repaint it, and colors its check", async () => {
+    await render(<DropdownButton options={["A", "B"]} value="B" onSelect={jest.fn()} highlightSelected />);
     expect(mockItems.B).toMatchObject({ className: "bg-primary-light rounded-xl", isAnimatedStyleActive: false });
     expect(mockItems.A).toMatchObject({ className: undefined, isAnimatedStyleActive: true });
     expect(mockItems.__lastIndicator.indicatorColor).toBe("#376BF5");
   });
 
-  it("changes nothing for existing dropdowns that do not ask for it", () => {
-    render(<DropdownButton options={["A", "B"]} value="B" onSelect={jest.fn()} />);
+  it("changes nothing for existing dropdowns that do not ask for it", async () => {
+    await render(<DropdownButton options={["A", "B"]} value="B" onSelect={jest.fn()} />);
     expect(mockItems.B).toMatchObject({ className: undefined, isAnimatedStyleActive: true });
     expect(mockItems.__lastIndicator.indicatorColor).toBeUndefined();
   });
 });
 
 describe("DropdownButton menu alignment", () => {
-  it("keeps lining up with the end of its trigger unless told otherwise", () => {
-    const first = render(<DropdownButton options={["A", "B"]} value="A" onSelect={jest.fn()} />);
+  it("keeps lining up with the end of its trigger unless told otherwise", async () => {
+    const first = await render(<DropdownButton options={["A", "B"]} value="A" onSelect={jest.fn()} />);
     expect(screen.getByText("menu align=end width=200")).toBeTruthy();
-    first.unmount();
-    render(<DropdownButton options={["A", "B"]} value="A" onSelect={jest.fn()} align="start" width="trigger" />);
+    await first.unmount();
+    await render(<DropdownButton options={["A", "B"]} value="A" onSelect={jest.fn()} align="start" width="trigger" />);
     expect(screen.getByText("menu align=start width=trigger")).toBeTruthy();
   });
 });

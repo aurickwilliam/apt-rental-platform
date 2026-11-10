@@ -24,7 +24,7 @@ beforeEach(() => {
 it("rejects an unchecked declaration before making a database or storage request", async () => {
   const log = jest.spyOn(console, "error").mockImplementation(() => {});
   try {
-    const { result } = renderHook(() => usePublishApartment());
+    const { result } = await renderHook(() => usePublishApartment());
     let published: string | null = "not-set";
     await act(async () => { published = await result.current.publish(); });
     expect(published).toBeNull();
@@ -39,7 +39,7 @@ it("sends explicit confirmation and preserves database refusal messages", async 
   try {
     useApartmentFormStore.getState().setField("hasOwnElectricityMeter", true);
     mockInsert.mockReturnValue({ select: () => ({ single: async () => ({ data: null, error: { message: OWN_ELECTRICITY_METER_ERROR } }) }) });
-    const { result } = renderHook(() => usePublishApartment());
+    const { result } = await renderHook(() => usePublishApartment());
     await act(async () => { await result.current.publish(); });
     expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({ has_own_electricity_meter: true, landlord_id: "landlord-id" }));
     expect(result.current.error).toBe(OWN_ELECTRICITY_METER_ERROR);

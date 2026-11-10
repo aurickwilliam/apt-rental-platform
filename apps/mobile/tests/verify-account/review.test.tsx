@@ -119,9 +119,9 @@ describe('Review', () => {
     useVerificationStore.setState({ ...initialVerificationState });
   });
 
-  it('shows the ID type, ID previews, and selfie preview for a complete session', () => {
+  it('shows the ID type, ID previews, and selfie preview for a complete session', async () => {
     useVerificationStore.setState({ ...COMPLETE_STATE });
-    render(<Review />);
+    await render(<Review />);
 
     expect(screen.getByText('National ID (PhilSys/PhilID)')).toBeTruthy();
     expect(screen.getByLabelText('ID Front photo')).toBeTruthy();
@@ -130,35 +130,35 @@ describe('Review', () => {
     expect(screen.getByText('Submit for Verification')).toBeTruthy();
   });
 
-  it('redirects to ID selection without an active verification session', () => {
-    render(<Review />);
+  it('redirects to ID selection without an active verification session', async () => {
+    await render(<Review />);
 
     expect(mockReplace).toHaveBeenCalledWith('/(auth)/verify-account/select-id');
   });
 
-  it('redirects to Upload ID when required ID captures are missing', () => {
+  it('redirects to Upload ID when required ID captures are missing', async () => {
     useVerificationStore.setState({
       selectedId: 'National ID (PhilSys/PhilID)',
       captures: { front: FRONT_CAPTURE, selfie: SELFIE_CAPTURE },
     });
-    render(<Review />);
+    await render(<Review />);
 
     expect(mockReplace).toHaveBeenCalledWith('/(auth)/verify-account/upload-id');
   });
 
-  it('redirects to the selfie step when the selfie is missing', () => {
+  it('redirects to the selfie step when the selfie is missing', async () => {
     useVerificationStore.setState({
       selectedId: 'National ID (PhilSys/PhilID)',
       captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
     });
-    render(<Review />);
+    await render(<Review />);
 
     expect(mockReplace).toHaveBeenCalledWith('/(auth)/verify-account/upload-selfie');
   });
 
-  it('renders ID cards at ID proportions and the selfie card portrait', () => {
+  it('renders ID cards at ID proportions and the selfie card portrait', async () => {
     useVerificationStore.setState({ ...COMPLETE_STATE });
-    render(<Review />);
+    await render(<Review />);
 
     for (const label of ['ID Front photo', 'ID Back photo']) {
       const image = screen.getByLabelText(label);
@@ -171,35 +171,35 @@ describe('Review', () => {
     expect(selfieImage.props.style.aspectRatio).toBe(1);
   });
 
-  it('reopens live-capture for the tapped document', () => {
+  it('reopens live-capture for the tapped document', async () => {
     useVerificationStore.setState({ ...COMPLETE_STATE });
-    render(<Review />);
+    await render(<Review />);
 
     const retakeButtons = screen.getAllByText('Retake');
-    fireEvent.press(retakeButtons[0]);
+    await fireEvent.press(retakeButtons[0]);
 
     expect(mockPush).toHaveBeenCalledWith(
       '/(auth)/verify-account/live-capture?idType=National%20ID%20(PhilSys%2FPhilID)&stepId=front',
     );
   });
 
-  it('reopens the selfie camera from the selfie Retake action', () => {
+  it('reopens the selfie camera from the selfie Retake action', async () => {
     useVerificationStore.setState({ ...COMPLETE_STATE });
-    render(<Review />);
+    await render(<Review />);
 
     const retakeButtons = screen.getAllByText('Retake');
-    fireEvent.press(retakeButtons[retakeButtons.length - 1]);
+    await fireEvent.press(retakeButtons[retakeButtons.length - 1]);
 
     expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/live-capture?stepId=selfie');
   });
 
-  it('tapping a photo opens the fullscreen viewer on that photo', () => {
+  it('tapping a photo opens the fullscreen viewer on that photo', async () => {
     useVerificationStore.setState({ ...COMPLETE_STATE });
-    render(<Review />);
+    await render(<Review />);
 
     expect(screen.queryByTestId('image-viewer')).toBeNull();
 
-    fireEvent.press(screen.getByLabelText('View ID Back photo fullscreen'));
+    await fireEvent.press(screen.getByLabelText('View ID Back photo fullscreen'));
 
     expect(latestImageViewingProps.visible).toBe(true);
     expect(latestImageViewingProps.imageIndex).toBe(1);
@@ -211,32 +211,32 @@ describe('Review', () => {
     expect(screen.getByTestId('image-viewer')).toBeTruthy();
   });
 
-  it('tapping the selfie opens the viewer on the last photo', () => {
+  it('tapping the selfie opens the viewer on the last photo', async () => {
     useVerificationStore.setState({ ...COMPLETE_STATE });
-    render(<Review />);
+    await render(<Review />);
 
-    fireEvent.press(screen.getByLabelText('View Selfie holding your ID fullscreen'));
+    await fireEvent.press(screen.getByLabelText('View Selfie holding your ID fullscreen'));
 
     expect(latestImageViewingProps.visible).toBe(true);
     expect(latestImageViewingProps.imageIndex).toBe(2);
   });
 
-  it('closing the viewer dismisses it', () => {
+  it('closing the viewer dismisses it', async () => {
     useVerificationStore.setState({ ...COMPLETE_STATE });
-    render(<Review />);
+    await render(<Review />);
 
-    fireEvent.press(screen.getByLabelText('View ID Front photo fullscreen'));
+    await fireEvent.press(screen.getByLabelText('View ID Front photo fullscreen'));
     expect(screen.getByTestId('image-viewer')).toBeTruthy();
 
-    fireEvent.press(screen.getByTestId('image-viewer-close'));
+    await fireEvent.press(screen.getByTestId('image-viewer-close'));
     expect(screen.queryByTestId('image-viewer')).toBeNull();
   });
 
-  it('shows a retake hint instead of a blank card when a photo fails to load', () => {
+  it('shows a retake hint instead of a blank card when a photo fails to load', async () => {
     useVerificationStore.setState({ ...COMPLETE_STATE });
-    render(<Review />);
+    await render(<Review />);
 
-    fireEvent(screen.getByLabelText('ID Front photo'), 'error');
+    await fireEvent(screen.getByLabelText('ID Front photo'), 'error');
 
     expect(screen.getByText(/Photo couldn't load/i)).toBeTruthy();
     expect(screen.queryByLabelText('View ID Front photo fullscreen')).toBeNull();
@@ -245,16 +245,16 @@ describe('Review', () => {
 
   it('opens confirmation first and submits only after confirming', async () => {
     useVerificationStore.setState({ ...COMPLETE_STATE });
-    render(<Review />);
+    await render(<Review />);
 
-    fireEvent.press(screen.getByText('Submit for Verification'));
+    await fireEvent.press(screen.getByText('Submit for Verification'));
     expect(mockMutateAsync).not.toHaveBeenCalled();
 
     expect(screen.getByText('Submit for verification?')).toBeTruthy();
     expect(screen.getByText('Your required ID photos are ready.')).toBeTruthy();
     expect(screen.getByText('Your selfie is ready.')).toBeTruthy();
 
-    fireEvent.press(screen.getByText('Confirm & submit'));
+    await fireEvent.press(screen.getByText('Confirm & submit'));
 
     await waitFor(() => expect(mockMutateAsync).toHaveBeenCalledWith(BUILT_INPUT));
     expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/success');
@@ -262,12 +262,12 @@ describe('Review', () => {
 
   it('dismissing confirmation retains captures without submitting', async () => {
     useVerificationStore.setState({ ...COMPLETE_STATE });
-    render(<Review />);
+    await render(<Review />);
 
-    fireEvent.press(screen.getByText('Submit for Verification'));
+    await fireEvent.press(screen.getByText('Submit for Verification'));
     expect(screen.getByText('Submit for verification?')).toBeTruthy();
 
-    fireEvent.press(screen.getByText('Go back and review'));
+    await fireEvent.press(screen.getByText('Go back and review'));
 
     expect(mockMutateAsync).not.toHaveBeenCalled();
     expect(screen.queryByText('Submit for verification?')).toBeNull();
@@ -278,10 +278,10 @@ describe('Review', () => {
   it('shows the submission error without navigating when the upload fails', async () => {
     mockMutateAsync.mockRejectedValue(new Error('You already have a verification under review.'));
     useVerificationStore.setState({ ...COMPLETE_STATE });
-    render(<Review />);
+    await render(<Review />);
 
-    fireEvent.press(screen.getByText('Submit for Verification'));
-    fireEvent.press(screen.getByText('Confirm & submit'));
+    await fireEvent.press(screen.getByText('Submit for Verification'));
+    await fireEvent.press(screen.getByText('Confirm & submit'));
 
     await waitFor(() =>
       expect(

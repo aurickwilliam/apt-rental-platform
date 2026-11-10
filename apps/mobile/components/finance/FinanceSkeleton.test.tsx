@@ -50,8 +50,8 @@ const PAGE_CHROME = [
 ];
 
 describe("finance skeleton", () => {
-  test("renders the entry form and footer placeholders accessibly", () => {
-    const screen = render(
+  test("renders the entry form and footer placeholders accessibly", async () => {
+    const screen = await render(
       <>
         <EntryFormSkeleton
           label="Loading expense form"
@@ -71,8 +71,8 @@ describe("finance skeleton", () => {
     ).toBeTruthy();
     expect(screen.queryByTestId("expense-entry-skeleton")).toBeNull();
   });
-  test("the entry form skeleton carries the caller's label", () => {
-    const screen = render(
+  test("the entry form skeleton carries the caller's label", async () => {
+    const screen = await render(
       <EntryFormSkeleton
         label="Loading budget form"
         testID="budget-entry-skeleton"
@@ -88,8 +88,8 @@ describe("finance skeleton", () => {
 
   test.each(TABS)(
     "renders the %s layout with an accessible loading state",
-    (tab) => {
-      const screen = render(<FinanceSkeleton tab={tab} />);
+    async (tab) => {
+      const screen = await render(<FinanceSkeleton tab={tab} />);
       expect(screen.getByLabelText("Loading profit and planning")).toBeTruthy();
       expect(
         screen.getByRole("progressbar").props.accessibilityState.busy,
@@ -104,8 +104,8 @@ describe("finance skeleton", () => {
     },
   );
 
-  test.each(TABS)("the %s skeleton mirrors the loaded page", (tab) => {
-    const screen = render(<FinanceSkeleton tab={tab} />);
+  test.each(TABS)("the %s skeleton mirrors the loaded page", async (tab) => {
+    const screen = await render(<FinanceSkeleton tab={tab} />);
     for (const id of [...PAGE_CHROME, ...TAB_SECTIONS[tab]]) {
       expect(
         screen.getByTestId(id, { includeHiddenElements: true }),
@@ -121,8 +121,8 @@ describe("finance skeleton", () => {
     }
   });
 
-  test("the drill-down skeletons carry their own page shapes", () => {
-    const screen = render(
+  test("the drill-down skeletons carry their own page shapes", async () => {
+    const screen = await render(
       <>
         <PropertyPerformanceSkeleton />
         <ExpenseTransactionsSkeleton />

@@ -1,5 +1,6 @@
 import { Linking, StyleSheet } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { findAllInTree } from '../../../tests/support/testTraversal';
 
 import ChatBubble, { ChatBubbleContent } from './ChatBubble';
 
@@ -116,9 +117,9 @@ describe('ChatBubble video playback', () => {
     );
   });
 
-  it('retries a failed video attachment once without changing normal playback', () => {
+  it('retries a failed video attachment once without changing normal playback', async () => {
     const onMediaLoadError = jest.fn();
-    render(
+    await render(
       <ChatBubble
         message={null}
         messageType="video"
@@ -129,12 +130,12 @@ describe('ChatBubble video playback', () => {
       />
     );
 
-    fireEvent.press(screen.getByLabelText('Play video'));
+    await fireEvent.press(screen.getByLabelText('Play video'));
 
     expect(mockPlayer.play).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId('video-player')).toBeTruthy();
 
-    act(() => {
+    await act(() => {
       mockStatusChangeListener?.({ error: new Error('Signed URL expired') });
       mockStatusChangeListener?.({ error: new Error('Signed URL expired') });
     });
@@ -147,18 +148,18 @@ describe('ChatBubble video playback', () => {
 describe('ChatBubble received documents', () => {
   it('shows a filename and size and opens the private attachment', async () => {
     const open = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
-    render(<ChatBubble message={null} messageType="file" attachmentName="Lease.pdf" attachmentSize={2048} attachmentUrl="https://signed.example.test/lease.pdf" />);
+    await render(<ChatBubble message={null} messageType="file" attachmentName="Lease.pdf" attachmentSize={2048} attachmentUrl="https://signed.example.test/lease.pdf" />);
     expect(screen.getByText('Lease.pdf')).toBeTruthy();
     expect(screen.getByText('2 KB')).toBeTruthy();
-    await act(async () => fireEvent.press(screen.getByLabelText('Open Lease.pdf')));
+    await act(async () => await fireEvent.press(screen.getByLabelText('Open Lease.pdf')));
     expect(open).toHaveBeenCalledWith('https://signed.example.test/lease.pdf');
     open.mockRestore();
   });
 
-  it('does not open a document from the non-interactive floating preview', () => {
+  it('does not open a document from the non-interactive floating preview', async () => {
     const open = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
-    render(<ChatBubbleContent message={null} messageType="file" attachmentName="Lease.docx" attachmentUrl="https://signed.example.test/lease.docx" interactive={false} />);
-    fireEvent.press(screen.getByLabelText('Open Lease.docx'));
+    await render(<ChatBubbleContent message={null} messageType="file" attachmentName="Lease.docx" attachmentUrl="https://signed.example.test/lease.docx" interactive={false} />);
+    await fireEvent.press(screen.getByLabelText('Open Lease.docx'));
     expect(open).not.toHaveBeenCalled();
     open.mockRestore();
   });
@@ -169,8 +170,8 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     jest.clearAllMocks();
   });
 
-  it('renders a static text clone with reply quote and no menu handlers', () => {
-    render(
+  it('renders a static text clone with reply quote and no menu handlers', async () => {
+    await render(
       <ChatBubbleContent
         message="Hello preview"
         messageType="text"
@@ -186,8 +187,8 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     expect(screen.getByText('You replied to Ana')).toBeTruthy();
   });
 
-  it('labels a received reply with the other user name', () => {
-    render(
+  it('labels a received reply with the other user name', async () => {
+    await render(
       <ChatBubbleContent
         message="Got it"
         messageType="text"
@@ -202,8 +203,8 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     expect(screen.getByText('See you at 5?')).toBeTruthy();
   });
 
-  it('renders an icon tile for a quoted photo', () => {
-    render(
+  it('renders an icon tile for a quoted photo', async () => {
+    await render(
       <ChatBubbleContent
         message="Nice shot"
         messageType="text"
@@ -218,8 +219,8 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     expect(screen.getByText('Photo')).toBeTruthy();
   });
 
-  it('shows the quoted photo itself, dimmed, instead of an icon tile when its image is known', () => {
-    render(
+  it('shows the quoted photo itself, dimmed, instead of an icon tile when its image is known', async () => {
+    await render(
       <ChatBubbleContent
         message="And blazing"
         messageType="text"
@@ -242,8 +243,8 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     expect(screen.queryByText('Photo')).toBeNull();
   });
 
-  it('renders static video thumbnail without entering playback', () => {
-    render(
+  it('renders static video thumbnail without entering playback', async () => {
+    await render(
       <ChatBubbleContent
         message={null}
         messageType="video"
@@ -261,8 +262,8 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     expect(mockPlayer.play).not.toHaveBeenCalled();
   });
 
-  it('renders the broken-attachment placeholder statically', () => {
-    render(
+  it('renders the broken-attachment placeholder statically', async () => {
+    await render(
       <ChatBubbleContent
         message={null}
         messageType="image"
@@ -274,8 +275,8 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     expect(screen.getByText('Media unavailable')).toBeTruthy();
   });
 
-  it('renders the reaction badge at the bottom-right when reactions exist', () => {
-    render(
+  it('renders the reaction badge at the bottom-right when reactions exist', async () => {
+    await render(
       <ChatBubbleContent
         message="Hello"
         messageType="text"
@@ -293,8 +294,8 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     expect(screen.getByText('😂')).toBeTruthy();
   });
 
-  it('merges the same emoji from two people into one badge with a count', () => {
-    render(
+  it('merges the same emoji from two people into one badge with a count', async () => {
+    await render(
       <ChatBubbleContent
         message="Hello"
         messageType="text"
@@ -312,8 +313,8 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     expect(screen.getByLabelText('Reactions: 👍 2')).toBeTruthy();
   });
 
-  it('renders no badge when there are no reactions', () => {
-    render(
+  it('renders no badge when there are no reactions', async () => {
+    await render(
       <ChatBubbleContent
         message="Hello"
         messageType="text"
@@ -326,11 +327,11 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     expect(screen.queryByLabelText(/Reactions:/)).toBeNull();
   });
 
-  it('plays video on a single tap after the double-tap window when reactions are enabled', () => {
+  it('plays video on a single tap after the double-tap window when reactions are enabled', async () => {
     jest.useFakeTimers();
     jest.setSystemTime(1_000_000_000);
     try {
-      render(
+      await render(
         <ChatBubble
           message={null}
           messageType="video"
@@ -341,8 +342,8 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
         />
       );
 
-      fireEvent.press(screen.getByLabelText('Play video'));
-      act(() => {
+      await fireEvent.press(screen.getByLabelText('Play video'));
+      await act(() => {
         jest.advanceTimersByTime(350);
       });
 
@@ -352,9 +353,9 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     }
   });
 
-  it('toggles a heart on double-tap', () => {
+  it('toggles a heart on double-tap', async () => {
     const onReact = jest.fn();
-    render(
+    await render(
       <ChatBubble
         message="Double tap me"
         messageType="text"
@@ -363,15 +364,16 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
       />
     );
 
-    const pressable = screen.UNSAFE_getByProps({ delayLongPress: 350 });
-    fireEvent.press(pressable);
-    fireEvent.press(pressable);
+    // Events bubble from the text up to the row's Pressable.
+    const pressable = screen.getByText('Double tap me');
+    await fireEvent.press(pressable);
+    await fireEvent.press(pressable);
 
     expect(onReact).toHaveBeenCalledTimes(1);
     expect(onReact).toHaveBeenCalledWith('❤️');
   });
 
-  it('reports the hold with the measured window anchor', () => {
+  it('reports the hold with the measured window anchor', async () => {
     // The row measures itself via View.prototype.measureInWindow.
     const { View } = jest.requireActual<typeof import('react-native')>('react-native');
     const spy = jest
@@ -385,7 +387,7 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     try {
       const onHold = jest.fn();
       const onMenuOpenChange = jest.fn();
-      render(
+      await render(
         <ChatBubble
           message="Hold me"
           messageType="text"
@@ -395,8 +397,8 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
         />
       );
 
-      const pressable = screen.UNSAFE_getByProps({ delayLongPress: 350 });
-      fireEvent(pressable, 'longPress');
+      const pressable = screen.getByText('Hold me');
+      await fireEvent(pressable, 'longPress');
 
       expect(onHold).toHaveBeenCalledTimes(1);
       expect(onHold).toHaveBeenCalledWith({ pageX: 24, pageY: 250, width: 120, height: 60 });
@@ -406,11 +408,11 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     }
   });
 
-  it('never reports a hold on single tap', () => {
+  it('never reports a hold on single tap', async () => {
     jest.useFakeTimers();
     try {
       const onHold = jest.fn();
-      render(
+      await render(
         <ChatBubble
           message="Tap me"
           messageType="text"
@@ -420,8 +422,8 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
         />
       );
 
-      fireEvent.press(screen.UNSAFE_getByProps({ delayLongPress: 350 }));
-      act(() => {
+      await fireEvent.press(screen.getByText('Tap me'));
+      await act(() => {
         jest.advanceTimersByTime(350);
       });
 
@@ -431,58 +433,58 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
     }
   });
 
-  it('hides the row (layout kept) while its elevated clone shows', () => {
-    const { rerender } = render(
+  it('hides the row (layout kept) while its elevated clone shows', async () => {
+    const { rerender } = await render(
       <ChatBubble message="Hold me" messageType="text" isSent />
     );
 
-    const row = screen.UNSAFE_getByProps({ collapsable: false });
+    const row = findAllInTree(screen.root!, (node) => node.props.collapsable === false)[0];
     expect(row.props.className).not.toMatch('opacity-0');
 
-    rerender(<ChatBubble message="Hold me" messageType="text" isSent hidden />);
+    await rerender(<ChatBubble message="Hold me" messageType="text" isSent hidden />);
 
     // Same single bubble, now transparent — the overlay clone takes over.
-    expect(screen.UNSAFE_getByProps({ collapsable: false }).props.className).toMatch(
+    expect(findAllInTree(screen.root!, (node) => node.props.collapsable === false)[0].props.className).toMatch(
       'opacity-0'
     );
     expect(screen.getByText('Hold me')).toBeTruthy();
   });
 
-  it('offers a Reply accessibility action that starts a reply', () => {
+  it('offers a Reply accessibility action that starts a reply', async () => {
     const onReply = jest.fn();
-    render(<ChatBubble message="Reply to me" messageType="text" onReply={onReply} />);
+    await render(<ChatBubble message="Reply to me" messageType="text" onReply={onReply} />);
 
-    const row = screen.UNSAFE_getByProps({ delayLongPress: 350 });
+    const row = findAllInTree(screen.root!, (node) => node.props.accessibilityActions !== undefined)[0];
     expect(row.props.accessibilityActions).toEqual([{ name: 'reply', label: 'Reply' }]);
 
-    fireEvent(row, 'accessibilityAction', { nativeEvent: { actionName: 'reply' } });
+    await fireEvent(row, 'accessibilityAction', { nativeEvent: { actionName: 'reply' } });
     expect(onReply).toHaveBeenCalledTimes(1);
   });
 
-  it('offers no Reply action while the message is still sending', () => {
-    render(
+  it('offers no Reply action while the message is still sending', async () => {
+    await render(
       <ChatBubble message="Sending" messageType="text" isPending onReply={jest.fn()} />
     );
 
     expect(
-      screen.UNSAFE_getByProps({ delayLongPress: 350 }).props.accessibilityActions
-    ).toBeUndefined();
+      findAllInTree(screen.root!, (node) => node.props.accessibilityActions !== undefined)
+    ).toHaveLength(0);
   });
 
-  it("shows the sender's avatar only where asked, and never on sent bubbles", () => {
-    const { rerender } = render(
+  it("shows the sender's avatar only where asked, and never on sent bubbles", async () => {
+    const { rerender } = await render(
       <ChatBubble message="Hi" messageType="text" showSenderAvatar />
     );
     expect(screen.getByTestId('sender-avatar')).toBeTruthy();
 
-    rerender(<ChatBubble message="Hi" messageType="text" />);
+    await rerender(<ChatBubble message="Hi" messageType="text" />);
     expect(screen.queryByTestId('sender-avatar')).toBeNull();
 
-    rerender(<ChatBubble message="Hi" messageType="text" isSent showSenderAvatar />);
+    await rerender(<ChatBubble message="Hi" messageType="text" isSent showSenderAvatar />);
     expect(screen.queryByTestId('sender-avatar')).toBeNull();
   });
 
-  it('shrinks the corners where same-sender bubbles meet', () => {
+  it('shrinks the corners where same-sender bubbles meet', async () => {
     // The text bubble is the nearest ancestor with an explicit corner radius.
     const bubbleCorners = (text: string) => {
       let node = screen.getByText(text).parent;
@@ -494,40 +496,40 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
       return {};
     };
 
-    const { rerender } = render(
+    const { rerender } = await render(
       <ChatBubbleContent message="Middle" messageType="text" isSent groupPosition="middle" />
     );
-    expect(bubbleCorners('Middle')).toMatchObject({
+    expect(await bubbleCorners('Middle')).toMatchObject({
       borderTopRightRadius: 6,
       borderBottomRightRadius: 6,
     });
 
-    rerender(<ChatBubbleContent message="Top" messageType="text" groupPosition="first" />);
-    expect(bubbleCorners('Top')).toMatchObject({
+    await rerender(<ChatBubbleContent message="Top" messageType="text" groupPosition="first" />);
+    expect(await bubbleCorners('Top')).toMatchObject({
       borderTopLeftRadius: 24,
       borderBottomLeftRadius: 6,
     });
 
-    rerender(<ChatBubbleContent message="Alone" messageType="text" isSent />);
-    expect(bubbleCorners('Alone')).toMatchObject({
+    await rerender(<ChatBubbleContent message="Alone" messageType="text" isSent />);
+    expect(await bubbleCorners('Alone')).toMatchObject({
       borderTopRightRadius: 24,
       borderBottomRightRadius: 24,
     });
   });
 
-  it('shows the Seen avatar only on the bubble that asks for it', () => {
-    const { rerender } = render(<ChatBubble message="Sent" messageType="text" isSent showSeen />);
+  it('shows the Seen avatar only on the bubble that asks for it', async () => {
+    const { rerender } = await render(<ChatBubble message="Sent" messageType="text" isSent showSeen />);
     expect(screen.getByTestId('seen-avatar')).toBeTruthy();
 
-    rerender(<ChatBubble message="Sent" messageType="text" isSent />);
+    await rerender(<ChatBubble message="Sent" messageType="text" isSent />);
     expect(screen.queryByTestId('seen-avatar')).toBeNull();
   });
 
-  it('moves the Seen avatar below a reaction badge so the two never overlap', () => {
-    const { rerender } = render(<ChatBubble message="Sent" messageType="text" isSent showSeen />);
+  it('moves the Seen avatar below a reaction badge so the two never overlap', async () => {
+    const { rerender } = await render(<ChatBubble message="Sent" messageType="text" isSent showSeen />);
     expect(screen.getByTestId('seen-avatar').props.accessibilityLabel).toBe('plain');
 
-    rerender(
+    await rerender(
       <ChatBubble
         message="Sent"
         messageType="text"
@@ -541,9 +543,9 @@ describe('ChatBubbleContent floating preview (above blur)', () => {
 });
 
 describe('ChatBubble reply navigation', () => {
-  it('jumps to the original when the quote above a reply is tapped', () => {
+  it('jumps to the original when the quote above a reply is tapped', async () => {
     const onJumpToReply = jest.fn();
-    render(
+    await render(
       <ChatBubbleContent
         message="Got it"
         messageType="text"
@@ -553,12 +555,12 @@ describe('ChatBubble reply navigation', () => {
       />
     );
 
-    fireEvent.press(screen.getByLabelText('Jump to original message'));
+    await fireEvent.press(screen.getByLabelText('Jump to original message'));
     expect(onJumpToReply).toHaveBeenCalledWith('orig-1');
   });
 
-  it('has no jump target for a plain message or when navigation is off', () => {
-    render(<ChatBubbleContent message="Hi" messageType="text" isSent onJumpToReply={jest.fn()} />);
+  it('has no jump target for a plain message or when navigation is off', async () => {
+    await render(<ChatBubbleContent message="Hi" messageType="text" isSent onJumpToReply={jest.fn()} />);
     expect(screen.queryByLabelText('Jump to original message')).toBeNull();
   });
 });

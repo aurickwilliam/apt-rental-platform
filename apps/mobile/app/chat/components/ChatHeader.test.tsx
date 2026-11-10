@@ -27,7 +27,9 @@ jest.mock('heroui-native', () => {
     ({ children }: MockProps) => React.createElement(View, null, children),
     {
       Image: () => null,
-      Fallback: ({ children }: MockProps) => React.createElement(View, null, children),
+      // Real Avatar.Fallback wraps its initials in a Text node — a raw string
+      // breaks RN's text-in-Text rule under the v14 test renderer.
+      Fallback: ({ children }: MockProps) => React.createElement(Text, null, children),
     }
   );
   const ButtonMock = Object.assign(
@@ -49,16 +51,16 @@ jest.mock('@tabler/icons-react-native', () => {
 });
 
 describe('ChatHeader', () => {
-  it('opens the other person\'s profile when the title is tapped', () => {
+  it('opens the other person\'s profile when the title is tapped', async () => {
     const onViewProfile = jest.fn();
-    render(<ChatHeader name="Case Oh" apartmentTitle="Parada 3BR" onViewProfile={onViewProfile} />);
+    await render(<ChatHeader name="Case Oh" apartmentTitle="Parada 3BR" onViewProfile={onViewProfile} />);
 
-    fireEvent.press(screen.getByLabelText("View Case Oh's profile"));
+    await fireEvent.press(screen.getByLabelText("View Case Oh's profile"));
     expect(onViewProfile).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the name and apartment title without a profile control when no route is available', () => {
-    render(<ChatHeader name="Case Oh" apartmentTitle="Parada 3BR" />);
+  it('shows the name and apartment title without a profile control when no route is available', async () => {
+    await render(<ChatHeader name="Case Oh" apartmentTitle="Parada 3BR" />);
 
     expect(screen.queryByLabelText("View Case Oh's profile")).toBeNull();
     expect(screen.getByText('Case Oh')).toBeTruthy();

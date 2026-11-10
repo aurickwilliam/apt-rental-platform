@@ -78,8 +78,8 @@ describe('Success', () => {
     return preventDefault;
   }
 
-  it('renders the submitted state and resets the verification session on mount', () => {
-    render(<Success />);
+  it('renders the submitted state and resets the verification session on mount', async () => {
+    await render(<Success />);
 
     expect(screen.getByText('Verification Submitted')).toBeTruthy();
     expect(screen.getByText('Go to Profile')).toBeTruthy();
@@ -88,8 +88,8 @@ describe('Success', () => {
     );
   });
 
-  it('blocks back navigation while on the terminal screen', () => {
-    render(<Success />);
+  it('blocks back navigation while on the terminal screen', async () => {
+    await render(<Success />);
 
     expect(mockAddListener).toHaveBeenCalledWith('beforeRemove', expect.any(Function));
 
@@ -97,10 +97,10 @@ describe('Success', () => {
     expect(preventDefault).toHaveBeenCalledTimes(1);
   });
 
-  it('routes tenants to the tenant profile and allows leaving', () => {
-    render(<Success />);
+  it('routes tenants to the tenant profile and allows leaving', async () => {
+    await render(<Success />);
 
-    fireEvent.press(screen.getByText('Go to Profile'));
+    await fireEvent.press(screen.getByText('Go to Profile'));
 
     expect(mockReplace).toHaveBeenCalledWith('/(tabs)/(tenant)/profile');
 
@@ -108,20 +108,20 @@ describe('Success', () => {
     expect(preventDefault).not.toHaveBeenCalled();
   });
 
-  it('routes landlords to the landlord profile', () => {
+  it('routes landlords to the landlord profile', async () => {
     mockProfile = { roles: ['landlord'] };
-    render(<Success />);
+    await render(<Success />);
 
-    fireEvent.press(screen.getByText('Go to Profile'));
+    await fireEvent.press(screen.getByText('Go to Profile'));
 
     expect(mockReplace).toHaveBeenCalledWith('/(tabs)/(landlord)/profile');
   });
 
-  it('uses the active portal for a dual-role user', () => {
+  it('uses the active portal for a dual-role user', async () => {
     mockProfile = { roles: ['landlord', 'tenant'] };
     mockPortal = 'tenant';
-    render(<Success />);
-    fireEvent.press(screen.getByText('Go to Profile'));
+    await render(<Success />);
+    await fireEvent.press(screen.getByText('Go to Profile'));
     expect(mockReplace).toHaveBeenCalledWith('/(tabs)/(tenant)/profile');
   });
 });
