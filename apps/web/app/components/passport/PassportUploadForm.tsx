@@ -57,6 +57,11 @@ export default function PassportUploadForm({
   const [isLegalOpen, setIsLegalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  const safePreviewUrl = useMemo(() => {
+    if (!previewUrl) return null;
+    return previewUrl.startsWith("blob:") ? previewUrl : null;
+  }, [previewUrl]);
+
   const expiryError = validateExpiry(expiresAt);
 
   // Object URLs hold the file in memory until revoked.
@@ -141,13 +146,13 @@ export default function PassportUploadForm({
                     : "border-border text-muted-foreground hover:border-primary hover:bg-accent"
               }`}
             >
-              {file && previewUrl && isImageDocument(file.type, file.name) ? (
+              {file && safePreviewUrl && isImageDocument(file.type, file.name) ? (
                 // Local object URL preview; next/image cannot load blob: URLs.
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={previewUrl} alt={`${docType} preview`} className="absolute inset-0 size-full object-contain" />
-              ) : file && previewUrl && isPdfDocument(file.type, file.name) ? (
+                <img src={safePreviewUrl} alt={`${docType} preview`} className="absolute inset-0 size-full object-contain" />
+              ) : file && safePreviewUrl && isPdfDocument(file.type, file.name) ? (
                 <PdfThumbnail
-                  url={previewUrl}
+                  url={safePreviewUrl}
                   cacheKey={`local:${file.name}:${file.size}:${file.lastModified}`}
                   alt={`${docType} preview`}
                   fit="contain"
