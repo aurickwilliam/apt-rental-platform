@@ -41,7 +41,7 @@ const props = {
 const picked = { canceled: false, assets: [{ uri: "file:///lease.pdf", name: "lease.pdf", mimeType: "application/pdf" }] };
 
 async function selectFile() {
-  fireEvent.press(screen.getByLabelText("Choose a signed lease file"));
+  await fireEvent.press(screen.getByLabelText("Choose a signed lease file"));
   await waitFor(() => expect(screen.getByText("lease.pdf")).toBeTruthy());
 }
 
@@ -56,41 +56,41 @@ beforeEach(() => {
 });
 
 it("renders missing/pending/confirmed states and views the saved contract", async () => {
-  const { rerender } = render(<LandlordSignedLeaseCard {...props} />);
+  const { rerender } = await render(<LandlordSignedLeaseCard {...props} />);
   expect(screen.getByText("Not uploaded")).toBeTruthy();
-  fireEvent.press(screen.getByText("View"));
+  await fireEvent.press(screen.getByText("View"));
   expect(mockView).not.toHaveBeenCalled();
-  rerender(<LandlordSignedLeaseCard {...props} path="tenancy-1/lease.pdf" uploadedAt="2026-11-01" />);
+  await rerender(<LandlordSignedLeaseCard {...props} path="tenancy-1/lease.pdf" uploadedAt="2026-11-01" />);
   expect(screen.getByText("Awaiting tenant")).toBeTruthy();
-  fireEvent.press(screen.getByText("View"));
+  await fireEvent.press(screen.getByText("View"));
   await waitFor(() => expect(mockView).toHaveBeenCalledWith("tenancy-1/lease.pdf", expect.any(Function)));
-  rerender(<LandlordSignedLeaseCard {...props} path="tenancy-1/lease.pdf" acknowledgedAt="2026-11-02" />);
+  await rerender(<LandlordSignedLeaseCard {...props} path="tenancy-1/lease.pdf" acknowledgedAt="2026-11-02" />);
   expect(screen.getByText("Confirmed")).toBeTruthy();
   expect(screen.getByText(/Confirmed by the tenant/)).toBeTruthy();
 });
 
 it("uploads only after selection, refreshes, and clears drafts on reopening", async () => {
-  render(<LandlordSignedLeaseCard {...props} />);
-  fireEvent.press(screen.getByText("Upload"));
-  fireEvent.press(screen.getByText("Upload file"));
+  await render(<LandlordSignedLeaseCard {...props} />);
+  await fireEvent.press(screen.getByText("Upload"));
+  await fireEvent.press(screen.getByText("Upload file"));
   expect(mockUpload).not.toHaveBeenCalled();
   await selectFile();
-  fireEvent.press(screen.getByText("Upload file"));
+  await fireEvent.press(screen.getByText("Upload file"));
   await waitFor(() => expect(mockToast).toHaveBeenCalledWith({ variant: "success", label: "Signed lease saved" }));
   expect(mockUpload).toHaveBeenCalledWith(expect.objectContaining({ tenancyId: "tenancy-1", previousPath: null, asset: expect.objectContaining(picked.assets[0]) }));
   expect(props.onSaved).toHaveBeenCalledTimes(1);
-  fireEvent.press(screen.getByText("Upload"));
+  await fireEvent.press(screen.getByText("Upload"));
   expect(screen.queryByText("lease.pdf")).toBeNull();
 });
 
 it("shows the replacement warning and preserves the selection after a refused save", async () => {
   const log = jest.spyOn(console, "error").mockImplementation(() => {});
   mockUpload.mockRejectedValue(new Error("Only the landlord can save a signed lease."));
-  render(<LandlordSignedLeaseCard {...props} path="tenancy-1/old.pdf" />);
-  fireEvent.press(screen.getByText("Replace"));
+  await render(<LandlordSignedLeaseCard {...props} path="tenancy-1/old.pdf" />);
+  await fireEvent.press(screen.getByText("Replace"));
   expect(screen.getByText(/asks the tenant to confirm the new one/)).toBeTruthy();
   await selectFile();
-  fireEvent.press(screen.getByText("Replace file"));
+  await fireEvent.press(screen.getByText("Replace file"));
   await waitFor(() => expect(screen.getByText("Only the landlord can save a signed lease.")).toBeTruthy());
   expect(screen.getByText("lease.pdf")).toBeTruthy();
   expect(props.onSaved).not.toHaveBeenCalled();
@@ -100,13 +100,13 @@ it("shows the replacement warning and preserves the selection after a refused sa
 it("blocks dismissal and duplicate submissions while saving", async () => {
   let finish!: () => void;
   mockUpload.mockReturnValue(new Promise<void>((resolve) => { finish = resolve; }));
-  render(<LandlordSignedLeaseCard {...props} />);
-  fireEvent.press(screen.getByText("Upload"));
+  await render(<LandlordSignedLeaseCard {...props} />);
+  await fireEvent.press(screen.getByText("Upload"));
   await selectFile();
-  fireEvent.press(screen.getByText("Upload file"));
-  fireEvent.press(screen.getByText("Upload file"));
-  fireEvent.press(screen.getByText("Cancel"));
-  fireEvent.press(screen.getByLabelText("Dismiss dialog"));
+  await fireEvent.press(screen.getByText("Upload file"));
+  await fireEvent.press(screen.getByText("Upload file"));
+  await fireEvent.press(screen.getByText("Cancel"));
+  await fireEvent.press(screen.getByLabelText("Dismiss dialog"));
   expect(screen.getByText("Upload Signed Lease")).toBeTruthy();
   expect(mockUpload).toHaveBeenCalledTimes(1);
   await act(async () => finish());
@@ -114,31 +114,31 @@ it("blocks dismissal and duplicate submissions while saving", async () => {
 });
 
 it("treats picker cancellation as a no-op and invalid replacements clear the selection", async () => {
-  render(<LandlordSignedLeaseCard {...props} />);
-  fireEvent.press(screen.getByText("Upload"));
+  await render(<LandlordSignedLeaseCard {...props} />);
+  await fireEvent.press(screen.getByText("Upload"));
   await selectFile();
   mockPick.mockResolvedValueOnce({ canceled: true });
-  fireEvent.press(screen.getByLabelText("Choose a signed lease file"));
+  await fireEvent.press(screen.getByLabelText("Choose a signed lease file"));
   await waitFor(() => expect(mockPick).toHaveBeenCalledTimes(2));
   expect(screen.getByText("lease.pdf")).toBeTruthy();
   await act(async () => {});
   mockSize = 11 * 1024 * 1024;
-  fireEvent.press(screen.getByLabelText("Choose a signed lease file"));
+  await fireEvent.press(screen.getByLabelText("Choose a signed lease file"));
   await waitFor(() => expect(screen.getByText("Files must be 10 MB or smaller.")).toBeTruthy());
   expect(screen.queryByText("lease.pdf")).toBeNull();
-  fireEvent.press(screen.getByText("Upload file"));
+  await fireEvent.press(screen.getByText("Upload file"));
   expect(mockUpload).not.toHaveBeenCalled();
 });
 
 it("retries only refresh when the file saved but reconciliation failed", async () => {
   const log = jest.spyOn(console, "error").mockImplementation(() => {});
   props.onSaved.mockRejectedValueOnce(new Error("offline"));
-  render(<LandlordSignedLeaseCard {...props} />);
-  fireEvent.press(screen.getByText("Upload"));
+  await render(<LandlordSignedLeaseCard {...props} />);
+  await fireEvent.press(screen.getByText("Upload"));
   await selectFile();
-  fireEvent.press(screen.getByText("Upload file"));
+  await fireEvent.press(screen.getByText("Upload file"));
   await waitFor(() => expect(screen.getByText(/The signed lease was saved/)).toBeTruthy());
-  fireEvent.press(screen.getByText("Retry refresh"));
+  await fireEvent.press(screen.getByText("Retry refresh"));
   await waitFor(() => expect(mockToast).toHaveBeenCalled());
   expect(mockUpload).toHaveBeenCalledTimes(1);
   expect(props.onSaved).toHaveBeenCalledTimes(2);
@@ -148,12 +148,12 @@ it("retries only refresh when the file saved but reconciliation failed", async (
 it("rejects late account callbacks and never refreshes or toasts for them", async () => {
   let finish!: () => void;
   mockUpload.mockReturnValue(new Promise<void>((resolve) => { finish = resolve; }));
-  const { unmount } = render(<LandlordSignedLeaseCard {...props} />);
-  fireEvent.press(screen.getByText("Upload"));
+  const { unmount } = await render(<LandlordSignedLeaseCard {...props} />);
+  await fireEvent.press(screen.getByText("Upload"));
   await selectFile();
-  fireEvent.press(screen.getByText("Upload file"));
+  await fireEvent.press(screen.getByText("Upload file"));
   mockCurrent = false;
-  unmount();
+  await unmount();
   await act(async () => finish());
   expect(props.onSaved).not.toHaveBeenCalled();
   expect(mockToast).not.toHaveBeenCalled();

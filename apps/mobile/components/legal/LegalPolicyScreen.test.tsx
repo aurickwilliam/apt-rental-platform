@@ -43,14 +43,14 @@ beforeEach(() => {
 
 afterEach(() => jest.restoreAllMocks());
 
-const scrollTo = (y: number) => fireEvent.scroll(screen.getByTestId("policy-scroll"), { nativeEvent: { contentOffset: { x: 0, y } } });
+const scrollTo = async (y: number) => await fireEvent.scroll(screen.getByTestId("policy-scroll"), { nativeEvent: { contentOffset: { x: 0, y } } });
 
 describe.each([
   { name: "Terms", Component: TermsScreen, policy: TERMS_POLICY },
   { name: "Privacy", Component: PrivacyPolicyScreen, policy: PRIVACY_POLICY },
 ])("$name screen", ({ Component, policy }) => {
-  it("renders all policy text, headings, metadata and callouts without a contact section", () => {
-    render(<Component />);
+  it("renders all policy text, headings, metadata and callouts without a contact section", async () => {
+    await render(<Component />);
     expect(screen.getByText(policy.title)).toBeTruthy();
     expect(screen.getByText(`Last updated: ${policy.lastUpdated}`)).toBeTruthy();
     expect(screen.getByText(`Version ${policy.version} · ${policy.jurisdiction}`)).toBeTruthy();
@@ -80,36 +80,36 @@ describe.each([
     expect(screen.queryByText(/June 2025|support@apt\.com|maximum of 12 months/)).toBeNull();
   });
 
-  it("shows Back to top after any downward scroll, outside the scroller and clear of the safe area", () => {
-    render(<Component />);
+  it("shows Back to top after any downward scroll, outside the scroller and clear of the safe area", async () => {
+    await render(<Component />);
     expect(screen.queryByRole("button", { name: "Back to top" })).toBeNull();
-    scrollTo(1);
+    await scrollTo(1);
     expect(screen.getByRole("button", { name: "Back to top" })).toBeTruthy();
     expect(within(screen.getByTestId("policy-scroll")).queryByRole("button", { name: "Back to top" })).toBeNull();
     expect(screen.getByTestId("policy-back-to-top").props.style).toEqual({ bottom: 50, right: 22 });
     expect(screen.getByTestId("policy-scroll").props.contentContainerStyle.paddingBottom).toBeGreaterThanOrEqual(76);
-    scrollTo(600);
+    await scrollTo(600);
     expect(screen.getByRole("button", { name: "Back to top" })).toBeTruthy();
-    scrollTo(0);
+    await scrollTo(0);
     expect(screen.queryByRole("button", { name: "Back to top" })).toBeNull();
-    scrollTo(-10);
+    await scrollTo(-10);
     expect(screen.queryByRole("button", { name: "Back to top" })).toBeNull();
   });
 
   it.each([false, true])("scrolls its own ScreenWrapper to the top with reduced motion %s", async (reducedMotion) => {
     jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(reducedMotion);
-    render(<Component />);
-    scrollTo(300);
-    await act(async () => fireEvent.press(screen.getByRole("button", { name: "Back to top" })));
+    await render(<Component />);
+    await scrollTo(300);
+    await act(async () => await fireEvent.press(screen.getByRole("button", { name: "Back to top" })));
     expect(mockScrollTo).toHaveBeenCalledWith({ x: 0, y: 0, animated: !reducedMotion });
   });
 
   it("falls back to an unanimated scroll if the motion preference cannot be read", async () => {
     jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockRejectedValue(new Error("Unavailable"));
     const warning = jest.spyOn(console, "warn").mockImplementation(() => {});
-    render(<Component />);
-    scrollTo(200);
-    await act(async () => fireEvent.press(screen.getByRole("button", { name: "Back to top" })));
+    await render(<Component />);
+    await scrollTo(200);
+    await act(async () => await fireEvent.press(screen.getByRole("button", { name: "Back to top" })));
     expect(mockScrollTo).toHaveBeenCalledWith({ x: 0, y: 0, animated: false });
     expect(warning).toHaveBeenCalled();
   });
@@ -117,11 +117,15 @@ describe.each([
   it("does not scroll after the reader unmounts while the motion preference is pending", async () => {
     let resolvePreference!: (value: boolean) => void;
     jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockReturnValue(new Promise(resolve => { resolvePreference = resolve; }));
-    const { unmount } = render(<Component />);
-    scrollTo(200);
-    fireEvent.press(screen.getByRole("button", { name: "Back to top" }));
-    unmount();
+    const { unmount } = await render(<Component />);
+    await scrollTo(200);
+    // `await fireEvent.press` resolves with the handler's own promise, which waits on the
+    // motion preference. Let the event's act scope close before unmounting the reader.
+    const backPress = fireEvent.press(screen.getByRole("button", { name: "Back to top" }));
+    await new Promise(resolve => setTimeout(resolve, 0));
+    await unmount();
     await act(async () => resolvePreference(false));
+    await backPress;
     expect(mockScrollTo).not.toHaveBeenCalled();
   });
 });

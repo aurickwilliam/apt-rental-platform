@@ -111,7 +111,7 @@ beforeEach(() => {
 describe("useLatestVerification", () => {
   it("reads the current user's latest verification on a stable identity key", async () => {
     const { client, QueryWrapper } = createWrapper();
-    const { result, unmount } = renderHook(() => useLatestVerification(), {
+    const { result, unmount } = await renderHook(() => useLatestVerification(), {
       wrapper: QueryWrapper,
     });
 
@@ -124,21 +124,21 @@ describe("useLatestVerification", () => {
       client.getQueryData(getUserVerificationQueryKey("user-1")),
     ).toEqual(verificationRow);
 
-    unmount();
+    await unmount();
     client.clear();
   });
 
   it("surfaces a read error without data", async () => {
     const { client, QueryWrapper } = createWrapper();
     mockFetchLatestVerification.mockRejectedValue(new Error("read boom"));
-    const { result, unmount } = renderHook(() => useLatestVerification(), {
+    const { result, unmount } = await renderHook(() => useLatestVerification(), {
       wrapper: QueryWrapper,
     });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.data).toBeUndefined();
 
-    unmount();
+    await unmount();
     client.clear();
   });
 });
@@ -146,7 +146,7 @@ describe("useLatestVerification", () => {
 describe("useSubmitVerification", () => {
   it("submits and refreshes the verification read after success", async () => {
     const { client, QueryWrapper } = createWrapper();
-    const latest = renderHook(() => useLatestVerification(), {
+    const latest = await renderHook(() => useLatestVerification(), {
       wrapper: QueryWrapper,
     });
     await waitFor(() =>
@@ -154,7 +154,7 @@ describe("useSubmitVerification", () => {
     );
     expect(mockFetchLatestVerification).toHaveBeenCalledTimes(1);
 
-    const submitter = renderHook(() => useSubmitVerification(), {
+    const submitter = await renderHook(() => useSubmitVerification(), {
       wrapper: QueryWrapper,
     });
 
@@ -169,8 +169,8 @@ describe("useSubmitVerification", () => {
       expect(mockFetchLatestVerification.mock.calls.length).toBeGreaterThan(1),
     );
 
-    latest.unmount();
-    submitter.unmount();
+    await latest.unmount();
+    await submitter.unmount();
     client.clear();
   });
 
@@ -179,7 +179,7 @@ describe("useSubmitVerification", () => {
     mockSubmitVerification.mockRejectedValue(
       new Error("You already have a verification under review."),
     );
-    const { result, unmount } = renderHook(() => useSubmitVerification(), {
+    const { result, unmount } = await renderHook(() => useSubmitVerification(), {
       wrapper: QueryWrapper,
     });
 
@@ -194,7 +194,7 @@ describe("useSubmitVerification", () => {
 
     expect(message).toBe("You already have a verification under review.");
 
-    unmount();
+    await unmount();
     client.clear();
   });
 });

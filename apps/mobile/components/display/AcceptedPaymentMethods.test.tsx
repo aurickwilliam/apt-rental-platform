@@ -6,8 +6,8 @@ jest.mock("@/components/display/PaymentMethodChip", () => {
   return { __esModule: true, default: ({ method }: { method: string }) => <Text>{`chip:${method}`}</Text> };
 });
 
-it("lists the methods the landlord accepts with a note that the landlord set them", () => {
-  render(<AcceptedPaymentMethods methods={["GCash", "Cash"]} />);
+it("lists the methods the landlord accepts with a note that the landlord set them", async () => {
+  await render(<AcceptedPaymentMethods methods={["GCash", "Cash"]} />);
   expect(screen.getByText("Accepted payment methods")).toBeTruthy();
   expect(screen.getByText("chip:GCash")).toBeTruthy();
   expect(screen.getByText("chip:Cash")).toBeTruthy();
@@ -15,12 +15,12 @@ it("lists the methods the landlord accepts with a note that the landlord set the
   expect(screen.getByText("Set by the landlord. You choose one when you pay your rent. Have a preferred method? Message the landlord first to agree on it.")).toBeTruthy();
 });
 
-it("shows nothing while the methods are unknown or unavailable", () => {
-  const { rerender } = render(<AcceptedPaymentMethods methods={undefined} />);
+it("shows nothing while the methods are unknown or unavailable", async () => {
+  const { rerender } = await render(<AcceptedPaymentMethods methods={undefined} />);
   expect(screen.queryByText("Accepted payment methods")).toBeNull();
-  rerender(<AcceptedPaymentMethods methods={null} />);
+  await rerender(<AcceptedPaymentMethods methods={null} />);
   expect(screen.queryByText("Accepted payment methods")).toBeNull();
-  rerender(<AcceptedPaymentMethods methods={[]} />);
+  await rerender(<AcceptedPaymentMethods methods={[]} />);
   expect(screen.queryByText("Accepted payment methods")).toBeNull();
   expect(screen.queryByText(/Set by the landlord/)).toBeNull();
 });

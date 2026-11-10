@@ -17,7 +17,7 @@ it("invalidates exact review caches on success without touching another account"
   const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
   usePortalStore.setState({ authUserId: "auth-a", portal: "tenant", loading: false });
   mockSingle.mockResolvedValue({ data: { id: "review-a", apartment_id: "apartment-a" }, error: null });
-  const { result, unmount } = renderHook(useSubmitReview, { wrapper });
+  const { result, unmount } = await renderHook(useSubmitReview, { wrapper });
   await act(async () => {
     expect(await result.current.submitReview({ tenancyId: "stay-a", rating: 5, comment: "Good", stayedDate: "2026-10-24" })).toEqual({ success: true });
   });
@@ -30,9 +30,9 @@ it("invalidates exact review caches on success without touching another account"
   let finish!: (result: unknown) => void;
   mockSingle.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
   let pending!: ReturnType<typeof result.current.submitReview>;
-  act(() => { pending = result.current.submitReview({ tenancyId: "stay-a", rating: 5, comment: "Good", stayedDate: "2026-10-24" }); });
+  await act(() => { pending = result.current.submitReview({ tenancyId: "stay-a", rating: 5, comment: "Good", stayedDate: "2026-10-24" }); });
   usePortalStore.setState({ authUserId: "auth-b" });
   await act(async () => { finish({ data: { id: "review-a", apartment_id: "apartment-a" }, error: null }); await pending; });
   expect(invalidate).not.toHaveBeenCalled();
-  unmount(); client.clear();
+  await unmount(); client.clear();
 });

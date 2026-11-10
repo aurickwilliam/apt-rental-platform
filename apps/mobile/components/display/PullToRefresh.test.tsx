@@ -1,6 +1,7 @@
 import { cloneElement, createRef } from "react";
 import { RefreshControl, View } from "react-native";
 import { render, screen } from "@testing-library/react-native";
+import { spyOnClassComponent } from "../../tests/support/classComponentProps";
 
 import {
   PullToRefreshControl,
@@ -21,7 +22,11 @@ jest.mock("heroui-native", () => {
 });
 
 describe("PullToRefresh", () => {
-  it("preserves the children, layout and ref injected by Android scroll containers", () => {
+  let refreshControl: ReturnType<typeof spyOnClassComponent>;
+  beforeEach(() => { refreshControl = spyOnClassComponent(RefreshControl); });
+  afterEach(() => refreshControl.restore());
+
+  it("preserves the children, layout and ref injected by Android scroll containers", async () => {
     const ref = createRef<RefreshControl>();
     const style = { flex: 1, marginTop: 8 };
     const onRefresh = jest.fn();
@@ -32,8 +37,8 @@ describe("PullToRefresh", () => {
       { ref, style },
       <View testID="native-scroll-content" />,
     );
-    const { UNSAFE_getByType, unmount } = render(control);
-    const nativeControl = UNSAFE_getByType(RefreshControl);
+    const { unmount } = await render(control);
+    const nativeControl = { props: refreshControl.latestProps(), instance: refreshControl.latest() };
 
     expect(nativeControl.props.style).toEqual(style);
     expect(nativeControl.props.children).toEqual(
@@ -44,17 +49,17 @@ describe("PullToRefresh", () => {
 
     nativeControl.props.onRefresh();
     expect(onRefresh).toHaveBeenCalledTimes(1);
-    unmount();
+    await unmount();
     expect(ref.current).toBeNull();
   });
 
-  it("hides the native indicator while preserving the refresh gesture", () => {
+  it("hides the native indicator while preserving the refresh gesture", async () => {
     const onRefresh = jest.fn();
-    const { UNSAFE_getByType } = render(
+    await render(
       <PullToRefreshControl refreshing={false} onRefresh={onRefresh} />,
     );
 
-    const control = UNSAFE_getByType(RefreshControl);
+    const control = { props: refreshControl.latestProps() };
     expect(control.props).toMatchObject({
       refreshing: false,
       tintColor: "transparent",
@@ -66,30 +71,30 @@ describe("PullToRefresh", () => {
     expect(onRefresh).toHaveBeenCalledTimes(1);
   });
 
-  it("ignores repeats pulled while the caller's refresh is still running", () => {
+  it("ignores repeats pulled while the caller's refresh is still running", async () => {
     const onRefresh = jest.fn();
-    const { rerender, UNSAFE_getByType } = render(
+    const { rerender } = await render(
       <PullToRefreshControl refreshing={false} onRefresh={onRefresh} />,
     );
 
-    UNSAFE_getByType(RefreshControl).props.onRefresh();
+    refreshControl.latestProps().onRefresh();
     expect(onRefresh).toHaveBeenCalledTimes(1);
 
-    rerender(<PullToRefreshControl refreshing onRefresh={onRefresh} />);
-    UNSAFE_getByType(RefreshControl).props.onRefresh();
+    await rerender(<PullToRefreshControl refreshing onRefresh={onRefresh} />);
+    refreshControl.latestProps().onRefresh();
     expect(onRefresh).toHaveBeenCalledTimes(1);
 
     // Once the caller's state settles, the gesture works again.
-    rerender(<PullToRefreshControl refreshing={false} onRefresh={onRefresh} />);
-    UNSAFE_getByType(RefreshControl).props.onRefresh();
+    await rerender(<PullToRefreshControl refreshing={false} onRefresh={onRefresh} />);
+    refreshControl.latestProps().onRefresh();
     expect(onRefresh).toHaveBeenCalledTimes(2);
   });
 
-  it("shows only the HeroUI spinner while refreshing", () => {
-    const { rerender } = render(<PullToRefreshIndicator refreshing />);
+  it("shows only the HeroUI spinner while refreshing", async () => {
+    const { rerender } = await render(<PullToRefreshIndicator refreshing />);
     expect(screen.getByLabelText("Refreshing")).toBeTruthy();
 
-    rerender(<PullToRefreshIndicator refreshing={false} />);
+    await rerender(<PullToRefreshIndicator refreshing={false} />);
     expect(screen.queryByLabelText("Refreshing")).toBeNull();
   });
 });

@@ -44,7 +44,7 @@ describe("useSearchSectionPage", () => {
       .mockReturnValueOnce(rpcResult({ data: { items: rows(SECTION_PAGE_SIZE), next_cursor: cursor }, error: null }))
       .mockReturnValueOnce(rpcResult({ data: { items: rows(3, SECTION_PAGE_SIZE), next_cursor: null }, error: null }));
 
-    const { result } = renderHook(
+    const { result } = await renderHook(
       () => useSearchSectionPage({ sectionId: "budget_low", selectedCity: "CAMANAVA", committedSearch: "" }),
       { wrapper: createWrapper() },
     );
@@ -70,7 +70,7 @@ describe("useSearchSectionPage", () => {
   it("exposes the error when the RPC fails", async () => {
     mockRpc.mockReturnValue(rpcResult({ data: null, error: new Error("rpc failed") }));
 
-    const { result } = renderHook(
+    const { result } = await renderHook(
       () => useSearchSectionPage({ sectionId: "verified", selectedCity: "CAMANAVA", committedSearch: "" }),
       { wrapper: createWrapper() },
     );
@@ -78,8 +78,8 @@ describe("useSearchSectionPage", () => {
     await waitFor(() => expect(result.current.error).toEqual(new Error("rpc failed")));
   });
 
-  it("does not fetch when disabled", () => {
-    renderHook(
+  it("does not fetch when disabled", async () => {
+    await renderHook(
       () => useSearchSectionPage({ sectionId: "for_you", selectedCity: "CAMANAVA", committedSearch: "", enabled: false }),
       { wrapper: createWrapper() },
     );

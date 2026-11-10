@@ -39,8 +39,8 @@ describe("mobile portal tab guard", () => {
     usePortalStore.setState({ authUserId: "account-a", portal: "landlord", loading: false });
   });
 
-  it("allows a dual-role account in its selected non-primary portal", () => {
-    render(<TabsLayout />);
+  it("allows a dual-role account in its selected non-primary portal", async () => {
+    await render(<TabsLayout />);
     expect(mockReplace).not.toHaveBeenCalled();
     expect(mockSignOut).not.toHaveBeenCalled();
     expect(mockReviewGate).not.toHaveBeenCalled();
@@ -48,15 +48,15 @@ describe("mobile portal tab guard", () => {
 
   it("redirects a tab group that is not the active portal", async () => {
     mockGroup = "(tenant)";
-    render(<TabsLayout />);
+    await render(<TabsLayout />);
     await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/(tabs)/(landlord)/dashboard"));
   });
 
-  it("allows a single-role tenant in the tenant tab group", () => {
+  it("allows a single-role tenant in the tenant tab group", async () => {
     mockRoles = ["tenant"];
     mockGroup = "(tenant)";
     usePortalStore.setState({ authUserId: "account-a", portal: "tenant", loading: false });
-    render(<TabsLayout />);
+    await render(<TabsLayout />);
     expect(mockReplace).not.toHaveBeenCalled();
     expect(mockSignOut).not.toHaveBeenCalled();
     expect(mockReviewGate).toHaveBeenCalledWith(expect.objectContaining({ authUserId: "account-a", tenantId: "profile-a" }));
@@ -64,7 +64,7 @@ describe("mobile portal tab guard", () => {
 
   it("rejects admin-only mobile sessions", async () => {
     mockRoles = ["admin"];
-    render(<TabsLayout />);
+    await render(<TabsLayout />);
     await waitFor(() => expect(mockSignOut).toHaveBeenCalled());
     expect(mockReplace).toHaveBeenCalledWith("/sign-in");
   });
@@ -74,12 +74,12 @@ describe("mobile portal tab guard", () => {
     { roles: ["admin", "landlord"], portal: "landlord" as const },
     { roles: ["admin", "tenant", "landlord"], portal: "tenant" as const },
     { roles: ["admin", "tenant", "landlord"], portal: "landlord" as const },
-  ])("keeps $roles signed in to the $portal portal", ({ roles, portal }) => {
+  ])("keeps $roles signed in to the $portal portal", async ({ roles, portal }) => {
     mockRoles = roles;
     mockGroup = `(${portal})`;
     usePortalStore.setState({ authUserId: "account-a", portal, loading: false });
 
-    render(<TabsLayout />);
+    await render(<TabsLayout />);
 
     expect(mockReplace).not.toHaveBeenCalled();
     expect(mockSignOut).not.toHaveBeenCalled();
@@ -89,7 +89,7 @@ describe("mobile portal tab guard", () => {
     mockRoles = ["admin", "tenant", "landlord"];
     mockGroup = "(tenant)";
 
-    render(<TabsLayout />);
+    await render(<TabsLayout />);
 
     await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/(tabs)/(landlord)/dashboard"));
     expect(mockSignOut).not.toHaveBeenCalled();

@@ -125,9 +125,9 @@ describe("Property performance route", () => {
   });
   afterEach(() => jest.useRealTimers());
 
-  test("opens the month from analytics and shows every property", () => {
+  test("opens the month from analytics and shows every property", async () => {
     Object.assign(mockParams, { month: "2026-09" });
-    const screen = render(<PropertyPerformanceScreen />);
+    const screen = await render(<PropertyPerformanceScreen />);
     expect(mockUseLandlordFinances).toHaveBeenCalledWith({
       month: "2026-09",
       apartmentId: null,
@@ -143,55 +143,55 @@ describe("Property performance route", () => {
     expect(screen.getByText("All properties")).toBeTruthy();
   });
 
-  test("selecting a property returns to analytics with its report filter", () => {
+  test("selecting a property returns to analytics with its report filter", async () => {
     Object.assign(mockParams, { month: "2026-09" });
-    render(<PropertyPerformanceScreen />);
+    await render(<PropertyPerformanceScreen />);
     const props = mockList.mock.calls.at(-1)![0];
-    act(() => props.onSelect!("house"));
+    await act(() => props.onSelect!("house"));
     expect(mockDismissTo).toHaveBeenCalledWith({
       pathname: "/landlord/analytics",
       params: { month: "2026-09", apartmentId: "house" },
     });
   });
 
-  test("invalid month params fall back to the current month", () => {
+  test("invalid month params fall back to the current month", async () => {
     Object.assign(mockParams, { month: "2027-13" });
-    render(<PropertyPerformanceScreen />);
+    await render(<PropertyPerformanceScreen />);
     expect(mockUseLandlordFinances).toHaveBeenCalledWith({
       month: "2026-10",
       apartmentId: null,
     });
   });
 
-  test("loading uses the finance layout", () => {
+  test("loading uses the finance layout", async () => {
     mockFinance.report.isLoading = true;
-    render(<PropertyPerformanceScreen />);
+    await render(<PropertyPerformanceScreen />);
     expect(mockList).not.toHaveBeenCalled();
     expect(mockFinanceError).not.toHaveBeenCalled();
   });
 
-  test("unavailable access explains the landlord requirement and retries", () => {
+  test("unavailable access explains the landlord requirement and retries", async () => {
     mockFinance.enabled = false;
-    render(<PropertyPerformanceScreen />);
+    await render(<PropertyPerformanceScreen />);
     const props = mockFinanceError.mock.calls.at(-1)![0];
     expect(props.message).toBe(
       "Switch to your landlord portal to compare property performance.",
     );
-    act(() => props.onRetry());
+    await act(() => props.onRetry());
     expect(mockRetry).toHaveBeenCalledTimes(1);
   });
 
-  test("closing returns to the previous screen", () => {
-    render(<PropertyPerformanceScreen />);
-    act(() => mockHeader.mock.calls.at(-1)![0].onBackPress?.());
+  test("closing returns to the previous screen", async () => {
+    await render(<PropertyPerformanceScreen />);
+    await act(() => mockHeader.mock.calls.at(-1)![0].onBackPress?.());
     expect(mockBack).toHaveBeenCalledTimes(1);
     expect(mockReplace).not.toHaveBeenCalled();
   });
 
-  test("closing falls back to analytics when there is nothing to go back to", () => {
+  test("closing falls back to analytics when there is nothing to go back to", async () => {
     mockCanGoBack.mockReturnValue(false);
-    render(<PropertyPerformanceScreen />);
-    act(() => mockHeader.mock.calls.at(-1)![0].onBackPress?.());
+    await render(<PropertyPerformanceScreen />);
+    await act(() => mockHeader.mock.calls.at(-1)![0].onBackPress?.());
     expect(mockReplace).toHaveBeenCalledWith("/landlord/analytics");
   });
 });

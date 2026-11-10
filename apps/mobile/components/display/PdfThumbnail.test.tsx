@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react-native";
+import { act, render, screen, waitFor } from "@testing-library/react-native";
 import { File } from "expo-file-system";
 import PdfThumbnailGenerator from "react-native-pdf-thumbnail";
 
@@ -52,7 +52,9 @@ describe("PdfThumbnail", () => {
   });
 
   it("keeps the file icon until the first page is rendered, then shows it", async () => {
-    render(
+    let finishPage!: (page: { uri: string; width: number; height: number }) => void;
+    generate.mockReturnValue(new Promise((resolve) => { finishPage = resolve; }));
+    await render(
       <PdfThumbnail
         uri="https://signed.test/income.pdf"
         style={{ width: 56, height: 56 }}
@@ -61,6 +63,8 @@ describe("PdfThumbnail", () => {
 
     expect(screen.getByTestId("pdf-thumbnail-placeholder")).toBeTruthy();
 
+    await waitFor(() => expect(generate).toHaveBeenCalled());
+    await act(async () => { finishPage({ uri: "file:///cache/page.jpg", width: 100, height: 140 }); });
     const image = await screen.findByTestId("pdf-thumbnail-image");
     expect(image.props.source.uri).toBe("file:///cache/page.jpg");
     expect(screen.queryByTestId("pdf-thumbnail-placeholder")).toBeNull();
@@ -79,20 +83,23 @@ describe("PdfThumbnail", () => {
   });
 
   it("restores the placeholder and renders again for a new URL", async () => {
-    const { rerender } = render(<PdfThumbnail uri="https://signed.test/a.pdf" />);
+    const { rerender } = await render(<PdfThumbnail uri="https://signed.test/a.pdf" />);
     await screen.findByTestId("pdf-thumbnail-image");
 
-    generate.mockResolvedValue({ uri: "file:///cache/b.jpg", width: 1, height: 1 });
-    rerender(<PdfThumbnail uri="https://signed.test/b.pdf" />);
+    let finishPage!: (page: { uri: string; width: number; height: number }) => void;
+    generate.mockReturnValue(new Promise((resolve) => { finishPage = resolve; }));
+    await rerender(<PdfThumbnail uri="https://signed.test/b.pdf" />);
 
     expect(screen.getByTestId("pdf-thumbnail-placeholder")).toBeTruthy();
+    await waitFor(() => expect(generate).toHaveBeenCalledTimes(2));
+    await act(async () => { finishPage({ uri: "file:///cache/b.jpg", width: 1, height: 1 }); });
     const image = await screen.findByTestId("pdf-thumbnail-image");
     expect(image.props.source.uri).toBe("file:///cache/b.jpg");
   });
 
   it("falls back to the file icon if the download or rendering fails", async () => {
     generate.mockRejectedValue(new Error("INVALID_FILE"));
-    render(<PdfThumbnail uri="https://signed.test/a.pdf" />);
+    await render(<PdfThumbnail uri="https://signed.test/a.pdf" />);
 
     await waitFor(() => expect(generate).toHaveBeenCalled());
     await waitFor(() => expect(console.warn).toHaveBeenCalled());
@@ -104,7 +111,7 @@ describe("PdfThumbnail", () => {
     generate.mockImplementation(() => {
       throw new Error("The package 'react-native-pdf-thumbnail' doesn't seem to be linked.");
     });
-    expect(() => render(<PdfThumbnail uri="https://signed.test/a.pdf" />)).not.toThrow();
+    await expect(render(<PdfThumbnail uri="https://signed.test/a.pdf" />)).resolves.toBeDefined();
 
     await waitFor(() => expect(console.warn).toHaveBeenCalled());
     expect(screen.getByTestId("pdf-thumbnail-placeholder")).toBeTruthy();
@@ -113,10 +120,10 @@ describe("PdfThumbnail", () => {
   it("discards a render that finishes after the thumbnail is gone", async () => {
     let finish: (value: unknown) => void = () => undefined;
     generate.mockReturnValue(new Promise((resolve) => (finish = resolve)));
-    const { unmount } = render(<PdfThumbnail uri="https://signed.test/a.pdf" />);
+    const { unmount } = await render(<PdfThumbnail uri="https://signed.test/a.pdf" />);
     await waitFor(() => expect(generate).toHaveBeenCalled());
 
-    unmount();
+    await unmount();
     mockDelete.mockClear();
     finish({ uri: "file:///cache/late.jpg", width: 1, height: 1 });
 

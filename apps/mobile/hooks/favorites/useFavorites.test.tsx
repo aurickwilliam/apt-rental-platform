@@ -59,16 +59,16 @@ describe("favorite query hooks", () => {
   /** Validates: Requirements 2.1, 2.7 */
   it("shares one fresh favorite-id request between simultaneous consumers", async () => {
     const { client, QueryWrapper } = createWrapper();
-    const first = renderHook(() => useFavorites(), { wrapper: QueryWrapper });
-    const second = renderHook(() => useFavorites(), { wrapper: QueryWrapper });
+    const first = await renderHook(() => useFavorites(), { wrapper: QueryWrapper });
+    const second = await renderHook(() => useFavorites(), { wrapper: QueryWrapper });
 
     await waitFor(() => expect(first.result.current.favoriteApartmentIds.size).toBe(2));
     await waitFor(() => expect(second.result.current.favoriteApartmentIds.size).toBe(2));
 
     expect(mockFetchFavoriteApartmentIds).toHaveBeenCalledTimes(1);
 
-    first.unmount();
-    second.unmount();
+    await first.unmount();
+    await second.unmount();
     client.clear();
   });
 
@@ -79,9 +79,11 @@ describe("favorite query hooks", () => {
         const { client, QueryWrapper } = createWrapper();
         mockFetchFavoriteApartmentIds.mockClear();
 
-        const consumers = Array.from({ length: consumerCount }, () =>
-          renderHook(() => useFavorites(), { wrapper: QueryWrapper }),
-        );
+        const mount = () => renderHook(() => useFavorites(), { wrapper: QueryWrapper });
+        const consumers: Awaited<ReturnType<typeof mount>>[] = [];
+        for (let index = 0; index < consumerCount; index += 1) {
+          consumers.push(await mount());
+        }
 
         await Promise.all(
           consumers.map(({ result }) =>
@@ -91,7 +93,7 @@ describe("favorite query hooks", () => {
 
         expect(mockFetchFavoriteApartmentIds).toHaveBeenCalledTimes(1);
 
-        consumers.forEach(({ unmount }) => unmount());
+        for (const { unmount } of consumers) await unmount();
         client.clear();
       }),
       { numRuns: 10 },
@@ -101,7 +103,7 @@ describe("favorite query hooks", () => {
   /** Validates: Requirements 2.7, 3.1 */
   it("optimistically updates the exact favorite key and invalidates only favorite apartments", async () => {
     const { client, QueryWrapper } = createWrapper();
-    const { result, unmount } = renderHook(() => useFavorites(), { wrapper: QueryWrapper });
+    const { result, unmount } = await renderHook(() => useFavorites(), { wrapper: QueryWrapper });
 
     await waitFor(() => expect(result.current.favoriteApartmentIds.has("apartment-1")).toBe(true));
     client.setQueryData(getFavoriteApartmentsQueryKey(TENANT_ID), [{ id: "apartment-1" }]);
@@ -114,14 +116,14 @@ describe("favorite query hooks", () => {
     expect(client.getQueryData(getFavoritesQueryKey(TENANT_ID))).toEqual(["apartment-2"]);
     expect(client.getQueryState(getFavoriteApartmentsQueryKey(TENANT_ID))?.isInvalidated).toBe(true);
 
-    unmount();
+    await unmount();
     client.clear();
   });
 
   /** Validates: Requirements 2.7, 3.1 */
   it("preserves a later successful toggle when an earlier toggle fails", async () => {
     const { client, QueryWrapper } = createWrapper();
-    const { result, unmount } = renderHook(() => useFavorites(), { wrapper: QueryWrapper });
+    const { result, unmount } = await renderHook(() => useFavorites(), { wrapper: QueryWrapper });
     let rejectFirstInsert: (reason?: unknown) => void = () => undefined;
 
     mockInsertFavorite
@@ -169,15 +171,15 @@ describe("favorite query hooks", () => {
       true,
     );
 
-    unmount();
+    await unmount();
     client.clear();
   });
 
   /** Validates: Requirements 2.1, 2.7 */
   it("shares ordered favorite-apartment reads through the tenant-scoped query keys", async () => {
     const { client, QueryWrapper } = createWrapper();
-    const first = renderHook(() => useFavoriteApartments(), { wrapper: QueryWrapper });
-    const second = renderHook(() => useFavoriteApartments(), { wrapper: QueryWrapper });
+    const first = await renderHook(() => useFavoriteApartments(), { wrapper: QueryWrapper });
+    const second = await renderHook(() => useFavoriteApartments(), { wrapper: QueryWrapper });
 
     await waitFor(() =>
       expect(first.result.current.favoriteApartments.map((apartment) => apartment.id)).toEqual([
@@ -190,8 +192,8 @@ describe("favorite query hooks", () => {
     expect(mockFetchFavoriteApartmentIds).toHaveBeenCalledTimes(1);
     expect(mockFetchApartmentsByIds).toHaveBeenCalledTimes(1);
 
-    first.unmount();
-    second.unmount();
+    await first.unmount();
+    await second.unmount();
     client.clear();
   });
 });

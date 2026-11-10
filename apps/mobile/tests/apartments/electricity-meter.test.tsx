@@ -42,25 +42,25 @@ it("starts unchecked and clears confirmation when a draft is reset", () => {
   expect(useApartmentFormStore.getState().hasOwnElectricityMeter).toBe(false);
 });
 
-it("renders the requirement and inline error and lets the landlord confirm", () => {
+it("renders the requirement and inline error and lets the landlord confirm", async () => {
   const onSelectedChange = jest.fn();
-  const screen = render(<ElectricityMeterConfirmation isSelected={false} onSelectedChange={onSelectedChange} error={OWN_ELECTRICITY_METER_ERROR} />);
+  const screen = await render(<ElectricityMeterConfirmation isSelected={false} onSelectedChange={onSelectedChange} error={OWN_ELECTRICITY_METER_ERROR} />);
   expect(screen.getByText(OWN_ELECTRICITY_METER_CONFIRMATION)).toBeTruthy();
   expect(screen.getByText(OWN_ELECTRICITY_METER_DESCRIPTION)).toBeTruthy();
   expect(screen.getByText(OWN_ELECTRICITY_METER_ERROR)).toBeTruthy();
   expect(screen.getByRole("checkbox").props.accessibilityState.checked).toBe(false);
-  fireEvent.press(screen.getByRole("checkbox"));
+  await fireEvent.press(screen.getByRole("checkbox"));
   expect(onSelectedChange).toHaveBeenCalledWith(true);
-  screen.rerender(<ElectricityMeterConfirmation isSelected onSelectedChange={onSelectedChange} />);
+  await await screen.rerender(<ElectricityMeterConfirmation isSelected onSelectedChange={onSelectedChange} />);
   expect(screen.queryByText(OWN_ELECTRICITY_METER_ERROR)).toBeNull();
-  fireEvent.press(screen.getByRole("checkbox"));
+  await fireEvent.press(screen.getByRole("checkbox"));
   expect(onSelectedChange).toHaveBeenLastCalledWith(false);
 });
 
-it("locks confirmation while saving", () => {
+it("locks confirmation while saving", async () => {
   const onSelectedChange = jest.fn();
-  const screen = render(<ElectricityMeterConfirmation isSelected onSelectedChange={onSelectedChange} isDisabled />);
-  fireEvent.press(screen.getByRole("checkbox"));
+  const screen = await render(<ElectricityMeterConfirmation isSelected onSelectedChange={onSelectedChange} isDisabled />);
+  await fireEvent.press(screen.getByRole("checkbox"));
   expect(onSelectedChange).not.toHaveBeenCalled();
 });
 
@@ -71,13 +71,13 @@ it("uses strict shared validation", () => {
   expect(getOwnElectricityMeterError(true)).toBeUndefined();
 });
 
-it("shows the same label for a confirmed existing listing or preview, never unconfirmed data", () => {
+it("shows the same label for a confirmed existing listing or preview, never unconfirmed data", async () => {
   const apartment = { max_occupants: 2, floor_level: "Ground Floor", type: "Apartment", lease_duration: "1 year", has_own_electricity_meter: true } as ApartmentDetails;
-  const screen = render(<ApartmentDetailsSection apartment={apartment} />);
+  const screen = await render(<ApartmentDetailsSection apartment={apartment} />);
   expect(screen.getByText(OWN_ELECTRICITY_METER_DETAIL)).toBeTruthy();
-  screen.rerender(<ApartmentDetailsSection apartment={{ ...apartment, has_own_electricity_meter: false }} />);
+  await await screen.rerender(<ApartmentDetailsSection apartment={{ ...apartment, has_own_electricity_meter: false }} />);
   expect(screen.queryByText(OWN_ELECTRICITY_METER_DETAIL)).toBeNull();
-  screen.rerender(<ApartmentDetailsSection apartment={null} />);
+  await await screen.rerender(<ApartmentDetailsSection apartment={null} />);
   expect(screen.queryByText(OWN_ELECTRICITY_METER_DETAIL)).toBeNull();
 });
 

@@ -25,10 +25,10 @@ jest.mock("@/service/payments/paymongoService", () => ({
 const onOpenChange = jest.fn();
 const onPaid = jest.fn();
 
-function renderDialog() {
+async function renderDialog() {
   const client = new QueryClient();
   const invalidate = jest.spyOn(client, "invalidateQueries");
-  render(
+  await render(
     <QueryClientProvider client={client}>
       <CheckPaymentDialog referenceId="APT-ABCD1234" isOpen onOpenChange={onOpenChange} onPaid={onPaid} />
     </QueryClientProvider>,
@@ -42,7 +42,7 @@ beforeEach(() => jest.clearAllMocks());
 
 it("shows the still-open checkout with its actions", async () => {
   mockDetails.mockResolvedValue({ status: "pending", checkoutUrl: "https://checkout.example/abc" });
-  renderDialog();
+  await renderDialog();
   expect(await screen.findByText("Payment not completed yet")).toBeTruthy();
   expect(mockDetails).toHaveBeenCalledWith("APT-ABCD1234");
   expect(screen.getByText("Continue checkout")).toBeTruthy();
@@ -52,7 +52,7 @@ it("shows the still-open checkout with its actions", async () => {
 
 it("closes and opens the receipt when PayMongo says the payment is paid", async () => {
   mockDetails.mockResolvedValue({ status: "paid", checkoutUrl: null });
-  renderDialog();
+  await renderDialog();
   await waitFor(() => expect(onPaid).toHaveBeenCalledWith("APT-ABCD1234"));
   expect(onOpenChange).toHaveBeenCalledWith(false);
 });
@@ -60,27 +60,27 @@ it("closes and opens the receipt when PayMongo says the payment is paid", async 
 it("cancels an open checkout, refreshes the lists and reports it cancelled", async () => {
   mockDetails.mockResolvedValue({ status: "pending", checkoutUrl: null });
   mockCancel.mockResolvedValue("failed");
-  const invalidate = renderDialog();
-  fireEvent.press(await screen.findByText("Cancel payment"));
+  const invalidate = await renderDialog();
+  await fireEvent.press(await screen.findByText("Cancel payment"));
   expect(await screen.findByText("Payment cancelled")).toBeTruthy();
   expect(mockCancel).toHaveBeenCalledWith("APT-ABCD1234");
   expect(invalidatedKeys(invalidate)).toEqual(expect.arrayContaining(["payments", "tenancy"]));
-  fireEvent.press(screen.getByText("Close"));
+  await fireEvent.press(screen.getByText("Close"));
   expect(onOpenChange).toHaveBeenCalledWith(false);
 });
 
 it("says a closed attempt was not charged and refreshes the lists", async () => {
   mockDetails.mockResolvedValue({ status: "expired", checkoutUrl: null });
-  const invalidate = renderDialog();
+  const invalidate = await renderDialog();
   expect(await screen.findByText("Payment expired")).toBeTruthy();
   expect(invalidatedKeys(invalidate)).toEqual(expect.arrayContaining(["payments", "tenancy"]));
 });
 
 it("offers a retry when the check fails", async () => {
   mockDetails.mockRejectedValueOnce(new Error("boom")).mockResolvedValueOnce({ status: "pending", checkoutUrl: null });
-  renderDialog();
+  await renderDialog();
   expect(await screen.findByText("Could not check your payment")).toBeTruthy();
-  fireEvent.press(screen.getByText("Try again"));
+  await fireEvent.press(screen.getByText("Try again"));
   expect(await screen.findByText("Payment not completed yet")).toBeTruthy();
 });
 
@@ -92,10 +92,10 @@ it("checks once per open even when the parent re-renders with new callbacks", as
       <CheckPaymentDialog referenceId="APT-ABCD1234" isOpen onOpenChange={open} onPaid={() => undefined} />
     </QueryClientProvider>
   );
-  const view = render(tree(() => undefined));
+  const view = await render(await tree(() => undefined));
   expect(await screen.findByText("Payment not completed yet")).toBeTruthy();
-  view.rerender(tree(() => undefined));
-  view.rerender(tree(() => undefined));
+  await view.rerender(await tree(() => undefined));
+  await view.rerender(await tree(() => undefined));
   expect(screen.getByText("Payment not completed yet")).toBeTruthy();
   expect(mockDetails).toHaveBeenCalledTimes(1);
 });

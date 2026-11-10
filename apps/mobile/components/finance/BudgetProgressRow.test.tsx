@@ -1,6 +1,7 @@
 import { fireEvent, render } from "@testing-library/react-native";
 import { View } from "react-native";
 import { MOBILE_COLORS } from "@/constants/theme";
+import { findAllInTree } from "../../tests/support/testTraversal";
 import BudgetProgressRow from "./BudgetProgressRow";
 
 const mockUseColors = jest.fn();
@@ -31,9 +32,9 @@ describe("BudgetProgressRow", () => {
     });
   });
 
-  it("uses the softened dark danger token for an over-budget bar and label", () => {
+  it("uses the softened dark danger token for an over-budget bar and label", async () => {
     const onPress = jest.fn();
-    const screen = render(
+    const screen = await render(
       <BudgetProgressRow
         title="Furniture & appliances"
         caption="2 properties"
@@ -51,20 +52,19 @@ describe("BudgetProgressRow", () => {
     const label = screen.getByText("₱ 1,175 over budget");
     expect(label.props.style).toEqual({ color: MOBILE_COLORS.dark.danger });
 
-    const bar = screen
-      .UNSAFE_getAllByType(View)
+    const bar = findAllInTree(screen.root!, (n) => String(n.type) === "View")
       .find((view) => view.props.style?.width === "100%");
     expect(bar?.props.style).toEqual({
       width: "100%",
       backgroundColor: MOBILE_COLORS.dark.danger,
     });
 
-    fireEvent.press(label);
+    await fireEvent.press(label);
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
-  it("shows the percentage of the monthly limit used beside the amount", () => {
-    const screen = render(
+  it("shows the percentage of the monthly limit used beside the amount", async () => {
+    const screen = await render(
       <BudgetProgressRow
         title="Concepcion Quiet 1BR"
         amount={1500}

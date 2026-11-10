@@ -81,9 +81,9 @@ const conversation: ConversationWithMeta = {
   ...DEFAULT_CONVERSATION_PREFERENCES,
 };
 
-it('shows only the options without the name or apartment header, keeping all actions', () => {
+it('shows only the options without the name or apartment header, keeping all actions', async () => {
   const onSelect = jest.fn();
-  render(
+  await render(
     <ConversationMoreSheet
       conversation={conversation}
       isOpen
@@ -105,25 +105,25 @@ it('shows only the options without the name or apartment header, keeping all act
     'Block Ben',
   ]);
 
-  fireEvent.press(screen.getByRole('button', { name: 'View apartment' }));
+  await fireEvent.press(screen.getByRole('button', { name: 'View apartment' }));
   expect(onSelect).toHaveBeenCalledWith('viewApartment', conversation);
 });
 
-it('runs Pin and Archive from the sheet', () => {
+it('runs Pin and Archive from the sheet', async () => {
   const onSelect = jest.fn();
-  render(
+  await render(
     <ConversationMoreSheet conversation={conversation} isOpen onOpenChange={jest.fn()} onSelect={onSelect} />
   );
 
-  fireEvent.press(screen.getByRole('button', { name: 'Pin' }));
-  fireEvent.press(screen.getByRole('button', { name: 'Archive' }));
+  await fireEvent.press(screen.getByRole('button', { name: 'Pin' }));
+  await fireEvent.press(screen.getByRole('button', { name: 'Archive' }));
 
   expect(onSelect).toHaveBeenNthCalledWith(1, 'togglePin', conversation);
   expect(onSelect).toHaveBeenNthCalledWith(2, 'toggleArchive', conversation);
 });
 
-it('disables Unpin and Archive for the always-pinned landlord chat', () => {
-  render(
+it('disables Unpin and Archive for the always-pinned landlord chat', async () => {
+  await render(
     <ConversationMoreSheet
       conversation={conversation}
       isOpen
@@ -138,9 +138,9 @@ it('disables Unpin and Archive for the always-pinned landlord chat', () => {
   expect(screen.getByRole('button', { name: 'Mark as unread' }).props.accessibilityState).toEqual({ disabled: false });
 });
 
-it('disables Block during an active tenancy and explains why', () => {
+it('disables Block during an active tenancy and explains why', async () => {
   const onSelect = jest.fn();
-  render(
+  await render(
     <ConversationMoreSheet
       conversation={{ ...conversation, in_active_tenancy: true }}
       isOpen
@@ -156,8 +156,8 @@ it('disables Block during an active tenancy and explains why', () => {
   expect(screen.getByRole('button', { name: 'Report Ben' }).props.accessibilityState).toEqual({ disabled: false });
 });
 
-it('always allows Unblock, even during an active tenancy', () => {
-  render(
+it('always allows Unblock, even during an active tenancy', async () => {
+  await render(
     <ConversationMoreSheet
       conversation={{ ...conversation, in_active_tenancy: true, blocked_by_me: true }}
       isOpen

@@ -28,37 +28,37 @@ const step = {
   mobileTab: 'search',
 };
 
-function setup(overrides: Partial<React.ComponentProps<typeof TutorialOverlay>> = {}) {
+async function setup(overrides: Partial<React.ComponentProps<typeof TutorialOverlay>> = {}) {
   const handlers = { onNext: jest.fn(), onBack: jest.fn(), onSkip: jest.fn() };
-  render(<TutorialOverlay portal="tenant" step={step} stepIndex={1} stepCount={4} {...handlers} {...overrides} />);
+  await render(<TutorialOverlay portal="tenant" step={step} stepIndex={1} stepCount={4} {...handlers} {...overrides} />);
   return handlers;
 }
 
 describe('TutorialOverlay', () => {
-  it('shows the progress, title and description', () => {
-    setup();
+  it('shows the progress, title and description', async () => {
+    await setup();
     expect(screen.getByText('Step 2 of 4')).toBeTruthy();
     expect(screen.getByText('Find an apartment')).toBeTruthy();
     expect(screen.getByText('Browse listings.')).toBeTruthy();
   });
 
-  it('wires Next, Back and Skip Tutorial', () => {
-    const handlers = setup();
-    fireEvent.press(screen.getByText('Next'));
-    fireEvent.press(screen.getByText('Back'));
-    fireEvent.press(screen.getByText('Skip Tutorial'));
+  it('wires Next, Back and Skip Tutorial', async () => {
+    const handlers = await setup();
+    await fireEvent.press(screen.getByText('Next'));
+    await fireEvent.press(screen.getByText('Back'));
+    await fireEvent.press(screen.getByText('Skip Tutorial'));
     expect(handlers.onNext).toHaveBeenCalledTimes(1);
     expect(handlers.onBack).toHaveBeenCalledTimes(1);
     expect(handlers.onSkip).toHaveBeenCalledTimes(1);
   });
 
-  it('offers Finish on the last step and no Back on the first', () => {
-    setup({ stepIndex: 3 });
+  it('offers Finish on the last step and no Back on the first', async () => {
+    await setup({ stepIndex: 3 });
     expect(screen.getByText('Finish')).toBeTruthy();
   });
 
-  it('has no Back button on the first step', () => {
-    setup({ stepIndex: 0 });
+  it('has no Back button on the first step', async () => {
+    await setup({ stepIndex: 0 });
     expect(screen.queryByText('Back')).toBeNull();
   });
 });

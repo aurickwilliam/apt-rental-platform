@@ -34,17 +34,17 @@ beforeEach(() => {
 });
 
 it("requires an update below the minimum version", async () => {
-  const { result } = renderHook(() => useAppUpdate(), { wrapper });
+  const { result } = await renderHook(() => useAppUpdate(), { wrapper });
   await waitFor(() => expect(result.current.release).toEqual(release));
   expect(result.current.isRequired).toBe(true);
 });
 
 it("offers, then remembers a dismissal for that version only", async () => {
   mockInstalled = "1.1.0";
-  const { result } = renderHook(() => useAppUpdate(), { wrapper });
+  const { result } = await renderHook(() => useAppUpdate(), { wrapper });
   await waitFor(() => expect(result.current.isOffered).toBe(true));
   expect(result.current.isRequired).toBe(false);
-  act(() => { result.current.dismiss(); });
+  await act(() => { result.current.dismiss(); });
   expect(result.current.isOffered).toBe(false);
   expect(mockSave).toHaveBeenCalledWith("1.2.0");
 });
@@ -52,7 +52,7 @@ it("offers, then remembers a dismissal for that version only", async () => {
 it("stays hidden for a version dismissed on a previous launch", async () => {
   mockInstalled = "1.1.0";
   mockRead.mockResolvedValue("1.2.0");
-  const { result } = renderHook(() => useAppUpdate(), { wrapper });
+  const { result } = await renderHook(() => useAppUpdate(), { wrapper });
   await waitFor(() => expect(result.current.release).toEqual(release));
   expect(result.current.isOffered).toBe(false);
 });
@@ -60,7 +60,7 @@ it("stays hidden for a version dismissed on a previous launch", async () => {
 it("fails open when the check errors", async () => {
   jest.spyOn(console, "warn").mockImplementation(() => undefined);
   mockFetch.mockRejectedValue(new Error("offline"));
-  const { result } = renderHook(() => useAppUpdate(), { wrapper });
+  const { result } = await renderHook(() => useAppUpdate(), { wrapper });
   await waitFor(() => expect(console.warn).toHaveBeenCalled());
   expect(result.current.isRequired).toBe(false);
   expect(result.current.isOffered).toBe(false);

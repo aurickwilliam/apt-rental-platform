@@ -40,8 +40,8 @@ const apartment = {
 };
 
 describe('ChatApartmentCard', () => {
-  it('shows the photo, name, area and monthly rent', () => {
-    render(<ChatApartmentCard apartment={apartment} onPress={jest.fn()} />);
+  it('shows the photo, name, area and monthly rent', async () => {
+    await render(<ChatApartmentCard apartment={apartment} onPress={jest.fn()} />);
 
     expect(screen.getByTestId('apartment-thumb')).toBeTruthy();
     expect(screen.getByText('Concepcion Quiet 1BR')).toBeTruthy();
@@ -52,17 +52,17 @@ describe('ChatApartmentCard', () => {
     ).toBeTruthy();
   });
 
-  it('opens the apartment when tapped', () => {
+  it('opens the apartment when tapped', async () => {
     const onPress = jest.fn();
-    render(<ChatApartmentCard apartment={apartment} onPress={onPress} />);
+    await render(<ChatApartmentCard apartment={apartment} onPress={onPress} />);
 
-    fireEvent.press(screen.getByRole('button'));
+    await fireEvent.press(screen.getByRole('button'));
 
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
-  it('falls back to a building icon without a photo', () => {
-    render(
+  it('falls back to a building icon without a photo', async () => {
+    await render(
       <ChatApartmentCard apartment={{ ...apartment, thumbnailUrl: null }} onPress={jest.fn()} />
     );
 

@@ -205,6 +205,7 @@ module.exports = {
             "APT uses your camera to capture a clear photo of your ID for identity verification.",
         },
       ],
+      "expo-status-bar",
     ],
     experiments: {
       typedRoutes: true,

@@ -40,45 +40,45 @@ describe('useCameraPermission', () => {
     ]);
   };
 
-  it('maps a granted response to state "granted" (Req 3.1)', () => {
+  it('maps a granted response to state "granted" (Req 3.1)', async () => {
     mockPermissionResponse({ status: 'granted', canAskAgain: true });
-    const { result } = renderHook(() => useCameraPermission());
+    const { result } = await renderHook(() => useCameraPermission());
     expect(result.current.state).toBe('granted');
   });
 
-  it('maps a denied response with canAskAgain=true to state "denied" (Req 3.1)', () => {
+  it('maps a denied response with canAskAgain=true to state "denied" (Req 3.1)', async () => {
     mockPermissionResponse({ status: 'denied', canAskAgain: true });
-    const { result } = renderHook(() => useCameraPermission());
+    const { result } = await renderHook(() => useCameraPermission());
     expect(result.current.state).toBe('denied');
   });
 
-  it('maps a denied response with canAskAgain=false to state "restricted" (Req 3.6)', () => {
+  it('maps a denied response with canAskAgain=false to state "restricted" (Req 3.6)', async () => {
     mockPermissionResponse({ status: 'denied', canAskAgain: false });
-    const { result } = renderHook(() => useCameraPermission());
+    const { result } = await renderHook(() => useCameraPermission());
     expect(result.current.state).toBe('restricted');
   });
 
-  it('does NOT map denied+canAskAgain=true to "restricted" (Req 3.6 negative case)', () => {
+  it('does NOT map denied+canAskAgain=true to "restricted" (Req 3.6 negative case)', async () => {
     mockPermissionResponse({ status: 'denied', canAskAgain: true });
-    const { result } = renderHook(() => useCameraPermission());
+    const { result } = await renderHook(() => useCameraPermission());
     expect(result.current.state).not.toBe('restricted');
   });
 
-  it('maps an undetermined response to state "undetermined" (Req 3.4)', () => {
+  it('maps an undetermined response to state "undetermined" (Req 3.4)', async () => {
     mockPermissionResponse({ status: 'undetermined', canAskAgain: true });
-    const { result } = renderHook(() => useCameraPermission());
+    const { result } = await renderHook(() => useCameraPermission());
     expect(result.current.state).toBe('undetermined');
   });
 
-  it('maps a null response (not yet resolved) to state "undetermined"', () => {
+  it('maps a null response (not yet resolved) to state "undetermined"', async () => {
     mockPermissionResponse(null);
-    const { result } = renderHook(() => useCameraPermission());
+    const { result } = await renderHook(() => useCameraPermission());
     expect(result.current.state).toBe('undetermined');
   });
 
-  it('openSettings invokes Linking.openSettings() (Req 3.2)', () => {
+  it('openSettings invokes Linking.openSettings() (Req 3.2)', async () => {
     mockPermissionResponse({ status: 'denied', canAskAgain: true });
-    const { result } = renderHook(() => useCameraPermission());
+    const { result } = await renderHook(() => useCameraPermission());
 
     result.current.openSettings();
 
@@ -87,16 +87,16 @@ describe('useCameraPermission', () => {
 
   it('requestPermission calls the underlying requestCameraPermission function', async () => {
     mockPermissionResponse({ status: 'undetermined', canAskAgain: true });
-    const { result } = renderHook(() => useCameraPermission());
+    const { result } = await renderHook(() => useCameraPermission());
 
     await result.current.requestPermission();
 
     expect(mockRequest).toHaveBeenCalledTimes(1);
   });
 
-  it('re-checks permission state on focus via useFocusEffect (Req 3.3)', () => {
+  it('re-checks permission state on focus via useFocusEffect (Req 3.3)', async () => {
     mockPermissionResponse({ status: 'granted', canAskAgain: true });
-    renderHook(() => useCameraPermission());
+    await renderHook(() => useCameraPermission());
 
     expect(useFocusEffect).toHaveBeenCalledTimes(1);
     expect(mockGet).toHaveBeenCalledTimes(1);

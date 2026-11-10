@@ -18,10 +18,10 @@ jest.mock("@/service/payments/paymongoService", () => ({
   PaymongoError: class PaymongoError extends Error { reason = ""; code: string | null = null },
 }));
 
-function renderVerify() {
+async function renderVerify() {
   const client = new QueryClient();
   const invalidate = jest.spyOn(client, "invalidateQueries");
-  render(<QueryClientProvider client={client}><PaymentVerify /></QueryClientProvider>);
+  await render(<QueryClientProvider client={client}><PaymentVerify /></QueryClientProvider>);
   return invalidate;
 }
 
@@ -32,18 +32,18 @@ beforeEach(() => { jest.clearAllMocks(); mockParams = {}; });
 it("refreshes the cached payments and tenancy after a cancelled checkout, so no stale banner stays", async () => {
   mockParams = { sessionId: "APT-ABCD1234", cancelled: "1" };
   mockCancel.mockResolvedValue("failed");
-  const invalidate = renderVerify();
+  const invalidate = await renderVerify();
   expect(await screen.findByText("Payment cancelled")).toBeTruthy();
   expect(mockCancel).toHaveBeenCalledWith("APT-ABCD1234");
   expect(invalidatedKeys(invalidate)).toEqual(expect.arrayContaining(["payments", "tenancy"]));
-  fireEvent.press(screen.getByText("Back to payment"));
+  await fireEvent.press(screen.getByText("Back to payment"));
   expect(mockReplace).toHaveBeenCalledWith("/tenant/payment");
 });
 
 it("also refreshes after a plain status check that finds the payment unpaid", async () => {
   mockParams = { sessionId: "APT-ABCD1234" };
   mockDetails.mockResolvedValue({ status: "failed", checkoutUrl: null });
-  const invalidate = renderVerify();
+  const invalidate = await renderVerify();
   await waitFor(() => expect(invalidatedKeys(invalidate)).toEqual(expect.arrayContaining(["payments", "tenancy"])));
   expect(mockCancel).not.toHaveBeenCalled();
 });

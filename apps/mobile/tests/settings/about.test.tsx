@@ -24,16 +24,16 @@ jest.mock("@/components/layout/ScreenWrapper", () => ({
 jest.mock("@/components/layout/StandardHeader", () => ({ __esModule: true, default: () => null }));
 
 describe("About screen", () => {
-  it("lists the real team and no placeholder names", () => {
-    render(<About />);
+  it("lists the real team and no placeholder names", async () => {
+    await render(<About />);
     for (const member of TEAM_MEMBERS) {
       expect(screen.getByText(member.name)).toBeTruthy();
     }
     expect(screen.queryByText(/Bill Gates|Linus Torvalds/)).toBeNull();
   });
 
-  it("shows a link button only for profiles the member has", () => {
-    render(<About />);
+  it("shows a link button only for profiles the member has", async () => {
+    await render(<About />);
     const githubCount = TEAM_MEMBERS.filter((m) => m.github).length;
     const linkedinCount = TEAM_MEMBERS.filter((m) => m.linkedin).length;
     expect(screen.getAllByLabelText(/on GitHub$/)).toHaveLength(githubCount);

@@ -149,8 +149,8 @@ jest.mock("heroui-native", () => {
   return { Button, Chip, Separator: Passthrough, Spinner: Passthrough };
 });
 
-it("shows the matching icon and purpose above a supporting document preview", () => {
-  render(<PassportDocumentDetail />);
+it("shows the matching icon and purpose above a supporting document preview", async () => {
+  await render(<PassportDocumentDetail />);
 
   const icon = screen.getByTestId("document-type-icon");
   expect(icon.parent?.children[0]).toBe(icon);
@@ -162,14 +162,14 @@ it("shows the matching icon and purpose above a supporting document preview", ()
   ).toBeTruthy();
 });
 
-it("explains auto-linked verified IDs without repeating the message", () => {
+it("explains auto-linked verified IDs without repeating the message", async () => {
   mockDocument.verification_id = "verification-1";
   mockDocument.doc_type = "Driver’s License";
   mockDocument.is_primary = true;
   mockDocument.is_verified = true;
 
   try {
-    render(<PassportDocumentDetail />);
+    await render(<PassportDocumentDetail />);
 
     expect(screen.getByTestId("document-type-icon")).toBeTruthy();
      expect(screen.getByTestId("status-chip-soft-success-sm")).toBeTruthy();
@@ -186,11 +186,11 @@ it("explains auto-linked verified IDs without repeating the message", () => {
   }
 });
 
-it("uses a soft warning chip and an in-body banner during review", () => {
+it("uses a soft warning chip and an in-body banner during review", async () => {
   mockDocument.review_status = "pending";
 
   try {
-    render(<PassportDocumentDetail />);
+    await render(<PassportDocumentDetail />);
 
     expect(screen.getByText("Under review")).toBeTruthy();
     expect(screen.getByTestId("status-chip-soft-warning-sm")).toBeTruthy();
@@ -202,32 +202,32 @@ it("uses a soft warning chip and an in-body banner during review", () => {
   }
 });
 
-function withDocument(patch: Partial<typeof mockDocument>, run: () => void) {
+async function withDocument(patch: Partial<typeof mockDocument>, run: () => void | Promise<void>) {
   const original = { ...mockDocument };
   Object.assign(mockDocument, patch);
   try {
-    run();
+    await run();
   } finally {
     Object.assign(mockDocument, original);
   }
 }
 
-it("renders an inline PDF thumbnail for PDF documents", () => {
-  render(<PassportDocumentDetail />);
+it("renders an inline PDF thumbnail for PDF documents", async () => {
+  await render(<PassportDocumentDetail />);
 
   expect(screen.getByTestId("pdf-thumbnail")).toBeTruthy();
   expect(screen.getByText("Document Preview")).toBeTruthy();
 });
 
-it("falls back to a file card for non-PDF, non-image files", () => {
-  withDocument(
+it("falls back to a file card for non-PDF, non-image files", async () => {
+  await withDocument(
     {
       storage_path: "user-1/passport/letter.docx",
       mime_type:
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     },
-    () => {
-      render(<PassportDocumentDetail />);
+    async () => {
+      await render(<PassportDocumentDetail />);
 
       expect(screen.queryByTestId("pdf-thumbnail")).toBeNull();
       expect(screen.getByText(/DOCX · Tap to open/)).toBeTruthy();
@@ -235,30 +235,30 @@ it("falls back to a file card for non-PDF, non-image files", () => {
   );
 });
 
-it("labels front and back only when a back image exists", () => {
-  render(<PassportDocumentDetail />);
+it("labels front and back only when a back image exists", async () => {
+  await render(<PassportDocumentDetail />);
   expect(screen.queryByText("Front")).toBeNull();
   expect(screen.queryByText("Back")).toBeNull();
-  screen.unmount();
+  await screen.unmount();
 
-  withDocument({ storage_path_back: "user-1/passport/back.jpg" }, () => {
-    render(<PassportDocumentDetail />);
+  await withDocument({ storage_path_back: "user-1/passport/back.jpg" }, async () => {
+    await render(<PassportDocumentDetail />);
     expect(screen.getByText("Front")).toBeTruthy();
     expect(screen.getByText("Back")).toBeTruthy();
   });
 });
 
-it("shows the uploaded date and 'No expiry' when there is no expiry date", () => {
-  render(<PassportDocumentDetail />);
+it("shows the uploaded date and 'No expiry' when there is no expiry date", async () => {
+  await render(<PassportDocumentDetail />);
 
   expect(screen.getByText("Uploaded")).toBeTruthy();
   expect(screen.getByText("Expiry date")).toBeTruthy();
   expect(screen.getByText("No expiry")).toBeTruthy();
 });
 
-it("flags an expired document and disables verification", () => {
-  withDocument({ doc_type: "Payslip", expires_at: "2020-01-01" }, () => {
-    render(<PassportDocumentDetail />);
+it("flags an expired document and disables verification", async () => {
+  await withDocument({ doc_type: "Payslip", expires_at: "2020-01-01" }, async () => {
+    await render(<PassportDocumentDetail />);
 
     expect(screen.getByText("Expired document")).toBeTruthy();
     expect(screen.getByText(/\(Expired\)/)).toBeTruthy();
@@ -270,19 +270,19 @@ it("flags an expired document and disables verification", () => {
   });
 });
 
-it("shows Unverified, Rejected and Verified statuses with text", () => {
+it("shows Unverified, Rejected and Verified statuses with text", async () => {
   const original = mockDocument.doc_type;
   mockDocument.doc_type = "Payslip";
-  render(<PassportDocumentDetail />);
+  await render(<PassportDocumentDetail />);
   mockDocument.doc_type = original;
   expect(screen.getByText("Unverified")).toBeTruthy();
   expect(screen.getByText("Request Verification")).toBeTruthy();
-  screen.unmount();
+  await screen.unmount();
 
-  withDocument(
+  await withDocument(
     { doc_type: "Payslip", review_status: "rejected", rejection_reason: "Photo is blurry" },
-    () => {
-      render(<PassportDocumentDetail />);
+    async () => {
+      await render(<PassportDocumentDetail />);
       expect(screen.getByText("Rejected")).toBeTruthy();
       expect(screen.getByText("Photo is blurry")).toBeTruthy();
       expect(screen.getByText("Request Review Again")).toBeTruthy();
@@ -290,9 +290,9 @@ it("shows Unverified, Rejected and Verified statuses with text", () => {
   );
 });
 
-it("hides the verify action once the document is verified", () => {
-  withDocument({ is_verified: true, review_status: "verified" }, () => {
-    render(<PassportDocumentDetail />);
+it("hides the verify action once the document is verified", async () => {
+  await withDocument({ is_verified: true, review_status: "verified" }, async () => {
+    await render(<PassportDocumentDetail />);
 
     expect(screen.getByText("Verified")).toBeTruthy();
     expect(screen.queryByText("Request Verification")).toBeNull();
@@ -306,11 +306,11 @@ beforeEach(() => {
   mockRequestError = null;
 });
 
-it("shows an Expired chip instead of Verified for an expired verified document", () => {
-  withDocument(
+it("shows an Expired chip instead of Verified for an expired verified document", async () => {
+  await withDocument(
     { is_verified: true, review_status: "verified", expires_at: "2020-01-01" },
-    () => {
-      render(<PassportDocumentDetail />);
+    async () => {
+      await render(<PassportDocumentDetail />);
 
       expect(screen.getByText("Expired")).toBeTruthy();
       expect(screen.queryByText("Verified")).toBeNull();
@@ -318,19 +318,19 @@ it("shows an Expired chip instead of Verified for an expired verified document",
   );
 });
 
-it("submits a review request for an eligible document", () => {
-  withDocument({ doc_type: "Payslip" }, () => {
-    render(<PassportDocumentDetail />);
+it("submits a review request for an eligible document", async () => {
+  await withDocument({ doc_type: "Payslip" }, async () => {
+    await render(<PassportDocumentDetail />);
 
-    fireEvent(screen.getByLabelText("Request document verification"), "press");
+    await fireEvent(screen.getByLabelText("Request document verification"), "press");
     expect(mockRequestReview).toHaveBeenCalledWith({ id: "doc-1" });
   });
 });
 
-it("shows the review request error inline", () => {
+it("shows the review request error inline", async () => {
   mockRequestError = new Error("This document is already under review.");
-  withDocument({ doc_type: "Payslip" }, () => {
-    render(<PassportDocumentDetail />);
+  await withDocument({ doc_type: "Payslip" }, async () => {
+    await render(<PassportDocumentDetail />);
 
     expect(
       screen.getByText("This document is already under review."),
@@ -338,17 +338,17 @@ it("shows the review request error inline", () => {
   });
 });
 
-it("deletes after confirmation and surfaces a delete error", () => {
-  render(<PassportDocumentDetail />);
+it("deletes after confirmation and surfaces a delete error", async () => {
+  await render(<PassportDocumentDetail />);
 
-  fireEvent(screen.getByLabelText("Delete document"), "press");
-  fireEvent(screen.getByLabelText("confirm-delete"), "press");
+  await fireEvent(screen.getByLabelText("Delete document"), "press");
+  await fireEvent(screen.getByLabelText("confirm-delete"), "press");
   expect(mockRemove).toHaveBeenCalledWith(
     { id: "doc-1", storagePath: "user-1/passport/residency.pdf" },
     expect.any(Object),
   );
 
   const { onError } = mockRemove.mock.calls[0][1];
-  act(() => onError(new Error("Attached to an active application.")));
+  await act(() => onError(new Error("Attached to an active application.")));
   expect(screen.getByText("Attached to an active application.")).toBeTruthy();
 });

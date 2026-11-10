@@ -72,9 +72,9 @@ describe("Edit budget route", () => {
   });
   afterEach(() => jest.useRealTimers());
 
-  test("loads the tapped plan and a validated suggestion amount into the page form", () => {
+  test("loads the tapped plan and a validated suggestion amount into the page form", async () => {
     mockParams.amount = "1000";
-    render(<EditBudgetScreen />);
+    await render(<EditBudgetScreen />);
     expect(mockPage).toHaveBeenLastCalledWith(
       expect.objectContaining({
         initial: budget,
@@ -84,16 +84,16 @@ describe("Edit budget route", () => {
     );
   });
 
-  test("invalid suggested amounts do not prefill the form", () => {
+  test("invalid suggested amounts do not prefill the form", async () => {
     mockParams.amount = "12.345";
-    render(<EditBudgetScreen />);
+    await render(<EditBudgetScreen />);
     expect(mockPage).toHaveBeenLastCalledWith(
       expect.objectContaining({ suggestedAmount: undefined }),
     );
   });
 
   test("save and removal use the same finance mutations then return to the report", async () => {
-    render(<EditBudgetScreen />);
+    await render(<EditBudgetScreen />);
     const props = mockPage.mock.calls.at(-1)![0];
     const draft = {
       apartment_id: "villa",
@@ -109,7 +109,7 @@ describe("Edit budget route", () => {
     expect(mockToast).toHaveBeenCalledWith({ label: "Budget saved", variant: "success" });
     await act(async () => { await props.onDelete!(budget.id); });
     expect(mockRemove).toHaveBeenCalledWith(budget.id);
-    act(() => props.onClose());
+    await act(() => props.onClose());
     expect(mockBack).toHaveBeenCalled();
   });
 });

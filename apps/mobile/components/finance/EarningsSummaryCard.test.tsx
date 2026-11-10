@@ -2,6 +2,7 @@ import { fireEvent, render } from "@testing-library/react-native";
 import { ScrollView } from "react-native";
 import EarningsSummaryCard from "./EarningsSummaryCard";
 import { SCROLLABLE_BODY_MAX_HEIGHT } from "@/components/display/AppDialog";
+import { findAllInTree } from "../../tests/support/testTraversal";
 import type { FinanceData } from "@/service/finance/financeService";
 
 jest.mock("heroui-native", () => jest.requireActual("../../tests/support/heroUINativeStub"));
@@ -62,30 +63,30 @@ describe("earnings summary card", () => {
   });
   afterEach(() => jest.useRealTimers());
 
-  test("the breakdown keeps figures only and moves the guidelines into a dialog", () => {
-    const screen = render(card());
+  test("the breakdown keeps figures only and moves the guidelines into a dialog", async () => {
+    const screen = await render(card());
     expect(screen.queryByText("How these figures are calculated")).toBeNull();
 
-    fireEvent.press(screen.getByText("View breakdown & calculation"));
+    await fireEvent.press(screen.getByText("View breakdown & calculation"));
     const link = screen.getByText("How these figures are calculated");
     expect(screen.queryByText(/Only confirmed rent payments/)).toBeNull();
 
-    fireEvent.press(link);
+    await fireEvent.press(link);
     expect(screen.getByText("Profit & planning guidelines")).toBeTruthy();
     expect(screen.getByText(/Only confirmed rent payments linked to a tenancy/)).toBeTruthy();
     expect(screen.getByText(/Net operating income is cash-based/)).toBeTruthy();
     expect(screen.getByText(/Planned reserves are amounts you intend to set aside/)).toBeTruthy();
     expect(screen.getByText(/including zero-spending months/)).toBeTruthy();
     expect(screen.getByText(/through 2026-10-17/)).toBeTruthy();
-    const body = screen.UNSAFE_getByType(ScrollView);
+    const body = findAllInTree(screen.root!, (n) => String(n.type) === "RCTScrollView")[0];
     expect(body.props.style).toEqual({ maxHeight: SCROLLABLE_BODY_MAX_HEIGHT });
   });
 
-  test("the dialog closes from its action and the link stays available", () => {
-    const screen = render(card());
-    fireEvent.press(screen.getByText("View breakdown & calculation"));
-    fireEvent.press(screen.getByText("How these figures are calculated"));
-    fireEvent.press(screen.getByText("Got it"));
+  test("the dialog closes from its action and the link stays available", async () => {
+    const screen = await render(card());
+    await fireEvent.press(screen.getByText("View breakdown & calculation"));
+    await fireEvent.press(screen.getByText("How these figures are calculated"));
+    await fireEvent.press(screen.getByText("Got it"));
 
     expect(screen.getAllByText("How these figures are calculated")).toHaveLength(1);
     expect(screen.queryByText(/Only confirmed rent payments/)).toBeNull();

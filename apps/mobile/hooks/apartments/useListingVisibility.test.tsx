@@ -1,6 +1,6 @@
 import type { PropsWithChildren } from "react";
 import { act, renderHook } from "@testing-library/react-native";
-import { notifyManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { usePortalStore } from "@/stores/usePortalStore";
 import { useCurrentUser } from "@/hooks/auth/useCurrentUser";
 import { changeListingVisibility } from "@/service/apartments/listingVisibilityService";
@@ -21,17 +21,15 @@ const write = changeListingVisibility as jest.Mock;
 const user = useCurrentUser as jest.Mock;
 const options = { apartmentId: "unit", ownerId: "owner", status: "available", hasActiveTenancy: false, tenancyReady: true };
 const clients: QueryClient[] = [];
-beforeAll(() => notifyManager.setNotifyFunction(callback => { act(callback); }));
-afterAll(() => notifyManager.setNotifyFunction(callback => callback()));
 beforeEach(() => {
   jest.clearAllMocks();
   usePortalStore.setState({ portal: "landlord", authUserId: "auth", loading: false });
   user.mockReturnValue({ data: { id: "owner", user_id: "auth", roles: ["landlord"], account_status: "verified" } });
   write.mockResolvedValue("under_maintenance");
 });
-afterEach(() => { act(() => { for (const client of clients.splice(0)) client.clear(); }); });
+afterEach(async () => { await act(() => { for (const client of clients.splice(0)) client.clear(); }); });
 
-function setup(overrides: Partial<typeof options> = {}) {
+async function setup(overrides: Partial<typeof options> = {}) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity }, mutations: { retry: false, gcTime: Infinity } } });
   clients.push(client);
   client.setQueryData(["apartment-details", "unit"], { id: "unit", status: "available", landlord: { id: "owner" } });
@@ -41,13 +39,13 @@ function setup(overrides: Partial<typeof options> = {}) {
   client.setQueryData(["searchSections", "CAMANAVA", "", null], []);
   client.setQueryData(["payment-history", "owner"], []);
   const wrapper = ({ children }: PropsWithChildren) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
-  const hook = renderHook((props: typeof options) => useListingVisibility(props), { wrapper, initialProps: { ...options, ...overrides } });
+  const hook = await renderHook((props: typeof options) => useListingVisibility(props), { wrapper, initialProps: { ...options, ...overrides } });
   return { ...hook, client };
 }
 
 it("does not write until confirmed, then updates both caches while preserving moderation and other units", async () => {
-  const { result, client } = setup();
-  act(() => result.current.open());
+  const { result, client } = await setup();
+  await act(() => result.current.open());
   expect(result.current.isOpen).toBe(true);
   expect(write).not.toHaveBeenCalled();
   await act(async () => { await result.current.confirm(); });
@@ -62,40 +60,40 @@ it("does not write until confirmed, then updates both caches while preserving mo
   expect(mockToast).toHaveBeenCalledWith(expect.objectContaining({ label: "Listing hidden" }));
 });
 
-it("shows the inverse action while hidden and cancels without writing", () => {
-  const { result } = setup({ status: "under_maintenance" });
+it("shows the inverse action while hidden and cancels without writing", async () => {
+  const { result } = await setup({ status: "under_maintenance" });
   expect(result.current.label).toBe("Show Listing");
-  act(() => result.current.open());
-  act(() => result.current.close());
+  await act(() => result.current.open());
+  await act(() => result.current.close());
   expect(result.current.isOpen).toBe(false);
   expect(write).not.toHaveBeenCalled();
 });
 
-it.each([{ status: "occupied" }, { hasActiveTenancy: true }, { tenancyReady: false }, { ownerId: "another-owner" }, { status: "unverified" }])("fails closed for %j", overrides => {
-  const { result } = setup(overrides);
+it.each([{ status: "occupied" }, { hasActiveTenancy: true }, { tenancyReady: false }, { ownerId: "another-owner" }, { status: "unverified" }])("fails closed for %j", async overrides => {
+  const { result } = await setup(overrides);
   expect(result.current.allowed).toBe(false);
-  act(() => result.current.open());
+  await act(() => result.current.open());
   expect(result.current.isOpen).toBe(false);
 });
 
-it("never offers the action to the tenant portal or a non-verified landlord", () => {
+it("never offers the action to the tenant portal or a non-verified landlord", async () => {
   usePortalStore.setState({ portal: "tenant" });
-  const tenant = setup();
+  const tenant = await setup();
   expect(tenant.result.current.allowed).toBe(false);
-  tenant.unmount();
+  await tenant.unmount();
   usePortalStore.setState({ portal: "landlord" });
   user.mockReturnValue({ data: { id: "owner", user_id: "auth", roles: ["landlord"], account_status: "pending" } });
-  expect(setup().result.current.allowed).toBe(false);
+  expect((await setup()).result.current.allowed).toBe(false);
 });
 
 it("holds the dialog open and blocks duplicate confirmation and dismissal while saving", async () => {
   let resolve!: (value: string) => void;
   write.mockReturnValue(new Promise<string>(yes => { resolve = yes; }));
-  const { result } = setup();
-  act(() => result.current.open());
+  const { result } = await setup();
+  await act(() => result.current.open());
   let pending!: Promise<void>;
   await act(async () => { pending = result.current.confirm(); });
-  act(() => { result.current.close(); void result.current.confirm(); });
+  await act(() => { result.current.close(); void result.current.confirm(); });
   expect(result.current.busy).toBe(true);
   expect(result.current.isOpen).toBe(true);
   expect(write).toHaveBeenCalledTimes(1);
@@ -106,8 +104,8 @@ it("holds the dialog open and blocks duplicate confirmation and dismissal while 
 it("keeps database errors inline without changing data or reporting success", async () => {
   const log = jest.spyOn(console, "error").mockImplementation(() => {});
   write.mockRejectedValue({ message: "This property has an active tenancy." });
-  const { result, client } = setup();
-  act(() => result.current.open());
+  const { result, client } = await setup();
+  await act(() => result.current.open());
   await act(async () => { await result.current.confirm(); });
   expect(result.current.error).toBe("This property has an active tenancy.");
   expect(result.current.isOpen).toBe(true);
@@ -120,14 +118,12 @@ it("keeps database errors inline without changing data or reporting success", as
 it.each(["unmount", "account", "portal"])("retires a late response after %s changes", async change => {
   let resolve!: (value: string) => void;
   write.mockReturnValue(new Promise<string>(yes => { resolve = yes; }));
-  const { result, client, unmount } = setup();
-  act(() => result.current.open());
+  const { result, client, unmount } = await setup();
+  await act(() => result.current.open());
   let pending!: Promise<void>;
   await act(async () => { pending = result.current.confirm(); });
-  act(() => {
-    if (change === "unmount") unmount();
-    else usePortalStore.setState(change === "account" ? { authUserId: "other-auth" } : { portal: "tenant" });
-  });
+  if (change === "unmount") await unmount();
+  else await act(() => usePortalStore.setState(change === "account" ? { authUserId: "other-auth" } : { portal: "tenant" }));
   await act(async () => { resolve("under_maintenance"); await pending; });
   expect(client.getQueryData(["apartment-details", "unit"])).toMatchObject({ status: "available" });
   expect(mockToast).not.toHaveBeenCalled();

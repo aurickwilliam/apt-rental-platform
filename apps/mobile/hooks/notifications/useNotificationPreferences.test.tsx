@@ -63,7 +63,7 @@ beforeEach(() => {
 describe("useNotificationPreferences", () => {
   it("returns defaults when the user has no preference row", async () => {
     const { client, QueryWrapper } = createWrapper();
-    const { result, unmount } = renderHook(() => useNotificationPreferences(), {
+    const { result, unmount } = await renderHook(() => useNotificationPreferences(), {
       wrapper: QueryWrapper,
     });
 
@@ -77,13 +77,13 @@ describe("useNotificationPreferences", () => {
       system: true,
     });
 
-    unmount();
+    await unmount();
     client.clear();
   });
 
   it("composes rapid toggles on the latest cached value", async () => {
     const { client, QueryWrapper } = createWrapper();
-    const { result, unmount } = renderHook(() => useNotificationPreferences(), {
+    const { result, unmount } = await renderHook(() => useNotificationPreferences(), {
       wrapper: QueryWrapper,
     });
 
@@ -111,7 +111,7 @@ describe("useNotificationPreferences", () => {
     expect(secondPayload.system).toBe(false);
     expect(secondPayload.notifications_enabled).toBe(true);
 
-    unmount();
+    await unmount();
     client.clear();
   });
 });

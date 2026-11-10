@@ -18,8 +18,8 @@ jest.mock("@/service/auth/signUpService", () => ({
   requestSignUpCode: (...args: unknown[]) => mockRequestSignUpCode(...args),
 }));
 
-function setup() {
-  return renderHook(() => {
+async function setup() {
+  return await renderHook(() => {
     const form = useProfileDetailsForm({ scrollRef: { current: null } });
     const passwords = usePasswordValidation();
     return {
@@ -30,8 +30,8 @@ function setup() {
   });
 }
 
-function fillValid(hook: () => ReturnType<typeof setup>["result"]["current"], password = "Passw0rd!") {
-  act(() => {
+async function fillValid(hook: () => ReturnType<typeof setup>["result"]["current"], password = "Passw0rd!") {
+  await act(() => {
     const { form } = hook();
     form.setField("firstName", "Ana");
     form.setField("lastName", "Lim");
@@ -41,8 +41,8 @@ function fillValid(hook: () => ReturnType<typeof setup>["result"]["current"], pa
     form.setField("streetAddress", "1 Main St");
     form.setProvince("Metro Manila");
   });
-  act(() => hook().form.setCity("Caloocan"));
-  act(() => {
+  await act(() => hook().form.setCity("Caloocan"));
+  await act(() => {
     const { form, passwords } = hook();
     form.setField("barangay", "Barangay 1");
     form.mobile.onChange("09171234567");
@@ -62,8 +62,8 @@ describe("useSignUpProfile", () => {
   });
 
   it("does not create the account while the password is missing or weak", async () => {
-    const { result } = setup();
-    fillValid(() => result.current, "weak");
+    const { result } = await setup();
+    await fillValid(() => result.current, "weak");
 
     await act(async () => { await result.current.flow.submit(); });
 
@@ -72,8 +72,8 @@ describe("useSignUpProfile", () => {
   });
 
   it("creates the account, keeps the details for verification and continues to the code step", async () => {
-    const { result } = setup();
-    fillValid(() => result.current);
+    const { result } = await setup();
+    await fillValid(() => result.current);
 
     await act(async () => { await result.current.flow.submit(); });
 
@@ -102,8 +102,8 @@ describe("useSignUpProfile", () => {
 
   it("shows the wait time from a throttled code request", async () => {
     mockRequestSignUpCode.mockRejectedValue(new Error("For security purposes, you can only request this after 42 seconds."));
-    const { result } = setup();
-    fillValid(() => result.current);
+    const { result } = await setup();
+    await fillValid(() => result.current);
 
     await act(async () => { await result.current.flow.submit(); });
 
@@ -112,20 +112,20 @@ describe("useSignUpProfile", () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it("clears the kept details when going back", () => {
+  it("clears the kept details when going back", async () => {
     useRegistrationStore.getState().setData({ firstName: "Ana" });
-    const { result } = setup();
+    const { result } = await setup();
 
-    act(() => result.current.flow.goBack());
+    await act(() => result.current.flow.goBack());
 
     expect(useRegistrationStore.getState().data).toEqual({});
     expect(mockBack).toHaveBeenCalled();
   });
 
   it("requires both policies even if submit is called directly", async () => {
-    const { result } = setup();
-    fillValid(() => result.current);
-    act(() => result.current.flow.policies.setAccepted("termsAccepted", false));
+    const { result } = await setup();
+    await fillValid(() => result.current);
+    await act(() => result.current.flow.policies.setAccepted("termsAccepted", false));
     await act(async () => { await result.current.flow.submit(); });
     expect(mockRequestSignUpCode).not.toHaveBeenCalled();
     expect(result.current.flow.policies.errors.termsAccepted).toBeTruthy();
@@ -135,13 +135,13 @@ describe("useSignUpProfile", () => {
   it("does not request twice or revive the draft after leaving during a code request", async () => {
     let resolveRequest!: () => void;
     mockRequestSignUpCode.mockImplementation(() => new Promise<void>((resolve) => { resolveRequest = resolve; }));
-    const { result } = setup();
-    fillValid(() => result.current);
+    const { result } = await setup();
+    await fillValid(() => result.current);
     let request!: Promise<void>;
-    act(() => { request = result.current.flow.submit(); });
+    await act(() => { request = result.current.flow.submit(); });
     await act(async () => { await result.current.flow.submit(); });
     expect(mockRequestSignUpCode).toHaveBeenCalledTimes(1);
-    act(() => result.current.flow.goBack());
+    await act(() => result.current.flow.goBack());
     await act(async () => { resolveRequest(); await request; });
     expect(useRegistrationStore.getState().data).toEqual({});
     expect(mockPush).not.toHaveBeenCalled();

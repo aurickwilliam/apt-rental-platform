@@ -1,5 +1,5 @@
 diff --git a/lib/module/components/input/input.js b/lib/module/components/input/input.js
-index 332f5caab14ce5dbde96154b7ff38e6b17dc91d9..dfcc55f9468e812bbfd1ea45df44ef53c2e6e6ff 100644
+index 332f5caab14ce5dbde96154b7ff38e6b17dc91d9..54618465937043955e16615d37f97f797b775377 100644
 --- a/lib/module/components/input/input.js
 +++ b/lib/module/components/input/input.js
 @@ -93,7 +93,7 @@ const InputRoot = /*#__PURE__*/forwardRef((props, ref) => {
@@ -12,18 +12,18 @@ index 332f5caab14ce5dbde96154b7ff38e6b17dc91d9..dfcc55f9468e812bbfd1ea45df44ef53
      selectionColorClassName: selectionColorClassName,
      editable: !isDisabled,
 diff --git a/lib/module/components/input/input.styles.js b/lib/module/components/input/input.styles.js
-index 7af4fe7f69948ed761cf599a45ee5d2c0518509f..766f018a1449b4373ec48c7160d464e5cfeb3398 100644
+index 29b8afffabf5b6845f3f38775e99b1a1ac2e63b8..fe00c02391b16e94e7d42173c9da4877f6b6123a 100644
 --- a/lib/module/components/input/input.styles.js
 +++ b/lib/module/components/input/input.styles.js
 @@ -32,14 +32,14 @@ const background = tv({
   * explicitly aligned to the trailing side in RTL layouts.
   */
  const input = tv({
--  base: 'input__input ios:outline-2 ios:outline-transparent ios:focus:outline-accent android:border-[1.5px] android:border-transparent android:focus:border-accent rtl:text-right',
+-  base: 'input__input ios:outline ios:outline-transparent ios:focus:outline-accent android:border-[1.5px] android:border-transparent android:focus:border-accent rtl:text-right',
 +  base: 'input__input border border-field-border focus:border-2 focus:border-focus rtl:text-right',
    variants: {
      variant: {
--      primary: 'input__input--variant-primary ios:shadow-field android:shadow-sm',
+-      primary: 'input__input--variant-primary ios:shadow-field android:[elevation:1]',
 +      primary: 'input__input--variant-primary',
        secondary: 'input__input--variant-secondary'
      },
@@ -48,13 +48,13 @@ index 7af4fe7f69948ed761cf599a45ee5d2c0518509f..766f018a1449b4373ec48c7160d464e5
      borderCurve: 'continuous'
    }
 diff --git a/lib/typescript/src/components/input/input.styles.d.ts b/lib/typescript/src/components/input/input.styles.d.ts
-index 3b2f28268f64828a12b0a7002b25319c34e47d2e..b7be279c8cfeed7fa4e1de7dcee7aa07b06305ca 100644
+index d5fc36ff1fb83c68a08e3a5e8c76b63dec9d7bee..fa0d2c2f3b949616966e071b70be2a2d9a50d148 100644
 --- a/lib/typescript/src/components/input/input.styles.d.ts
 +++ b/lib/typescript/src/components/input/input.styles.d.ts
-@@ -57,6 +57,11 @@ export declare const inputClassNames: import("../../helpers/internal/types").Com
+@@ -57,6 +57,11 @@ export declare const inputClassNames: import("../../helpers/internal/types/index
      placeholderTextColor: import("tailwind-variants").TVReturnType<{} | {} | {}, undefined, "accent-field-placeholder", {} | {}, undefined, import("tailwind-variants").TVReturnType<unknown, undefined, "accent-field-placeholder", unknown, unknown, undefined>>;
  }>;
- export declare const inputStyleSheet: {
+ export declare const inputStyleSheet: Readonly<{
 +    singleLine: {
 +        lineHeight: undefined;
 +        includeFontPadding: false;
@@ -64,19 +64,19 @@ index 3b2f28268f64828a12b0a7002b25319c34e47d2e..b7be279c8cfeed7fa4e1de7dcee7aa07
          borderCurve: "continuous";
      };
 diff --git a/src/components/input/input.styles.ts b/src/components/input/input.styles.ts
-index a52d796df58f20c532fd87b1788c98693a93fd44..b3e75e88b65bca156a9b86eb1fbe252754e4f343 100644
+index e674d6085922fd64be8a655d8c6077d8333135dc..b3e75e88b65bca156a9b86eb1fbe252754e4f343 100644
 --- a/src/components/input/input.styles.ts
 +++ b/src/components/input/input.styles.ts
 @@ -30,15 +30,15 @@ const background = tv({
   * explicitly aligned to the trailing side in RTL layouts.
   */
  const input = tv({
--  base: 'input__input ios:outline-2 ios:outline-transparent ios:focus:outline-accent android:border-[1.5px] android:border-transparent android:focus:border-accent rtl:text-right',
+-  base: 'input__input ios:outline ios:outline-transparent ios:focus:outline-accent android:border-[1.5px] android:border-transparent android:focus:border-accent rtl:text-right',
 +  base: 'input__input border border-field-border focus:border-2 focus:border-focus rtl:text-right',
    variants: {
      variant: {
        primary:
--        'input__input--variant-primary ios:shadow-field android:shadow-sm',
+-        'input__input--variant-primary ios:shadow-field android:[elevation:1]',
 +        'input__input--variant-primary',
        secondary: 'input__input--variant-secondary',
      },
@@ -86,7 +86,9 @@ index a52d796df58f20c532fd87b1788c98693a93fd44..b3e75e88b65bca156a9b86eb1fbe2527
        false: '',
      },
      isDisabled: {
-@@ -77,4 +77,13 @@ export const inputClassNames = combineStyles({
+@@ -75,6 +75,15 @@ export const inputClassNames = combineStyles({
+ });
+ 
  export const inputStyleSheet = StyleSheet.create({
 +  // Paragraph line heights (including Tailwind text-sm) displace the baseline
 +  // in iOS UITextField. Let the native single-line editor use its font metrics;
@@ -101,10 +103,10 @@ index a52d796df58f20c532fd87b1788c98693a93fd44..b3e75e88b65bca156a9b86eb1fbe2527
      borderCurve: 'continuous',
    },
 diff --git a/src/components/input/input.tsx b/src/components/input/input.tsx
-index ab1304dd46cb3d8a704e4499f00ef7b12bfd73ff..b689aa1151f128d9f60164a007f41f40f458c4ba 100644
+index b4295fd13291ffd18b6e0e13c3b1fa18f9a413a6..d4ccf2f032881fce508cfeb70d8b72bde0bdf984 100644
 --- a/src/components/input/input.tsx
 +++ b/src/components/input/input.tsx
-@@ -123,7 +123,11 @@ const InputRoot = forwardRef<TextInputType, InputProps>((props, ref) => {
+@@ -127,7 +127,11 @@ const InputRoot: TextInputComponent<InputProps> = forwardRef<
      <HeroTextInput
        ref={ref}
        className={inputClassName}

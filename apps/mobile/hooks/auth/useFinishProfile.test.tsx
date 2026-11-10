@@ -27,16 +27,16 @@ jest.mock("@/stores/usePortalStore", () => ({
 }));
 jest.mock("@/utils/queryClient", () => ({ clearQueryClient: () => mockClearQueryClient() }));
 
-function setup(role: "tenant" | "landlord" = "tenant", requestedRole?: string) {
-  return renderHook(() => {
+async function setup(role: "tenant" | "landlord" = "tenant", requestedRole?: string) {
+  return await renderHook(() => {
     const form = useProfileDetailsForm({ scrollRef: { current: null } });
     const flow = useFinishProfile({ form, role, requestedRole });
     return { form, flow };
   });
 }
 
-function fillValid(form: () => ReturnType<typeof setup>["result"]["current"]["form"]) {
-  act(() => {
+async function fillValid(form: () => ReturnType<typeof setup>["result"]["current"]["form"]) {
+  await act(() => {
     form().setField("firstName", "Ana");
     form().setField("lastName", "Lim");
     form().setField("gender", "Female");
@@ -44,8 +44,8 @@ function fillValid(form: () => ReturnType<typeof setup>["result"]["current"]["fo
     form().setField("streetAddress", "1 Main St");
     form().setProvince("Metro Manila");
   });
-  act(() => form().setCity("Caloocan"));
-  act(() => {
+  await act(() => form().setCity("Caloocan"));
+  await act(() => {
     form().setField("barangay", "Barangay 1");
     form().mobile.onChange("09171234567");
     form().postal.onChange("1400");
@@ -61,8 +61,8 @@ describe("useFinishProfile", () => {
   });
 
   it("does not save while the form is invalid", async () => {
-    const { result } = setup();
-    act(() => {
+    const { result } = await setup();
+    await act(() => {
       result.current.flow.policies.setAccepted("privacyAccepted", true);
       result.current.flow.policies.setAccepted("termsAccepted", true);
     });
@@ -74,9 +74,9 @@ describe("useFinishProfile", () => {
   });
 
   it("saves, activates the portal and sends a tenant to personalization", async () => {
-    const { result } = setup("tenant", "tenant");
-    fillValid(() => result.current.form);
-    act(() => {
+    const { result } = await setup("tenant", "tenant");
+    await fillValid(() => result.current.form);
+    await act(() => {
       result.current.flow.policies.setAccepted("privacyAccepted", true);
       result.current.flow.policies.setAccepted("termsAccepted", true);
     });
@@ -94,9 +94,9 @@ describe("useFinishProfile", () => {
   });
 
   it("sends a landlord to the dashboard", async () => {
-    const { result } = setup("landlord");
-    fillValid(() => result.current.form);
-    act(() => {
+    const { result } = await setup("landlord");
+    await fillValid(() => result.current.form);
+    await act(() => {
       result.current.flow.policies.setAccepted("privacyAccepted", true);
       result.current.flow.policies.setAccepted("termsAccepted", true);
     });
@@ -108,9 +108,9 @@ describe("useFinishProfile", () => {
 
   it("shows a friendly message and stays put when saving fails", async () => {
     mockFinishProfile.mockRejectedValue(new Error("JWT expired"));
-    const { result } = setup();
-    fillValid(() => result.current.form);
-    act(() => {
+    const { result } = await setup();
+    await fillValid(() => result.current.form);
+    await act(() => {
       result.current.flow.policies.setAccepted("privacyAccepted", true);
       result.current.flow.policies.setAccepted("termsAccepted", true);
     });
@@ -122,12 +122,12 @@ describe("useFinishProfile", () => {
     expect(result.current.flow.loading).toBe(false);
     expect(mockReplace).not.toHaveBeenCalled();
 
-    act(() => result.current.flow.closeErrorDialog());
+    await act(() => result.current.flow.closeErrorDialog());
     expect(result.current.flow.errorDialogOpen).toBe(false);
   });
 
   it("signs out and clears cached data to leave with a different account", async () => {
-    const { result } = setup();
+    const { result } = await setup();
 
     await act(async () => { await result.current.flow.signOut(); });
 
@@ -137,11 +137,11 @@ describe("useFinishProfile", () => {
   });
 
   it("blocks missing acceptance and shows stale revisions inline without losing the profile draft", async () => {
-    const { result } = setup();
-    fillValid(() => result.current.form);
+    const { result } = await setup();
+    await fillValid(() => result.current.form);
     await act(async () => { await result.current.flow.submit(); });
     expect(mockFinishProfile).not.toHaveBeenCalled();
-    act(() => {
+    await act(() => {
       result.current.flow.policies.setAccepted("privacyAccepted", true);
       result.current.flow.policies.setAccepted("termsAccepted", true);
     });

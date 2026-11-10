@@ -100,13 +100,13 @@ describe("role-neutral mobile sign-in", () => {
   });
 
   it("does not show tenant and landlord tabs and restores the saved portal", async () => {
-    render(<SignIn />);
+    await render(<SignIn />);
     expect(screen.queryByText("Tenant")).toBeNull();
     expect(screen.queryByText("Landlord")).toBeNull();
 
-    fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
-    fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
-    fireEvent.press(screen.getByText("Sign In"));
+    await fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
+    await fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
+    await fireEvent.press(screen.getByText("Sign In"));
 
     await waitFor(() => expect(mockRestore).toHaveBeenCalledWith("account-a", ["landlord", "tenant"]));
     expect(mockReplace).toHaveBeenCalledWith("/(tabs)/(tenant)/rentals");
@@ -114,11 +114,11 @@ describe("role-neutral mobile sign-in", () => {
 
   it("signs out a suspended account and shows the reason", async () => {
     mockGetStatus.mockResolvedValue({ suspended: true, reason: "Fake listings" });
-    render(<SignIn />);
+    await render(<SignIn />);
 
-    fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
-    fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
-    fireEvent.press(screen.getByText("Sign In"));
+    await fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
+    await fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
+    await fireEvent.press(screen.getByText("Sign In"));
 
     await waitFor(() =>
       expect(mockErrorDialog).toHaveBeenLastCalledWith(
@@ -136,7 +136,7 @@ describe("role-neutral mobile sign-in", () => {
 
   it("shows the notice left by the suspension guard", async () => {
     useSuspensionStore.getState().show("Fake listings");
-    render(<SignIn />);
+    await render(<SignIn />);
 
     await waitFor(() =>
       expect(mockErrorDialog).toHaveBeenLastCalledWith(
@@ -151,11 +151,11 @@ describe("role-neutral mobile sign-in", () => {
 
   it("signs out admin-only accounts without routing to a portal", async () => {
     mockSingle.mockResolvedValue({ data: { roles: ["admin"] }, error: null });
-    render(<SignIn />);
+    await render(<SignIn />);
 
-    fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
-    fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
-    fireEvent.press(screen.getByText("Sign In"));
+    await fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
+    await fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
+    await fireEvent.press(screen.getByText("Sign In"));
 
     await waitFor(() => expect(mockSignOut).toHaveBeenCalled());
     expect(mockRestore).not.toHaveBeenCalled();
@@ -168,11 +168,11 @@ describe("role-neutral mobile sign-in", () => {
       error: null,
     });
     mockSingle.mockResolvedValue({ data: null, error: null });
-    render(<SignIn />);
+    await render(<SignIn />);
 
-    fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
-    fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
-    fireEvent.press(screen.getByText("Sign In"));
+    await fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
+    await fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
+    await fireEvent.press(screen.getByText("Sign In"));
 
     await waitFor(() =>
       expect(mockReplace).toHaveBeenCalledWith({
@@ -190,11 +190,11 @@ describe("role-neutral mobile sign-in", () => {
       error: { message: "Email not confirmed" },
     });
     mockResend.mockResolvedValue({ error: null });
-    render(<SignIn />);
+    await render(<SignIn />);
 
-    fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "A@Example.test");
-    fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
-    fireEvent.press(screen.getByText("Sign In"));
+    await fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "A@Example.test");
+    await fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
+    await fireEvent.press(screen.getByText("Sign In"));
 
     await waitFor(() =>
       expect(mockPush).toHaveBeenCalledWith({
@@ -208,11 +208,11 @@ describe("role-neutral mobile sign-in", () => {
 
   it("still signs out when the profile lookup itself fails", async () => {
     mockSingle.mockResolvedValue({ data: null, error: { message: "boom" } });
-    render(<SignIn />);
+    await render(<SignIn />);
 
-    fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
-    fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
-    fireEvent.press(screen.getByText("Sign In"));
+    await fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
+    await fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
+    await fireEvent.press(screen.getByText("Sign In"));
 
     await waitFor(() => expect(mockSignOut).toHaveBeenCalled());
     expect(mockReplace).not.toHaveBeenCalled();
@@ -221,11 +221,11 @@ describe("role-neutral mobile sign-in", () => {
   it("routes a mixed admin and consumer-role account to its saved portal", async () => {
     mockSingle.mockResolvedValue({ data: { roles: ["admin", "tenant", "landlord"] }, error: null });
     mockRestore.mockResolvedValue("landlord");
-    render(<SignIn />);
+    await render(<SignIn />);
 
-    fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
-    fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
-    fireEvent.press(screen.getByText("Sign In"));
+    await fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
+    await fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
+    await fireEvent.press(screen.getByText("Sign In"));
 
     await waitFor(() =>
       expect(mockRestore).toHaveBeenCalledWith("account-a", ["admin", "tenant", "landlord"]),
@@ -243,11 +243,11 @@ describe("role-neutral mobile sign-in", () => {
 
     it("opens the lockout dialog and disables Sign in when the server reports a lock", async () => {
       mockSignInWithPassword.mockResolvedValue(locked(900));
-      render(<SignIn />);
-      fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
-      fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "wrong");
+      await render(<SignIn />);
+      await fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
+      await fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "wrong");
 
-      fireEvent.press(screen.getByText("Sign In"));
+      await fireEvent.press(screen.getByText("Sign In"));
 
       await waitFor(() =>
         expect(mockLockoutDialog).toHaveBeenLastCalledWith(
@@ -260,7 +260,7 @@ describe("role-neutral mobile sign-in", () => {
       expect(await screen.findByText(/Try again in 1[45]:/)).toBeTruthy();
 
       // The button is disabled: another press never reaches the server.
-      fireEvent.press(screen.getByText(/Try again in/));
+      await fireEvent.press(screen.getByText(/Try again in/));
       expect(mockSignInWithPassword).toHaveBeenCalledTimes(1);
     });
 
@@ -269,11 +269,11 @@ describe("role-neutral mobile sign-in", () => {
         data: { user: null },
         error: { code: "invalid_credentials", message: "Invalid login credentials" },
       });
-      render(<SignIn />);
-      fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
-      fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "wrong");
+      await render(<SignIn />);
+      await fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
+      await fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "wrong");
 
-      fireEvent.press(screen.getByText("Sign In"));
+      await fireEvent.press(screen.getByText("Sign In"));
 
       await waitFor(() =>
         expect(mockErrorDialog).toHaveBeenLastCalledWith(
@@ -286,12 +286,12 @@ describe("role-neutral mobile sign-in", () => {
 
     it("keeps Sign in disabled after the app was closed and reopened", async () => {
       await saveServerLockout("signin", "a@example.test", 600);
-      render(<SignIn />);
-      fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
-      fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
+      await render(<SignIn />);
+      await fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
+      await fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
 
       expect(await screen.findByText(/Try again in (9|10):/)).toBeTruthy();
-      fireEvent.press(screen.getByText(/Try again in/));
+      await fireEvent.press(screen.getByText(/Try again in/));
       expect(mockSignInWithPassword).not.toHaveBeenCalled();
     });
 
@@ -299,20 +299,20 @@ describe("role-neutral mobile sign-in", () => {
       await saveServerLockout("signin", "a@example.test", 600);
       await AsyncStorage.clear(); // a reinstall or "clear data"
       mockSignInWithPassword.mockResolvedValue(locked(580));
-      render(<SignIn />);
-      fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
-      fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
+      await render(<SignIn />);
+      await fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
+      await fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
 
-      fireEvent.press(await screen.findByText("Sign In"));
+      await fireEvent.press(await screen.findByText("Sign In"));
 
       expect(await screen.findByText(/Try again in (9|10):/)).toBeTruthy();
     });
 
     it("does not lock a different email", async () => {
       await saveServerLockout("signin", "someone-else@example.test", 600);
-      render(<SignIn />);
-      fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
-      fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
+      await render(<SignIn />);
+      await fireEvent.changeText(screen.getByPlaceholderText("Enter your email"), "a@example.test");
+      await fireEvent.changeText(screen.getByPlaceholderText("Enter your password"), "password");
 
       expect(await screen.findByText("Sign In")).toBeTruthy();
       expect(screen.queryByText(/Try again in/)).toBeNull();

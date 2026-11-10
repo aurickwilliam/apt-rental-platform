@@ -51,7 +51,7 @@ describe("Google sign-in without a role tab", () => {
   it("signs out a suspended account and shows the reason", async () => {
     mockGetStatus.mockResolvedValue({ suspended: true, reason: "Spam" });
 
-    const { result } = renderHook(() => useGoogleAuth());
+    const { result } = await renderHook(() => useGoogleAuth());
     await act(async () => { await result.current.signInWithGoogle(); });
 
     expect(mockSignOut).toHaveBeenCalled();
@@ -67,7 +67,7 @@ describe("Google sign-in without a role tab", () => {
       url: "apt://auth/callback?error_code=server_error&error_description=Something+broke",
     });
 
-    const { result } = renderHook(() => useGoogleAuth());
+    const { result } = await renderHook(() => useGoogleAuth());
     await act(async () => { await result.current.signInWithGoogle(); });
 
     expect(result.current.error).toBe("Something broke");
@@ -78,7 +78,7 @@ describe("Google sign-in without a role tab", () => {
     mockSingle.mockResolvedValue({ data: { roles: ["tenant", "landlord"], mobile_number: "09123456789" }, error: null });
     mockRestore.mockResolvedValue("landlord");
 
-    const { result } = renderHook(() => useGoogleAuth());
+    const { result } = await renderHook(() => useGoogleAuth());
     await act(async () => { await result.current.signInWithGoogle(); });
 
     expect(mockRestore).toHaveBeenCalledWith("account-a", ["tenant", "landlord"]);
@@ -89,7 +89,7 @@ describe("Google sign-in without a role tab", () => {
     mockSingle.mockResolvedValue({ data: { roles: ["tenant", "landlord"], mobile_number: "09123456789" }, error: null });
     mockRestore.mockResolvedValue("tenant");
 
-    const { result } = renderHook(() => useGoogleAuth());
+    const { result } = await renderHook(() => useGoogleAuth());
     await act(async () => { await result.current.signInWithGoogle("landlord"); });
 
     expect(mockRestore).toHaveBeenCalledWith("account-a", ["tenant", "landlord"]);
@@ -99,7 +99,7 @@ describe("Google sign-in without a role tab", () => {
   it("defers role choice to profile onboarding for an incomplete Google account", async () => {
     mockSingle.mockResolvedValue({ data: { roles: ["landlord"], mobile_number: null }, error: null });
 
-    const { result } = renderHook(() => useGoogleAuth());
+    const { result } = await renderHook(() => useGoogleAuth());
     await act(async () => { await result.current.signInWithGoogle(); });
 
     await waitFor(() => expect(mockReplace).toHaveBeenCalledWith({
@@ -121,7 +121,7 @@ describe("Google sign-in without a role tab", () => {
     });
     mockSingle.mockResolvedValue({ data: { roles: ["tenant"], mobile_number: null }, error: null });
 
-    const { result } = renderHook(() => useGoogleAuth());
+    const { result } = await renderHook(() => useGoogleAuth());
     await act(async () => { await result.current.signInWithGoogle(); });
 
     await waitFor(() => expect(mockReplace).toHaveBeenCalledWith(expect.objectContaining({
@@ -133,7 +133,7 @@ describe("Google sign-in without a role tab", () => {
     mockSingle.mockResolvedValue({ data: { roles: ["tenant"], mobile_number: null, account_status: "verified" }, error: null });
     mockRestore.mockResolvedValue("tenant");
 
-    const { result } = renderHook(() => useGoogleAuth());
+    const { result } = await renderHook(() => useGoogleAuth());
     await act(async () => { await result.current.signInWithGoogle(); });
 
     expect(mockReplace).toHaveBeenCalledWith("/(tabs)/(tenant)/rentals");
@@ -142,7 +142,7 @@ describe("Google sign-in without a role tab", () => {
   it("keeps the role chosen on sign-up for incomplete Google onboarding", async () => {
     mockSingle.mockResolvedValue({ data: { roles: ["tenant"], mobile_number: null }, error: null });
 
-    const { result } = renderHook(() => useGoogleAuth());
+    const { result } = await renderHook(() => useGoogleAuth());
     await act(async () => { await result.current.signInWithGoogle("landlord"); });
 
     await waitFor(() => expect(mockReplace).toHaveBeenCalledWith(expect.objectContaining({
@@ -154,7 +154,7 @@ describe("Google sign-in without a role tab", () => {
     mockSingle.mockResolvedValue({ data: { roles: ["admin", "tenant"], mobile_number: "09123456789" }, error: null });
     mockRestore.mockResolvedValue("tenant");
 
-    const { result } = renderHook(() => useGoogleAuth());
+    const { result } = await renderHook(() => useGoogleAuth());
     await act(async () => { await result.current.signInWithGoogle(); });
 
     expect(mockSignOut).not.toHaveBeenCalled();
@@ -165,7 +165,7 @@ describe("Google sign-in without a role tab", () => {
   it("does not allow an admin-only profile into the mobile app", async () => {
     mockSingle.mockResolvedValue({ data: { roles: ["admin"], mobile_number: "09123456789" }, error: null });
 
-    const { result } = renderHook(() => useGoogleAuth());
+    const { result } = await renderHook(() => useGoogleAuth());
     await act(async () => { await result.current.signInWithGoogle(); });
 
     expect(mockSignOut).toHaveBeenCalled();

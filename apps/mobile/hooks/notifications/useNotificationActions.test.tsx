@@ -19,9 +19,9 @@ const row = (id: string, is_read = false) => ({ id, is_read });
 const tenantKey = ["notifications", "u", "tenant"];
 const landlordKey = ["notifications", "u", "landlord"];
 
-let cleanup: () => void = () => {};
+let cleanup: () => void | Promise<void> = () => {};
 
-function setup() {
+async function setup() {
   const client = new QueryClient({
     // No garbage-collection timers, so the test process exits cleanly.
     defaultOptions: { queries: { retry: false, gcTime: Infinity }, mutations: { gcTime: Infinity } },
@@ -31,17 +31,17 @@ function setup() {
   client.setQueryData(landlordKey, [row("l1"), row("shared")]);
   const wrapper = ({ children }: { children: ReactNode }) =>
     createElement(QueryClientProvider, { client }, children);
-  const hook = renderHook(() => useNotificationActions("u"), { wrapper });
+  const hook = await renderHook(() => useNotificationActions("u"), { wrapper });
   const read = (key: string[]) => (client.getQueryData(key) as { id: string; is_read: boolean }[])
     .filter((n) => n.is_read).map((n) => n.id);
-  cleanup = () => {
-    hook.unmount();
+  cleanup = async () => {
+    await hook.unmount();
     client.clear();
   };
   return { client, hook, read };
 }
 
-afterEach(() => cleanup());
+afterEach(async () => { await cleanup(); });
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -51,7 +51,7 @@ beforeEach(() => {
 
 describe("useNotificationActions", () => {
   it("marks exactly the given rows read, leaving the other portal's rows unread", async () => {
-    const { hook, read } = setup();
+    const { hook, read } = await setup();
 
     await act(async () => {
       await hook.result.current.markAllAsRead.mutateAsync(["t1", "shared"]);
@@ -65,7 +65,7 @@ describe("useNotificationActions", () => {
 
   it("puts every feed back when marking all read fails", async () => {
     mockMarkNotificationsRead.mockRejectedValue(new Error("offline"));
-    const { hook, read } = setup();
+    const { hook, read } = await setup();
 
     await act(async () => {
       await hook.result.current.markAllAsRead.mutateAsync(["t1", "shared"]).catch(() => undefined);
@@ -76,7 +76,7 @@ describe("useNotificationActions", () => {
   });
 
   it("marks one row read in the cached feeds that hold it", async () => {
-    const { hook, read } = setup();
+    const { hook, read } = await setup();
 
     await act(async () => {
       hook.result.current.markAsRead("shared");

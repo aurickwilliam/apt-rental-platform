@@ -49,18 +49,18 @@ jest.mock("heroui-native", () => {
   };
 });
 
-function setup(themeMode: "system" | "light" | "dark" = "system") {
+async function setup(themeMode: "system" | "light" | "dark" = "system") {
   const onSelect = jest.fn();
   const onOpenChange = jest.fn();
-  render(
+  await render(
     <AppearanceSheet isOpen onOpenChange={onOpenChange} themeMode={themeMode} onSelect={onSelect} />
   );
   return { onSelect, onOpenChange };
 }
 
 describe("AppearanceSheet", () => {
-  it("offers System, Light and Dark as distinct radio choices", () => {
-    setup();
+  it("offers System, Light and Dark as distinct radio choices", async () => {
+    await setup();
 
     const radios = screen.getAllByRole("radio");
     expect(radios).toHaveLength(3);
@@ -74,27 +74,27 @@ describe("AppearanceSheet", () => {
     ["system", /^System\./],
     ["light", /^Light\./],
     ["dark", /^Dark\./],
-  ] as const)("marks only the saved %s choice as selected", (mode, label) => {
-    setup(mode);
+  ] as const)("marks only the saved %s choice as selected", async (mode, label) => {
+    await setup(mode);
 
     const checked = screen.getAllByRole("radio").filter((r) => r.props.accessibilityState?.checked);
     expect(checked).toHaveLength(1);
     expect(screen.getByLabelText(label).props.accessibilityState.checked).toBe(true);
   });
 
-  it("applies a choice immediately and closes the sheet", () => {
-    const { onSelect, onOpenChange } = setup("system");
+  it("applies a choice immediately and closes the sheet", async () => {
+    const { onSelect, onOpenChange } = await setup("system");
 
-    fireEvent.press(screen.getByLabelText(/^Dark\./));
+    await fireEvent.press(screen.getByLabelText(/^Dark\./));
 
     expect(onSelect).toHaveBeenCalledWith("dark");
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it("can return to System after a manual choice", () => {
-    const { onSelect } = setup("dark");
+  it("can return to System after a manual choice", async () => {
+    const { onSelect } = await setup("dark");
 
-    fireEvent.press(screen.getByLabelText(/^System\./));
+    await fireEvent.press(screen.getByLabelText(/^System\./));
 
     expect(onSelect).toHaveBeenCalledWith("system");
   });

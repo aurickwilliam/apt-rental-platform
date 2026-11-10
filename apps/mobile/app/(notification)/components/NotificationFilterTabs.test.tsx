@@ -6,17 +6,17 @@ const onChange = jest.fn();
 
 beforeEach(() => jest.clearAllMocks());
 
-it("marks the active filter as selected", () => {
-  render(<NotificationFilterTabs value="unread" onChange={onChange} />);
+it("marks the active filter as selected", async () => {
+  await render(<NotificationFilterTabs value="unread" onChange={onChange} />);
 
   expect(screen.getByRole("tab", { name: "Unread", selected: true })).toBeTruthy();
   expect(screen.getByRole("tab", { name: "All", selected: false })).toBeTruthy();
 });
 
-it("reports the tapped filter", () => {
-  render(<NotificationFilterTabs value="all" onChange={onChange} />);
+it("reports the tapped filter", async () => {
+  await render(<NotificationFilterTabs value="all" onChange={onChange} />);
 
-  fireEvent.press(screen.getByRole("tab", { name: "Unread" }));
+  await fireEvent.press(screen.getByRole("tab", { name: "Unread" }));
 
   expect(onChange).toHaveBeenCalledWith("unread");
 });
