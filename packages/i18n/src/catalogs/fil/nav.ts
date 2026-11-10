@@ -3,7 +3,7 @@ import type { nav as enNav } from "../en/nav";
 export const nav: Record<keyof typeof enNav, string> = {
   "nav.home": "Home",
   "nav.browse": "Mag-browse",
-  "nav.browseApartments": "Mag-browse ng mga Apartment",
+  "nav.browseApartments": "Mga Apartment",
   "nav.forOwners": "Para sa mga owner",
   "nav.myRental": "Rental Ko",
   "nav.maintenance": "Maintenance",
@@ -41,7 +41,7 @@ export const nav: Record<keyof typeof enNav, string> = {
   "nav.mobileNavigation": "Navigation sa mobile",
   "nav.howItWorks": "Paano ito gumagana",
   "nav.team": "Team",
-  "nav.faqs": "Mga FAQ",
+  "nav.faqs": "FAQs",
   "nav.contact": "Makipag-ugnayan",
   "nav.getStarted": "Magsimula",
 

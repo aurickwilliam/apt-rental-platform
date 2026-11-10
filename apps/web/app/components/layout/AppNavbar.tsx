@@ -144,7 +144,7 @@ export default function AppNavbar() {
             aria-label={t("nav.mainNavigation")}
             className={
               isLanding
-                ? "hidden items-center gap-4 text-sm xl:flex xl:gap-6"
+                ? "hidden items-center gap-4 text-sm xl:flex xl:gap-5"
                 : "hidden items-center gap-6 text-sm md:flex lg:gap-10"
             }
           >
