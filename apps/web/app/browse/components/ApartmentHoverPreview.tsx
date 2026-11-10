@@ -16,6 +16,7 @@ import {
 } from "@tabler/icons-react";
 
 import { formatPesoDisplay } from "@repo/utils";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import StatusChip from "@/app/components/display/StatusChip";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
@@ -55,6 +56,7 @@ export default function ApartmentHoverPreview({
   onMouseEnter,
   onMouseLeave,
 }: ApartmentHoverPreviewProps) {
+  const { t } = useTranslation();
   const { fromScale, ...position } = style;
   const hasStats =
     apartment.bedrooms !== undefined ||
@@ -66,7 +68,7 @@ export default function ApartmentHoverPreview({
   return (
     <div
       role="dialog"
-      aria-label={`Quick preview of ${apartment.name}`}
+      aria-label={t("browse.preview.quickAria", { name: apartment.name })}
       className="apt-hover-preview fixed z-50 hidden md:block"
       data-closing={isClosing ? "true" : undefined}
       style={{ ...position, "--hover-from-scale": fromScale } as CSSProperties}
@@ -77,7 +79,7 @@ export default function ApartmentHoverPreview({
         className="cursor-pointer rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         role="button"
         tabIndex={0}
-        aria-label={`View details of ${apartment.name}`}
+        aria-label={t("browse.preview.viewDetailsAria", { name: apartment.name })}
         onClick={onViewDetails}
         onKeyDown={(event) => {
           if (event.target !== event.currentTarget) return;
@@ -102,7 +104,7 @@ export default function ApartmentHoverPreview({
             <StatusChip tone="success" size="sm" className="absolute top-2 left-2">
               <span className="flex items-center gap-1">
                 <IconShieldCheckFilled size={14} aria-hidden="true" />
-                Verified
+                {t("browse.preview.verified")}
               </span>
             </StatusChip>
           ) : null}
@@ -112,7 +114,7 @@ export default function ApartmentHoverPreview({
               variant="ghost"
               className="bg-white/75"
               isIconOnly
-              aria-label={isFavorite ? "Remove from favorites" : "Save to favorites"}
+              aria-label={isFavorite ? t("favorites.remove.aria") : t("favorites.save.aria")}
               isPending={isFavoriteLoading}
               onPress={onFavoritePress}
             >
@@ -134,9 +136,9 @@ export default function ApartmentHoverPreview({
 
             {hasStats ? (
               <div className="mt-0.5 flex items-center gap-4 text-xs text-default-500">
-                {apartment.bedrooms !== undefined && <Stat icon={IconBed} label={`${apartment.bedrooms} BR`} />}
-                {apartment.bathrooms !== undefined && <Stat icon={IconBath} label={`${apartment.bathrooms} BA`} />}
-                {apartment.areaSqm !== undefined && <Stat icon={IconMaximize} label={`${apartment.areaSqm} sqm`} />}
+                {apartment.bedrooms !== undefined && <Stat icon={IconBed} label={t("browse.preview.bedrooms", { count: apartment.bedrooms })} />}
+                {apartment.bathrooms !== undefined && <Stat icon={IconBath} label={t("browse.preview.bathrooms", { count: apartment.bathrooms })} />}
+                {apartment.areaSqm !== undefined && <Stat icon={IconMaximize} label={t("browse.preview.sqm", { count: apartment.areaSqm })} />}
               </div>
             ) : null}
 

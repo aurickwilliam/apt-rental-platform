@@ -1,5 +1,9 @@
 import { IconCheck, IconClock, IconX } from "@tabler/icons-react";
 
+import { LOCALE_TAGS, translate, type LanguageCode, type TranslationKey } from "@repo/i18n";
+
+import { getServerLocale } from "@/lib/i18n/locale";
+
 export interface VerificationActivityRow {
   status: string;
   submitted_at: string;
@@ -7,16 +11,16 @@ export interface VerificationActivityRow {
   rejection_reason: string | null;
 }
 
-const dateFormatter = new Intl.DateTimeFormat("en-PH", {
-  dateStyle: "medium",
-  timeZone: "Asia/Manila",
-});
-
-function formatDate(iso: string | null): string | null {
+function formatDate(iso: string | null, language: LanguageCode): string | null {
   if (!iso) return null;
   const time = new Date(iso).getTime();
   if (Number.isNaN(time)) return null;
-  return dateFormatter.format(new Date(time));
+  // Verification timestamps stay pinned to Manila regardless of the server's
+  // own time zone, matching the account's local day.
+  return new Intl.DateTimeFormat(LOCALE_TAGS[language], {
+    dateStyle: "medium",
+    timeZone: "Asia/Manila",
+  }).format(new Date(time));
 }
 
 type Tone = "primary" | "success" | "danger" | "muted";
@@ -50,36 +54,39 @@ interface TimelineEvent {
  * Every date comes from a persisted row field; states without a recorded
  * timestamp (e.g. awaiting review) render dateless by design.
  */
-export default function VerificationActivityTimeline({
+export default async function VerificationActivityTimeline({
   row,
 }: {
   row: VerificationActivityRow;
 }) {
-  const submittedDate = formatDate(row.submitted_at);
-  const reviewedDate = formatDate(row.reviewed_at);
+  const language = await getServerLocale();
+  const t = (key: TranslationKey) => translate(language, key);
+
+  const submittedDate = formatDate(row.submitted_at, language);
+  const reviewedDate = formatDate(row.reviewed_at, language);
 
   const head: TimelineEvent =
     row.status === "approved"
       ? {
           key: "decision",
-          title: "Identity verified",
+          title: t("passport.timeline.verified"),
           tone: "success",
           date: reviewedDate,
         }
       : row.status === "rejected"
         ? {
             key: "decision",
-            title: "Verification rejected",
+            title: t("passport.timeline.rejected"),
             tone: "danger",
             date: reviewedDate,
             detail: row.rejection_reason,
           }
         : {
             key: "current",
-            title: "Awaiting review",
+            title: t("passport.timeline.awaiting"),
             tone: "primary",
             date: null,
-            caption: "We’ll notify you when verification is complete.",
+            caption: t("passport.timeline.awaitingCaption"),
           };
 
   const isApproved = row.status === "approved";
@@ -87,7 +94,7 @@ export default function VerificationActivityTimeline({
   const events: TimelineEvent[] = [
     {
       key: "submitted",
-      title: "Documents submitted",
+      title: t("passport.timeline.submitted"),
       // Once approved, the submission recedes: a quiet completed step
       // beneath the emphasized outcome. Pending rows keep the stronger
       // completed marker so progress stays legible mid-flow; the pending
@@ -96,7 +103,7 @@ export default function VerificationActivityTimeline({
       date: submittedDate
         ? row.status === "pending"
           ? submittedDate
-          : `${submittedDate} · Completed`
+          : translate(language, "passport.timeline.completed", { date: submittedDate })
         : null,
       dimmed: isApproved,
     },
@@ -106,7 +113,7 @@ export default function VerificationActivityTimeline({
   return (
     <div>
       <h3 className="font-nunito text-sm font-semibold text-foreground">
-        Verification progress
+        {t("passport.timeline.title")}
       </h3>
       <ul className={`mt-3 flex list-none flex-col p-0 ${isApproved ? "gap-2" : "gap-4"}`}>
         {events.map((event, index) => {

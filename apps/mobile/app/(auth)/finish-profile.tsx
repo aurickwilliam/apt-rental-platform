@@ -14,6 +14,7 @@ import { readFinishProfileParams } from '@/service/auth/finishProfileRoute';
 import { isPortal, type Portal } from '@/service/auth/portalPreference';
 
 import { useColors } from "hooks/useTheme";
+import { useTranslation } from "hooks/i18n";
 
 import {
   Button,
@@ -26,6 +27,7 @@ import {
 // profile tab). No password: the account is already signed in.
 export default function FinishProfile() {
   const { colors } = useColors();
+  const { t } = useTranslation();
 
   const { email, firstName, lastName, requestedRole, initialRole, isProfileMissing } =
     readFinishProfileParams(useLocalSearchParams());
@@ -42,12 +44,19 @@ export default function FinishProfile() {
   return (
     <ScreenWrapper scrollable ref={scrollRef} className="p-5">
       <Text className="text-2xl text-foreground font-nunitoBold my-5">
-        Complete Your {selectedRole === "landlord" ? "Landlord " : "Tenant"} Profile
+        {t("authMobile.completeProfile.title", {
+          role:
+            selectedRole === "landlord"
+              ? t("auth.role.landlord")
+              : t("auth.role.tenant"),
+        })}
       </Text>
 
       {requestedRole === undefined && (
         <View className="mb-5">
-          <Text className="text-base text-foreground font-nunitoSemiBold">Choose your account type</Text>
+          <Text className="text-base text-foreground font-nunitoSemiBold">
+            {t("authMobile.chooseAccountType")}
+          </Text>
           <RoleTab userSide={selectedRole} onValueChange={(value) => {
             if (isPortal(value)) setSelectedRole(value);
           }} />
@@ -61,7 +70,9 @@ export default function FinishProfile() {
       <View className="mt-16 mb-0">
         <RegistrationPolicyAcceptance form={policies} isDisabled={loading} />
         <Button onPress={submit} isDisabled={loading || !policies.canSubmit}>
-          <Button.Label>{loading ? "Please wait..." : "Submit"}</Button.Label>
+          <Button.Label>
+            {loading ? t("common.pleaseWait") : t("common.submit")}
+          </Button.Label>
           {loading && (
             <Spinner size="sm" color={colors.white} className="ml-2" />
           )}
@@ -70,7 +81,7 @@ export default function FinishProfile() {
         {isProfileMissing && (
           <LinkButton onPress={signOut} isDisabled={loading} className="mt-4 self-center p-0">
             <LinkButton.Label className="text-accent font-nunitoSemiBold underline">
-              Use a different account
+              {t("authMobile.useDifferentAccount")}
             </LinkButton.Label>
           </LinkButton>
         )}

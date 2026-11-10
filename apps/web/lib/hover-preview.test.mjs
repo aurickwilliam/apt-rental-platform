@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { compile, hookRuntime } from "./test-support/hook-runtime.mjs";
+import { translate } from "../../../packages/i18n/src/index.ts";
 
 const jsx = (type, props, key) => ({ type, props: props ?? {}, key });
 const jsxRuntime = { jsx, jsxs: jsx, Fragment: "Fragment" };
@@ -32,7 +33,8 @@ const Preview = compile("app/browse/components/ApartmentHoverPreview.tsx", {
   react: {},
   "next/image": { default: "Image" },
   "@heroui/react": { Button: "Button", Card: "Card", Spinner: "Spinner" },
-  "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
+  "@/app/components/i18n/LocaleProvider": { useTranslation: () => ({ language: "en", t: (key, vars) => translate("en", key, vars) }) },
+    "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
   "@repo/utils": { formatPesoDisplay: (value) => `₱${value}` },
   "@/app/components/display/StatusChip": { default: "StatusChip" },
   "@/lib/public-apartment-image": { canOptimizePublicApartmentImage: () => true },

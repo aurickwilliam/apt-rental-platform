@@ -15,6 +15,7 @@ import {
 
 import StatusChip from "@/app/components/display/StatusChip";
 import UserAvatar from "@/app/components/profile/UserAvatar";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 interface LandlordCardProps {
   className?: string;
@@ -54,7 +55,8 @@ export default function LandlordCard({
   isVerified = false,
   profileHref,
 }: LandlordCardProps) {
-  const displayName = name.trim() || "Unknown";
+  const { t } = useTranslation();
+  const displayName = name.trim() || t("apartment.landlord.unknown");
   const avatarSrc = avatarUrl?.trim() || undefined;
 
   const identity = (
@@ -71,14 +73,14 @@ export default function LandlordCard({
           {displayName}
         </Card.Title>
         <Card.Description className="text-grey-500">
-          Landlord
+          {t("apartment.landlord.role")}
         </Card.Description>
         {isVerified ? (
           <div className="mt-1">
             <StatusChip size="sm" tone="success">
               <span className="flex items-center gap-1">
                 <IconShieldCheck size={14} aria-hidden="true" />
-                Verified landlord
+                {t("apartment.landlord.verified")}
               </span>
             </StatusChip>
           </div>
@@ -95,7 +97,7 @@ export default function LandlordCard({
         {profileHref ? (
           <Link
             href={profileHref}
-            aria-label={`View ${displayName}'s profile`}
+            aria-label={t("apartment.landlord.profileAria", { name: displayName })}
             className={`${IDENTITY_CLASS} cursor-pointer rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary`}
           >
             {identity}

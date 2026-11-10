@@ -3,6 +3,7 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import { compile, hookRuntime } from "./test-support/hook-runtime.mjs";
 import { terms, privacy } from "./test-support/legal-policy-runtime.mjs";
+import { translate } from "../../../packages/i18n/src/index.ts";
 import * as portalPreference from "../../../packages/supabase/src/portal-preference.ts";
 import { isPendingOnboarding } from "../../../packages/supabase/src/pending-onboarding.ts";
 
@@ -132,17 +133,21 @@ test("Settings Help and Security links use the passed portal, not account-role p
     "@tabler/icons-react": {}, "@heroui/react": {},
     "../SettingsRow": { default: "SettingsRow" }, "../ComingSoonChip": { default: "ComingSoonChip" },
     "@/lib/policy-routes": routes,
+    "@repo/i18n": { translate: (_lang, _key, _vars) => "" },
+    "@/app/components/i18n/LocaleProvider": { useTranslation: () => ({ language: "en", pending: false, setLanguage() {}, t: (key, vars) => translate("en", key, vars) }) },
   }).default;
   const Security = compile("app/components/settings/tabs/SecurityTab.tsx", {
     "react/jsx-runtime": jsx, "next/link": { default: "Link" },
     "@tabler/icons-react": {}, "@heroui/react": {},
     "@/hooks/use-email-change-eligibility": {}, "@/hooks/use-password-sign-in-status": {},
+    "@repo/i18n": { translate: (_lang, _key, _vars) => "" },
+    "@/app/components/i18n/LocaleProvider": { useTranslation: () => ({ language: "en", pending: false, setLanguage() {}, t: key => key }) },
     "../SettingsRow": { default: "SettingsRow" }, "../StatusChip": { default: "StatusChip" },
     "./AdminTwoStep": { default: "AdminTwoStep" }, "@/lib/policy-routes": routes,
   }).default;
   for (const activePortal of [null, "tenant", "landlord", "admin"]) {
     const helpLinks = nodes(runtime.render(() => Help({ activePortal, isAdmin: true }))).filter(node => node.type === "Link");
-    assert.equal(helpLinks.find(node => node.props.children === "Terms and Conditions").props.href, routes.policyHref("terms", activePortal));
+    assert.equal(helpLinks.find(node => node.props.children === "Terms and conditions").props.href, routes.policyHref("terms", activePortal));
     assert.equal(helpLinks.find(node => node.props.children === "Privacy Policy").props.href, routes.policyHref("privacy", activePortal));
     const privacyLink = nodes(Security({ isAdmin: true, activePortal })).find(node => node.type === "Link");
     assert.equal(privacyLink.props.href, routes.policyHref("privacy", activePortal));

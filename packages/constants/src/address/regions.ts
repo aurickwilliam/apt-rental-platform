@@ -1,3 +1,8 @@
+/**
+ * Region list kept for the Region settings stub. The picker stays disabled
+ * until a separate feature owns region-aware content — do not wire it up as
+ * part of language work.
+ */
 export const REGIONS = [
   'NCR – National Capital Region',
   'CAR – Cordillera Administrative Region',

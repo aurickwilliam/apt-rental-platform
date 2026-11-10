@@ -1,10 +1,14 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 
+import type { TranslationKey } from '@repo/i18n';
+
+import { useTranslation } from '@/hooks/i18n';
+
 import type { NotificationFilter } from '@/app/(notification)/components/NotificationList';
 
-const FILTERS: { value: NotificationFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'unread', label: 'Unread' },
+const FILTERS: { value: NotificationFilter; labelKey: TranslationKey }[] = [
+  { value: 'all', labelKey: 'common.all' },
+  { value: 'unread', labelKey: 'notifications.filter.unread' },
 ];
 
 interface NotificationFilterTabsProps {
@@ -14,6 +18,8 @@ interface NotificationFilterTabsProps {
 
 /** All / Unread pills, mirroring the web drawer's filter. */
 export default function NotificationFilterTabs({ value, onChange }: NotificationFilterTabsProps) {
+  const { t } = useTranslation();
+
   return (
     <View className="flex-row items-center gap-1" accessibilityRole="tablist">
       {FILTERS.map((filter) => {
@@ -31,7 +37,7 @@ export default function NotificationFilterTabs({ value, onChange }: Notification
             <Text
               className={`text-base font-nunitoSemiBold ${selected ? 'text-primary-light-foreground' : 'text-muted'}`}
             >
-              {filter.label}
+              {t(filter.labelKey)}
             </Text>
           </TouchableOpacity>
         );

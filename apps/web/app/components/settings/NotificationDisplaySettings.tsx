@@ -2,6 +2,7 @@
 
 import { IconBell, IconLayoutSidebarLeftExpand } from "@tabler/icons-react";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { useNotificationDisplayPreferences } from "@/hooks/use-notification-display-preferences";
 import type {
   NotificationDrawerSide,
@@ -12,14 +13,14 @@ import SectionTitle from "./SectionTitle";
 import SettingsRow from "./SettingsRow";
 import SettingsSelect from "./SettingsSelect";
 
-const ENTRY_OPTIONS = [
-  { value: "bell", label: "Floating bell" },
-  { value: "sidebar", label: "Sidebar tab" },
+const ENTRY_OPTION_KEYS = [
+  { value: "bell", labelKey: "settings.notifications.entry.bell" },
+  { value: "sidebar", labelKey: "settings.notifications.entry.sidebar" },
 ] as const;
 
-const SIDE_OPTIONS = [
-  { value: "right", label: "Right" },
-  { value: "left", label: "Left" },
+const SIDE_OPTION_KEYS = [
+  { value: "right", labelKey: "settings.notifications.drawer.right" },
+  { value: "left", labelKey: "settings.notifications.drawer.left" },
 ] as const;
 
 /**
@@ -27,26 +28,35 @@ const SIDE_OPTIONS = [
  * from. Stored per browser (not on the account), applied immediately.
  */
 export default function NotificationDisplaySettings() {
+  const { t } = useTranslation();
   const { preferences, update } = useNotificationDisplayPreferences();
+  const entryOptions = ENTRY_OPTION_KEYS.map(({ value, labelKey }) => ({
+    value,
+    label: t(labelKey),
+  }));
+  const sideOptions = SIDE_OPTION_KEYS.map(({ value, labelKey }) => ({
+    value,
+    label: t(labelKey),
+  }));
 
   return (
     <div>
       <div className="px-4 pb-3">
-        <SectionTitle title="Display" />
+        <SectionTitle title={t("settings.notifications.display")} />
       </div>
       <p className="px-4 pb-3 text-sm text-muted-foreground">
-        Applies to this browser. On phones, notifications stay in the navigation menu.
+        {t("settings.notifications.display.description")}
       </p>
       <div className="divide-y divide-border">
         <SettingsRow
           icon={<IconBell size={20} aria-hidden="true" />}
-          title="Open notifications from"
-          description="A draggable bell on the page, or a tab in the sidebar."
+          title={t("settings.notifications.entry.title")}
+          description={t("settings.notifications.entry.description")}
           suffix={
             <SettingsSelect
-              label="Open notifications from"
+              label={t("settings.notifications.entry.title")}
               value={preferences.entry}
-              options={ENTRY_OPTIONS}
+              options={entryOptions}
               onChange={(value) => update({ entry: value as NotificationEntry })}
               className="w-40"
             />
@@ -54,13 +64,13 @@ export default function NotificationDisplaySettings() {
         />
         <SettingsRow
           icon={<IconLayoutSidebarLeftExpand size={20} aria-hidden="true" />}
-          title="Drawer position"
-          description="Which side the notifications drawer opens from."
+          title={t("settings.notifications.drawer.title")}
+          description={t("settings.notifications.drawer.description")}
           suffix={
             <SettingsSelect
-              label="Drawer position"
+              label={t("settings.notifications.drawer.title")}
               value={preferences.drawerSide}
-              options={SIDE_OPTIONS}
+              options={sideOptions}
               onChange={(value) => update({ drawerSide: value as NotificationDrawerSide })}
               className="w-32"
             />

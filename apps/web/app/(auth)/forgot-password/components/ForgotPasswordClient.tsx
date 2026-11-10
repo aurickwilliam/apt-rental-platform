@@ -20,7 +20,7 @@ import { IconArrowLeft } from "@tabler/icons-react";
 import { RECOVERY_RESET_PATH } from "@repo/supabase/password-recovery";
 import {
   isValidEmail,
-  PasswordError,
+  passwordErrorMessage,
   type PasswordErrorReason,
   RECOVERY_CODE_LENGTH,
   RECOVERY_RESEND_COOLDOWN_SECONDS,
@@ -29,6 +29,7 @@ import {
 } from "@repo/utils";
 
 import ErrorBanner from "@/app/components/display/ErrorBanner";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import CodeInput from "@/app/components/inputs/CodeInput";
 import TurnstileWidget from "@/app/components/inputs/TurnstileWidget";
 import { useCaptcha, type CaptchaAttempt } from "@/hooks/use-captcha";
@@ -45,16 +46,12 @@ type Step = "email" | "code" | "google_only";
 
 // Errors shown under the code input; anything else shows the error banner.
 const INLINE_CODE_ERRORS = new Set<PasswordErrorReason>(["invalid_or_expired_code", "rate_limited"]);
-const UNEXPECTED_ERROR = "Something went wrong. Please try again.";
-
-function messageFor(reason: PasswordErrorReason): string {
-  return new PasswordError(reason).message;
-}
 
 function BackToSignIn() {
+  const { t } = useTranslation();
   return (
     // Anchor outside the button so every click navigates (see AuthWrapper).
-    <Link href="/sign-in" aria-label="Back to sign in">
+    <Link href="/sign-in" aria-label={t("auth.backToSignInAria")}>
       <Button isIconOnly variant="ghost" className="-ml-2 cursor-pointer">
         <IconArrowLeft size={20} />
       </Button>
@@ -74,6 +71,8 @@ function ForgotPasswordFlow({
   captcha: React.ReactNode;
 }) {
   const router = useRouter();
+  const { language, t } = useTranslation();
+  const messageFor = (reason: PasswordErrorReason) => passwordErrorMessage(language, reason);
 
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
@@ -103,11 +102,11 @@ function ForgotPasswordFlow({
 
     const trimmedEmail = email.trim();
     if (!trimmedEmail) {
-      setEmailError("Please enter your email address.");
+      setEmailError(t("auth.recovery.emailRequired"));
       return;
     }
     if (!isValidEmail(trimmedEmail)) {
-      setEmailError("Please enter a valid email address.");
+      setEmailError(t("auth.recovery.emailInvalid"));
       return;
     }
 
@@ -140,7 +139,7 @@ function ForgotPasswordFlow({
       restartCooldown();
       setStep("code");
     } catch {
-      setError(UNEXPECTED_ERROR);
+      setError(t("common.error"));
     } finally {
       setSending(false);
     }
@@ -182,7 +181,7 @@ function ForgotPasswordFlow({
       router.replace(RECOVERY_RESET_PATH);
     } catch {
       setCode("");
-      setError(UNEXPECTED_ERROR);
+      setError(t("common.error"));
     } finally {
       if (!navigating) setVerifying(false);
     }
@@ -206,9 +205,9 @@ function ForgotPasswordFlow({
         return;
       }
       setCode("");
-      setResendNotice("A new code is on its way. Check your inbox.");
+      setResendNotice(t("auth.recovery.newCodeSent"));
     } catch {
-      setError(UNEXPECTED_ERROR);
+      setError(t("common.error"));
     } finally {
       // Restart the cooldown either way: after a rate limit the server wants a wait too.
       restartCooldown();
@@ -229,12 +228,11 @@ function ForgotPasswordFlow({
       <div className="flex flex-1 flex-col">
         <RecoveryHeader
           back={<BackToSignIn />}
-          title="This account uses Google"
+          title={t("auth.recovery.googleTitle")}
           description={
             <>
-              <span className="font-semibold">{email}</span> signs in with Google, so it
-              doesn&apos;t have a password to reset. Go back and use Continue with Google
-              instead.
+              <span className="font-semibold">{email}</span>{" "}
+              {t("auth.recovery.googleAfter")}
             </>
           }
         />
@@ -247,7 +245,7 @@ function ForgotPasswordFlow({
 
         <Link href="/sign-in" className="mt-[clamp(1.5rem,4vh,2rem)]">
           <Button size="lg" className="w-full cursor-pointer">
-            Back to Sign In
+            {t("auth.backToSignIn")}
           </Button>
         </Link>
       </div>
@@ -259,11 +257,12 @@ function ForgotPasswordFlow({
       <div className="flex flex-1 flex-col">
         <RecoveryHeader
           back={<BackToSignIn />}
-          title="Check your email"
+          title={t("auth.recovery.codeTitle")}
           description={
             <>
-              If an account exists for <span className="font-semibold">{email}</span>, we sent a
-              6-digit code to it. Enter the code below to reset your password.
+              {t("auth.recovery.codeBefore")}{" "}
+              <span className="font-semibold">{email}</span>
+              {t("auth.recovery.codeAfter")}
             </>
           }
         />
@@ -274,7 +273,7 @@ function ForgotPasswordFlow({
           isDisabled={verifying}
           className="mt-2 text-primary cursor-pointer"
         >
-          Wrong email? Change it
+          {t("auth.wrongEmail")}
         </HeroLink>
 
         {error && <ErrorBanner message={error} />}
@@ -308,16 +307,18 @@ function ForgotPasswordFlow({
           )}
 
           <div className="flex items-center gap-2 text-sm text-foreground">
-            <span>Didn&apos;t receive a code?</span>
+            <span>{t("auth.otp.didntReceive")}</span>
             {secondsLeft > 0 ? (
-              <span className="font-medium text-primary">Resend in {secondsLeft}s</span>
+              <span className="font-medium text-primary">
+                {t("auth.otp.resendIn", { seconds: secondsLeft })}
+              </span>
             ) : (
               <HeroLink
                 onPress={handleResend}
                 isDisabled={resending}
                 className="text-primary cursor-pointer"
               >
-                {resending ? "Sending..." : "Resend"}
+                {resending ? t("auth.otp.sending") : t("auth.otp.resendCode")}
               </HeroLink>
             )}
           </div>
@@ -333,8 +334,8 @@ function ForgotPasswordFlow({
           {lockout.isLocked
             ? `Try again in ${formatLockoutClock(lockout.secondsLeft)}`
             : verifying
-              ? "Verifying..."
-              : "Verify Code"}
+              ? t("auth.otp.verifying")
+              : t("auth.otp.verifyCode")}
         </Button>
 
         <AuthLockoutModal
@@ -350,8 +351,8 @@ function ForgotPasswordFlow({
     <div className="flex flex-1 flex-col">
       <RecoveryHeader
         back={<BackToSignIn />}
-        title="Forgot Password"
-        description="Don’t worry, it happens! Enter the email address you use to sign in and we’ll send you a 6-digit code to reset your password."
+        title={t("auth.recovery.requestTitle")}
+        description={t("auth.recovery.requestBody")}
       />
 
       {error && <ErrorBanner message={error} />}
@@ -371,8 +372,11 @@ function ForgotPasswordFlow({
           isDisabled={sending}
           autoComplete="email"
         >
-          <Label>Email</Label>
-          <Input placeholder="Enter your email" className="bg-card! text-foreground!" />
+          <Label>{t("auth.email")}</Label>
+          <Input
+            placeholder={t("auth.emailPlaceholder")}
+            className="bg-card! text-foreground!"
+          />
           <FieldError>{emailError}</FieldError>
         </TextField>
 
@@ -385,7 +389,7 @@ function ForgotPasswordFlow({
           isPending={sending}
           isDisabled={sending}
         >
-          {sending ? "Sending Code..." : "Send Code"}
+          {sending ? t("auth.recovery.sendingCode") : t("auth.recovery.sendCode")}
         </Button>
       </Form>
 
@@ -404,10 +408,11 @@ function ForgotPasswordFlow({
             />
           </Alert.Indicator>
           <Alert.Content className="gap-1">
-            <Alert.Title className="text-foreground!">Signed up with Google?</Alert.Title>
+            <Alert.Title className="text-foreground!">
+              {t("auth.recovery.googleNoticeTitle")}
+            </Alert.Title>
             <Alert.Description className="text-sm text-foreground/80!">
-              You don&apos;t have a password. Use Continue with Google on the sign-in page
-              instead.
+              {t("auth.recovery.googleNoticeBody")}
             </Alert.Description>
           </Alert.Content>
         </Alert>

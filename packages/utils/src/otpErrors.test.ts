@@ -1,4 +1,4 @@
-import { getEmailCodeRequestError, getOtpAttemptError, parseResendWaitSeconds } from "./otpErrors";
+import { emailCodeRequestErrorMessage, otpAttemptErrorMessage, parseResendWaitSeconds } from "./otpErrors";
 
 describe("parseResendWaitSeconds", () => {
   it("reads the wait from Supabase's throttle message", () => {
@@ -12,24 +12,41 @@ describe("parseResendWaitSeconds", () => {
   });
 });
 
-describe("getEmailCodeRequestError", () => {
+describe("emailCodeRequestErrorMessage", () => {
   it("replaces the throttle and rate-limit messages", () => {
-    expect(getEmailCodeRequestError("For security purposes, you can only request this after 42 seconds.")).toBe(
-      "Please wait 42 seconds before requesting another code.",
+    expect(
+      emailCodeRequestErrorMessage(
+        "en",
+        "For security purposes, you can only request this after 42 seconds.",
+      ),
+    ).toBe("Please wait 42 seconds before requesting another code.");
+    expect(emailCodeRequestErrorMessage("en", "email rate limit exceeded")).toContain(
+      "Too many verification emails",
     );
-    expect(getEmailCodeRequestError("email rate limit exceeded")).toContain("Too many verification emails");
+    expect(
+      emailCodeRequestErrorMessage(
+        "fil",
+        "For security purposes, you can only request this after 42 seconds.",
+      ),
+    ).toBe("Maghintay ng 42 segundo bago humingi ng panibagong code.");
   });
 
   it("passes other messages through", () => {
-    expect(getEmailCodeRequestError("Password is too weak")).toBe("Password is too weak");
-    expect(getEmailCodeRequestError("")).toBe("Something went wrong. Please try again.");
+    expect(emailCodeRequestErrorMessage("en", "Password is too weak")).toBe("Password is too weak");
+    expect(emailCodeRequestErrorMessage("fil", "Password is too weak")).toBe("Password is too weak");
+    expect(emailCodeRequestErrorMessage("en", "")).toBe("Something went wrong. Please try again.");
   });
 });
 
-describe("getOtpAttemptError", () => {
+describe("otpAttemptErrorMessage", () => {
   it("counts the attempts left and locks at zero", () => {
-    expect(getOtpAttemptError(4)).toBe("Incorrect or expired code. 4 attempts left.");
-    expect(getOtpAttemptError(1)).toBe("Incorrect or expired code. 1 attempt left.");
-    expect(getOtpAttemptError(0)).toBe("Too many incorrect attempts. Please request a new code.");
+    expect(otpAttemptErrorMessage("en", 4)).toBe("Incorrect or expired code. 4 attempts left.");
+    expect(otpAttemptErrorMessage("en", 1)).toBe("Incorrect or expired code. 1 attempt left.");
+    expect(otpAttemptErrorMessage("en", 0)).toBe(
+      "Too many incorrect attempts. Please request a new code.",
+    );
+    expect(otpAttemptErrorMessage("fil", 4)).toBe(
+      "Mali o expired ang code. 4 attempts ang natitira.",
+    );
   });
 });

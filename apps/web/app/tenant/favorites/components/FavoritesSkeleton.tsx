@@ -1,5 +1,8 @@
+"use client";
+
 import { Skeleton } from "@heroui/react";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { FavoritesPageHeader, FavoritesPageShell } from "./FavoritesPageLayout";
 
 interface FavoritesCardsSkeletonProps {
@@ -7,11 +10,13 @@ interface FavoritesCardsSkeletonProps {
 }
 
 export function FavoritesCardsSkeleton({ viewMode = "grid" }: FavoritesCardsSkeletonProps) {
+  const { t } = useTranslation();
+
   return (
     <div
       className={viewMode === "grid" ? "grid grid-cols-1 gap-5 @min-[36rem]/favorites:grid-cols-2 @min-[64rem]/favorites:grid-cols-3" : "space-y-4"}
       aria-busy="true"
-      aria-label="Loading saved apartments"
+      aria-label={t("favorites.skeleton.loading")}
     >
       {Array.from({ length: 3 }, (_, index) => (
         <div key={index} className={`overflow-hidden rounded-2xl border border-border bg-card ${viewMode === "list" ? "flex flex-col @min-[36rem]/favorites:flex-row" : ""}`}>
@@ -31,13 +36,15 @@ export function FavoritesCardsSkeleton({ viewMode = "grid" }: FavoritesCardsSkel
 }
 
 export default function FavoritesPageSkeleton() {
+  const { t } = useTranslation();
+
   return (
     <FavoritesPageShell>
       <FavoritesPageHeader />
       <div
         className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4"
         aria-busy="true"
-        aria-label="Loading favorites toolbar"
+        aria-label={t("favorites.skeleton.toolbar")}
       >
         <Skeleton className="h-4 w-40 rounded-lg" />
         <Skeleton className="h-10 w-20 rounded-full" />

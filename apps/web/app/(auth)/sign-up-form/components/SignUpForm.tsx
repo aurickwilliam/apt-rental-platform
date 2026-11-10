@@ -14,7 +14,10 @@ import {
   FieldError,
 } from "@heroui/react";
 
+import { GENDER_KEYS, enumLabel } from "@repo/i18n";
+
 import { useAuth } from "../../components/AuthContext";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import PasswordField from "@/app/components/inputs/PasswordField";
 
 import PasswordRequirementList from "@/app/components/inputs/PasswordRequirementList";
@@ -52,6 +55,7 @@ const NO_SUFFIX = "none";
 
 export default function SignUpForm() {
   const { role, email } = useAuth();
+  const { language, t } = useTranslation();
 
   const { isOpen, open: onOpen, close: onClose } = useOverlayState();
   const { isOpen: isErrorOpen, open: onErrorOpen, close: onErrorClose } = useOverlayState();
@@ -179,7 +183,7 @@ export default function SignUpForm() {
       otpFlow.startCooldown();
       onOpen();
     } catch {
-      showError("Failed to send verification code.");
+      showError(t("auth.error.sendCodeFailed"));
     } finally {
       setLoading(false);
     }
@@ -190,7 +194,7 @@ export default function SignUpForm() {
       <Form onSubmit={handleSubmit} className="flex flex-col gap-[clamp(1.25rem,3vh,1.25rem)] my-[clamp(2rem,5vh,2.5rem)]">
         {/* Personal Information */}
         <h2 className="text-2xl font-bold font-nunito mb-3 text-foreground">
-          Personal Information
+          {t("auth.form.personalInfo")}
         </h2>
 
         <div className="w-full grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -202,8 +206,11 @@ export default function SignUpForm() {
             value={formData.email}
             onChange={handleChange("email")}
           >
-            <Label>Email</Label>
-            <Input className="bg-card! text-foreground!" placeholder="Enter your email" />
+            <Label>{t("auth.email")}</Label>
+            <Input
+              className="bg-card! text-foreground!"
+              placeholder={t("auth.emailPlaceholder")}
+            />
           </TextField>
 
           <TextField
@@ -214,8 +221,11 @@ export default function SignUpForm() {
             onChange={handleChange("firstName")}
             isDisabled={loading}
           >
-            <Label>First Name</Label>
-            <Input className="bg-card! text-foreground!" placeholder="Enter your first name" />
+            <Label>{t("auth.form.firstName")}</Label>
+            <Input
+              className="bg-card! text-foreground!"
+              placeholder={t("auth.form.firstNamePlaceholder")}
+            />
           </TextField>
 
           <TextField
@@ -226,8 +236,11 @@ export default function SignUpForm() {
             onChange={handleChange("lastName")}
             isDisabled={loading}
           >
-            <Label>Last Name</Label>
-            <Input className="bg-card! text-foreground!" placeholder="Enter your last name" />
+            <Label>{t("auth.form.lastName")}</Label>
+            <Input
+              className="bg-card! text-foreground!"
+              placeholder={t("auth.form.lastNamePlaceholder")}
+            />
           </TextField>
 
           <TextField
@@ -237,18 +250,21 @@ export default function SignUpForm() {
             onChange={handleChange("middleName")}
             isDisabled={loading}
           >
-            <Label>Middle Name</Label>
-            <Input className="bg-card! text-foreground!" placeholder="Enter your middle name (optional)" />
+            <Label>{t("auth.form.middleName")}</Label>
+            <Input
+              className="bg-card! text-foreground!"
+              placeholder={t("auth.form.middleNamePlaceholder")}
+            />
           </TextField>
 
           <Select
             name="suffix"
-            placeholder="No suffix"
+            placeholder={t("auth.form.noSuffix")}
             value={formData.suffix || null}
             onChange={(key) => handleChange("suffix")(key && key !== NO_SUFFIX ? String(key) : "")}
             isDisabled={loading}
           >
-            <Label>Suffix</Label>
+            <Label>{t("auth.form.suffix")}</Label>
             <Select.Trigger className="bg-card! text-foreground!">
               <Select.Value />
               <Select.Indicator />
@@ -259,10 +275,10 @@ export default function SignUpForm() {
                   <ListBox.Item
                     key={option}
                     id={option}
-                    textValue={option === NO_SUFFIX ? "No suffix" : option}
+                    textValue={option === NO_SUFFIX ? t("auth.form.noSuffix") : option}
                     className={OPTION_CLASS}
                   >
-                    {option === NO_SUFFIX ? "No suffix" : option}
+                    {option === NO_SUFFIX ? t("auth.form.noSuffix") : option}
                     <ListBox.ItemIndicator className="text-primary" />
                   </ListBox.Item>
                 ))}
@@ -273,12 +289,12 @@ export default function SignUpForm() {
           <Select
             isRequired
             name="gender"
-            placeholder="Select your gender"
+            placeholder={t("auth.form.genderPlaceholder")}
             value={formData.gender || null}
             onChange={(key) => handleChange("gender")(key ? String(key) : "")}
             isDisabled={loading}
           >
-            <Label>Gender</Label>
+            <Label>{t("auth.form.gender")}</Label>
             <Select.Trigger className="bg-card! text-foreground!">
               <Select.Value />
               <Select.Indicator />
@@ -289,10 +305,10 @@ export default function SignUpForm() {
                   <ListBox.Item
                     key={gender}
                     id={gender}
-                    textValue={gender}
+                    textValue={enumLabel(language, GENDER_KEYS, gender)}
                     className={OPTION_CLASS}
                   >
-                    {gender}
+                    {enumLabel(language, GENDER_KEYS, gender)}
                     <ListBox.ItemIndicator className="text-primary" />
                   </ListBox.Item>
                 ))}
@@ -312,8 +328,8 @@ export default function SignUpForm() {
             isInvalid={!!mobileError}
             isDisabled={loading}
           >
-            <Label>Mobile Number</Label>
-            <Input ref={mobileRef} className="bg-card! text-foreground!" placeholder="09XX XXX XXXX" inputMode="tel" maxLength={PH_MOBILE_MAX_INPUT_LENGTH} />
+            <Label>{t("auth.form.mobile")}</Label>
+            <Input ref={mobileRef} className="bg-card! text-foreground!" placeholder={t("auth.form.mobilePlaceholder")} inputMode="tel" maxLength={PH_MOBILE_MAX_INPUT_LENGTH} />
             <FieldError className="text-xs">{mobileError}</FieldError>
           </TextField>
 
@@ -321,11 +337,19 @@ export default function SignUpForm() {
             error={birthDateError?.value === formData.birthDate ? birthDateError.message : null}
             onChange={value => { handleChange("birthDate")(value); setBirthDateError(null); }} />
         </div>
-        {emailVerified ? <p className="text-sm text-muted-foreground">Your email is verified. <Link href="/sign-in" className="text-brand underline">Sign in</Link> to finish setting up your profile.</p> : null}
+        {emailVerified ? (
+          <p className="text-sm text-muted-foreground">
+            {t("auth.form.emailVerified")}{" "}
+            <Link href="/sign-in" className="text-brand underline">
+              {t("auth.signIn.action")}
+            </Link>{" "}
+            {t("auth.form.emailVerifiedHint")}
+          </p>
+        ) : null}
 
         {/* Address Information */}
         <h2 className="text-2xl font-bold font-nunito mb-3 mt-[clamp(1.5rem,4vh,2.5rem)] text-foreground">
-          Address Information
+          {t("auth.form.addressInfo")}
         </h2>
 
         <RegistrationAddressFields value={address} errors={addressSubmitted ? addressErrors : undefined} isDisabled={loading}
@@ -337,14 +361,14 @@ export default function SignUpForm() {
 
         {/* Password */}
         <h2 className="text-2xl font-bold font-nunito mb-3 mt-[clamp(1.5rem,4vh,2.5rem)] text-foreground">
-          Set Your Password
+          {t("auth.form.setPassword")}
         </h2>
 
         <div className="w-full grid grid-cols-2 gap-5 md:grid-cols-2">
           <PasswordField
             isRequired
-            label="Password"
-            placeholder="Create a password"
+            label={t("auth.password")}
+            placeholder={t("auth.form.passwordPlaceholder")}
             name="password"
             value={formData.password}
             onChange={handleChange("password")}
@@ -352,8 +376,8 @@ export default function SignUpForm() {
 
           <PasswordField
             isRequired
-            label="Confirm Password"
-            placeholder="Confirm your password"
+            label={t("auth.confirmPasswordLabel")}
+            placeholder={t("auth.form.confirmPasswordPlaceholder")}
             name="confirmPassword"
             value={formData.confirmPassword}
             onChange={handleChange("confirmPassword")}
@@ -378,7 +402,7 @@ export default function SignUpForm() {
           isPending={loading}
           isDisabled={loading || otpFlow.loading || isOpen || !acceptance.termsAccepted || !acceptance.privacyAccepted}
         >
-          {loading ? "Creating Account..." : "Sign Up"}
+          {loading ? t("auth.form.creatingAccount") : t("auth.signUp.action")}
         </Button>
       </Form>
 

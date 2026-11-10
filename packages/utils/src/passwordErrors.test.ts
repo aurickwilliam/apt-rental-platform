@@ -1,6 +1,8 @@
 import {
   describeAuthError,
   PasswordError,
+  passwordErrorMessage,
+  passwordErrorKey,
   toPasswordError,
   toPasswordErrorReason,
 } from "./passwordErrors";
@@ -44,11 +46,20 @@ describe("passwordErrors", () => {
     expect(toPasswordErrorReason("boom")).toBe("unknown");
   });
 
-  it("carries a user-facing message for its reason", () => {
+  it("carries a developer-facing reason and localized copy", () => {
     const error = new PasswordError("wrong_current_password");
     expect(error).toBeInstanceOf(Error);
     expect(error.reason).toBe("wrong_current_password");
-    expect(error.message).toBe("Your current password is incorrect.");
+    // The message is a reason code, never English prose that could leak into a
+    // Filipino UI; screens render `passwordErrorMessage`.
+    expect(error.message).toBe("wrong_current_password");
+    expect(passwordErrorMessage("en", error.reason)).toBe("Your current password is incorrect.");
+    expect(passwordErrorMessage("fil", error.reason)).toBe("Mali ang current password mo.");
+  });
+
+  it("maps every reason to a catalog key", () => {
+    expect(passwordErrorKey("invalid_email")).toBe("validation.email.invalid");
+    expect(passwordErrorKey("unknown")).toBe("errors.generic");
   });
 
   it("logs only unexpected errors, without their message", () => {

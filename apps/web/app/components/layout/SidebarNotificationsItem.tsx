@@ -3,6 +3,7 @@
 import { IconBell } from "@tabler/icons-react";
 
 import { NOTIFICATIONS_QUERY_VALUE } from "@/app/components/notifications/NotificationsOverlay";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { useNotificationDisplayPreferences } from "@/hooks/use-notification-display-preferences";
 import { useNotifications } from "@/hooks/use-notifications";
 import type { ActivePortal } from "@/lib/notification-audience";
@@ -29,6 +30,7 @@ export default function SidebarNotificationsItem({
 }) {
   const { preferences } = useNotificationDisplayPreferences();
   const { unreadCount } = useNotifications(activePortal ?? null);
+  const { t } = useTranslation();
 
   if (preferences.entry !== "sidebar") return null;
 
@@ -48,7 +50,7 @@ export default function SidebarNotificationsItem({
           variant="ghost"
           onClick={openDrawer}
           aria-haspopup="dialog"
-          aria-label={hasUnread ? `Notifications, ${unreadCount} unread` : collapsed ? "Notifications" : undefined}
+          aria-label={hasUnread ? t("nav.notificationsUnread", { count: unreadCount }) : collapsed ? t("nav.notifications") : undefined}
           className={`button--bare group relative flex min-h-11 w-full cursor-pointer items-center rounded-xl text-sm font-semibold text-sidebar-foreground/70 transition-all hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring ${collapsed ? "justify-center" : "justify-start gap-3 py-2.5 pl-3 pr-7"}`}
         >
           <IconBell
@@ -56,7 +58,7 @@ export default function SidebarNotificationsItem({
             aria-hidden="true"
             className="shrink-0 text-sidebar-foreground/60 group-hover:text-primary"
           />
-          {!collapsed ? <span>Notifications</span> : null}
+          {!collapsed ? <span>{t("nav.notifications")}</span> : null}
           {hasUnread ? (
             <span
               aria-hidden="true"
@@ -70,7 +72,9 @@ export default function SidebarNotificationsItem({
       </TooltipTrigger>
       {collapsed ? (
         <TooltipContent side="right" sideOffset={8}>
-        {`Notifications${hasUnread ? `, ${unreadCount} unread` : ""}`}
+          {hasUnread
+            ? t("nav.notificationsUnread", { count: unreadCount })
+            : t("nav.notifications")}
         </TooltipContent>
       ) : null}
     </Tooltip>

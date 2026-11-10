@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import LandlordCard from "./LandlordCard";
 import MessageLandlordPanel from "@/app/components/chat/MessageLandlordPanel";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { landlordProfileHref, type ProfileViewerPortal } from "@/lib/public-profile";
 
 interface LandlordChatPanelProps {
@@ -31,6 +32,7 @@ export default function LandlordChatPanel({
   apartmentName,
   profilePortal = "public",
 }: LandlordChatPanelProps) {
+  const { t } = useTranslation();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
   const isSelfLandlord = Boolean(currentUserId && landlordId && currentUserId === landlordId);
@@ -46,7 +48,7 @@ export default function LandlordChatPanel({
         onMessagePress={() => setIsPanelOpen(true)}
         isMessageDisabled={isMissingLandlord}
         messageDisabledReason={
-          isMissingLandlord ? "Landlord details are not available yet." : ""
+          isMissingLandlord ? t("apartment.landlord.unavailable") : ""
         }
         showMessageButton={!isSelfLandlord}
       />

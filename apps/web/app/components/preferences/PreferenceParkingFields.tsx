@@ -4,6 +4,8 @@ import { Label, ListBox, Select } from "@heroui/react";
 import { VEHICLE_OPTIONS } from "@repo/constants";
 import { sortVehicles, spotsForVehicles, trimVehicles } from "@repo/utils";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
 import { PARKING_SPOT_OPTIONS } from "@/lib/tenant-preferences";
 
 export interface ParkingDetails {
@@ -21,10 +23,11 @@ export default function PreferenceParkingFields({
   listOfVehicles,
   onChange,
 }: PreferenceParkingFieldsProps) {
+  const { t } = useTranslation();
   return (
     <>
       <Select
-        placeholder="Select the number of parking you need"
+        placeholder={t("authMobile.personalization.parkingPlaceholder")}
         value={String(noOfParkingSpots)}
         onChange={(key) => {
           const count = key ? Number(key) : 1;
@@ -32,7 +35,7 @@ export default function PreferenceParkingFields({
           onChange({ noOfParkingSpots: count, listOfVehicles: trimVehicles(listOfVehicles, count) });
         }}
       >
-        <Label>If yes, how many cars or motorcycles do you have? <span className="text-danger" aria-hidden="true">*</span></Label>
+        <Label>{t("authMobile.personalization.parkingQuestion")} <span className="text-danger" aria-hidden="true">*</span></Label>
         <Select.Trigger>
           <Select.Value />
           <Select.Indicator />
@@ -50,7 +53,7 @@ export default function PreferenceParkingFields({
       </Select>
       <Select
         selectionMode="multiple"
-        placeholder="Select the kinds of vehicles you have"
+        placeholder={t("authMobile.personalization.vehiclesPlaceholder")}
         value={listOfVehicles}
         onChange={(keys) => {
           const next = sortVehicles(keys.map(String));
@@ -61,7 +64,7 @@ export default function PreferenceParkingFields({
           });
         }}
       >
-        <Label>Select the kinds of vehicles you have:</Label>
+        <Label>{t("authMobile.personalization.vehiclesQuestion")}</Label>
         <Select.Trigger>
           <Select.Value />
           <Select.Indicator />

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
+import { translate } from "../../../packages/i18n/src/index.ts";
 import ts from "typescript";
 import * as preferences from "./tenant-preferences.ts";
 
@@ -32,7 +33,7 @@ function harness(layout = "cards", initial = {}) {
     "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
     "@heroui/react": { Slider, InputGroup, Label: "Label", Button: "Button" },
     "@tabler/icons-react": { IconCheck: "IconCheck" },
-    "@/lib/tenant-preferences": preferences,
+    "@/lib/tenant-preferences": preferences, "@/app/components/i18n/LocaleProvider": { useTranslation: () => ({ language: "en", t: (key, vars) => translate("en", key, vars) }) },
     "../settings/SettingsSelect": { default: "SettingsSelect" },
   };
   const context = { exports: {}, require: name => {

@@ -4,8 +4,10 @@ import Image from "next/image";
 import { useCallback, useState } from "react";
 import { createClient } from "@repo/supabase/browser";
 import { useAuth } from "./AuthContext";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 export default function ThirdPartySignIn({ next }: { next?: string }) {
+  const { t } = useTranslation();
   const { role, type } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,13 +46,13 @@ export default function ThirdPartySignIn({ next }: { next?: string }) {
     });
 
     if (error) {
-      setError(error?.message ?? "Something went wrong.");
+      setError(error?.message ?? t("common.error"));
       setLoading(false);
       return;
     }
     // Otherwise the browser leaves for Google; the button stays in its
     // loading/disabled state while redirecting.
-  }, [next, role, type]);
+  }, [next, role, type, t]);
 
   return (
     <div className="mt-[clamp(1rem,2.5vh,1.25rem)] flex flex-col items-center gap-3">
@@ -74,7 +76,7 @@ export default function ThirdPartySignIn({ next }: { next?: string }) {
             height={20}
           />
         )}
-        Sign {type === "sign-in" ? "in" : "up"} with Google
+        {type === "sign-in" ? t("auth.google.signIn") : t("auth.google.signUp")}
       </Button>
     </div>
   );

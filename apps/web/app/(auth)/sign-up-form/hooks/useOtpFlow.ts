@@ -4,8 +4,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useResendCooldown } from "../../hooks/use-resend-cooldown";
 import { useOtpAttempts } from "../../hooks/use-otp-attempts";
 import { createClient } from "@repo/supabase/browser";
-import { CAPTCHA_PENDING_MESSAGE, getOtpAttemptError } from "@repo/utils";
+import { CAPTCHA_PENDING_MESSAGE, otpAttemptErrorMessage } from "@repo/utils";
 import { useAuthLockout } from "@/hooks/use-auth-lockout";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { signUp } from "../../actions/sign-up";
 import { sendEmailOtp } from "../../actions/send-otp";
 import { verifySignupCode } from "../../actions/verify-signup-code";
@@ -40,6 +41,7 @@ export function useOtpFlow({
   onBirthDateError,
   onAcceptanceError,
 }: UseOtpFlowOptions) {
+  const { language } = useTranslation();
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState<string | null>(null);
   const [resendLoading, setResendLoading] = useState(false);
@@ -122,7 +124,7 @@ export function useOtpFlow({
           lockAttempts(verification.retryAfterSeconds, data.email);
           setOtpError(null);
         } else {
-          setOtpError(getOtpAttemptError(attempts.recordWrongCode()));
+          setOtpError(otpAttemptErrorMessage(language, attempts.recordWrongCode()));
         }
         setOtp("");
         return;
@@ -179,7 +181,7 @@ export function useOtpFlow({
     } finally {
       setLoading(false);
     }
-  }, [attempts, lockAttempts]);
+  }, [attempts, language, lockAttempts]);
 
   const handleCancelOtp = useCallback(async (onClose: () => void) => {
     await supabase.auth.signOut();

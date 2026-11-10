@@ -11,7 +11,8 @@
     "./maintenance-history": "./src/maintenanceHistoryFilters.ts"
   },
   "dependencies": {
-    "@repo/constants": "workspace:*"
+    "@repo/constants": "workspace:*",
+    "@repo/i18n": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.3.3"

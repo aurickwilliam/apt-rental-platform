@@ -18,11 +18,12 @@ import {
 
 import { IconChevronLeft } from "@tabler/icons-react-native";
 
-import { CAPTCHA_PENDING_MESSAGE, isValidEmail, PasswordError } from "@repo/utils";
+import { CAPTCHA_PENDING_MESSAGE, isValidEmail, PasswordError, passwordErrorMessage } from "@repo/utils";
 
 import { useCaptcha } from "@/hooks/auth/useCaptcha";
 
 import { useColors } from "hooks/useTheme";
+import { useTranslation } from "hooks/i18n";
 import { usePasswordRecoveryStore } from "@/stores/usePasswordRecoveryStore";
 import {
   requestPasswordRecovery,
@@ -32,6 +33,7 @@ export default function ForgotPassword() {
   const router = useRouter();
   const { widget: captchaWidget, take: takeCaptcha } = useCaptcha();
   const { colors } = useColors();
+  const { language, t } = useTranslation();
 
   const savedEmail = usePasswordRecoveryStore((state) => state.email);
   const setRecoveryEmail = usePasswordRecoveryStore((state) => state.setEmail);
@@ -60,11 +62,11 @@ export default function ForgotPassword() {
 
     const trimmedEmail = email.trim();
     if (!trimmedEmail) {
-      setEmailError("Please enter your email address.");
+      setEmailError(t("auth.recovery.emailRequired"));
       return;
     }
     if (!isValidEmail(trimmedEmail)) {
-      setEmailError("Please enter a valid email address.");
+      setEmailError(t("auth.recovery.emailInvalid"));
       return;
     }
 
@@ -85,9 +87,13 @@ export default function ForgotPassword() {
           err.reason === "email_not_registered" ||
           err.reason === "google_account")
       ) {
-        setEmailError(err.message);
+        setEmailError(passwordErrorMessage(language, err.reason));
       } else {
-        setError(err instanceof PasswordError ? err.message : "Something went wrong. Please try again.");
+        setError(
+          err instanceof PasswordError
+            ? passwordErrorMessage(language, err.reason)
+            : t("authMobile.errorGeneric"),
+        );
       }
     } finally {
       setLoading(false);
@@ -101,7 +107,7 @@ export default function ForgotPassword() {
           variant="ghost"
           className="-ml-2"
           onPress={handleBack}
-          accessibilityLabel="Go back"
+          accessibilityLabel={t("authMobile.goBack")}
         >
           <IconChevronLeft size={26} color={colors.textPrimary} />
         </CloseButton>
@@ -109,20 +115,19 @@ export default function ForgotPassword() {
 
       <View className="flex gap-3 mt-5">
         <Text className="text-accent text-3xl font-nunitoBold">
-          Forgot Password
+          {t("auth.recovery.requestTitle")}
         </Text>
 
         <Text className="text-foreground text-base font-inter">
-          Don’t worry, it happens! Enter the email address you use to sign in
-          and we’ll send you a 6-digit code to reset your password.
+          {t("auth.recovery.requestBody")}
         </Text>
       </View>
 
       <View className="mt-8 flex gap-4">
         <TextField isRequired isInvalid={!!emailError}>
-          <Label>Email Address:</Label>
+          <Label>{t("authMobile.emailLabel")}</Label>
           <Input
-            placeholder="Enter your email"
+            placeholder={t("auth.emailPlaceholder")}
             value={email}
             onChangeText={handleEmailChange}
             onSubmitEditing={handleSendCode}
@@ -140,10 +145,9 @@ export default function ForgotPassword() {
         <Alert>
           <Alert.Indicator />
           <Alert.Content>
-            <Alert.Title>Signed up with Google?</Alert.Title>
+            <Alert.Title>{t("auth.recovery.googleNoticeTitle")}</Alert.Title>
             <Alert.Description>
-              You don’t have a password. Use Continue with Google on the sign-in
-              screen instead.
+              {t("authMobile.recovery.googleNoticeBody")}
             </Alert.Description>
           </Alert.Content>
         </Alert>
@@ -155,7 +159,9 @@ export default function ForgotPassword() {
 
       <Button onPress={handleSendCode} isDisabled={loading} className="mt-8">
         <Button.Label className="font-nunitoSemiBold">
-          {loading ? "Sending Code..." : "Send Code"}
+          {loading
+            ? t("auth.recovery.sendingCode")
+            : t("auth.recovery.sendCode")}
         </Button.Label>
         {loading && <Spinner size="sm" color={colors.white} className="ml-2" />}
       </Button>

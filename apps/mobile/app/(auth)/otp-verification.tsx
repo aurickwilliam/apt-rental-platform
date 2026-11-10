@@ -22,8 +22,8 @@ import { getRegistrationAcceptanceErrors, requireRegistrationAcceptance } from '
 
 import {
   MAX_OTP_ATTEMPTS,
-  getEmailCodeRequestError,
-  getOtpAttemptError,
+  emailCodeRequestErrorMessage,
+  otpAttemptErrorMessage,
   getProfileSubmitError,
   parseResendWaitSeconds,
   CAPTCHA_FAILED_MESSAGE,
@@ -35,6 +35,7 @@ import {
 
 import { useColors } from 'hooks/useTheme'
 import { useCountdown } from 'hooks/auth'
+import { useTranslation } from 'hooks/i18n'
 
 import {
   CloseButton,
@@ -55,6 +56,7 @@ export default function OTPVerification() {
   const isConfirmMode = (Array.isArray(mode) ? mode[0] : mode) === 'confirm'
 
   const { colors } = useColors();
+  const { language, t } = useTranslation();
 
   const { data, reset } = useRegistrationStore()
   const [loading, setLoading] = useState(false)
@@ -123,7 +125,7 @@ export default function OTPVerification() {
           resetCountdown(waitSeconds)
           return
         }
-        setError(isCaptchaError(resendError) ? CAPTCHA_FAILED_MESSAGE : getEmailCodeRequestError(resendError.message))
+        setError(isCaptchaError(resendError) ? CAPTCHA_FAILED_MESSAGE : emailCodeRequestErrorMessage(language, resendError.message))
         setErrorDialogOpen(true)
         return
       }
@@ -255,8 +257,7 @@ export default function OTPVerification() {
         clearOtp()
 
         if (remaining <= 0) setOtpLocked(true)
-        setOtpError(getOtpAttemptError(remaining))
-
+        setOtpError(otpAttemptErrorMessage(language, remaining))
       } else {
         // Sign out the user if verification succeeded but inserting profile failed,
         // to prevent inconsistent state where user is authenticated but has no profile
@@ -268,7 +269,7 @@ export default function OTPVerification() {
         const message = getProfileSubmitError(err)
         setError(
           emailVerified
-            ? `${message} Your email is verified, so you can sign in to finish setting up your profile.`
+            ? `${message} ${t("authMobile.otp.verifiedFinishProfile")}`
             : message,
         )
         setErrorDialogOpen(true)
@@ -299,12 +300,12 @@ export default function OTPVerification() {
 
           {/* Title */}
           <Text className="text-2xl text-foreground font-nunitoBold my-5">
-            OTP was Sent!
+            {t("authMobile.otp.sentTitle")}
           </Text>
 
           {/* Description */}
           <Text className="text-base text-foreground font-inter mb-5">
-            We&apos;ve sent a 6-digit verification code to your email address. Please enter the code sent to {maskEmail(emailValue)}.
+            {t("authMobile.otp.sentBody", { email: maskEmail(emailValue) })}
           </Text>
 
           {/* OTP Input */}
@@ -358,12 +359,12 @@ export default function OTPVerification() {
           {/* Resend Link and Countdown */}
           <View className="flex-row items-center">
             <Text className="text-gray-600 text-base">
-              Didn&apos;t get the code?{' '}
+              {t("authMobile.otp.didntGetCode")}{' '}
             </Text>
 
             {countdown > 0 ? (
               <Text className="text-accent text-base font-nunitoSemiBold">
-                Resend in {countdown}s
+                {t("auth.otp.resendIn", { seconds: String(countdown) })}
               </Text>
             ) : (
               <Pressable
@@ -372,7 +373,7 @@ export default function OTPVerification() {
                 className={resendLoading ? 'opacity-50' : ''}
               >
                 <Text className="text-accent text-base font-nunitoSemiBold">
-                  {resendLoading ? 'Sending...' : 'Resend'}
+                  {resendLoading ? t("auth.otp.sending") : t("auth.otp.resend")}
                 </Text>
               </Pressable>
             )}
@@ -388,8 +389,12 @@ export default function OTPVerification() {
             {lockout.isLocked
               ? `Try again in ${formatLockoutClock(lockout.secondsLeft)}`
               : loading
-                ? (isConfirmMode ? 'Verifying...' : 'Creating Account...')
-                : (isConfirmMode ? 'Verify Email' : 'Verify & Create Account')}
+                ? isConfirmMode
+                  ? t("auth.otp.verifying")
+                  : t("auth.form.creatingAccount")
+                : isConfirmMode
+                  ? t("auth.signIn.verifyEmail")
+                  : t("auth.otp.verifyCreateAccount")}
           </Button.Label>
         </Button>
       </View>

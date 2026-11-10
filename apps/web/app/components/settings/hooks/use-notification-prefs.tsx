@@ -6,6 +6,10 @@ import { useUser } from "@/hooks/use-user";
 import { toast } from "@heroui/react";
 import { IconBell, IconBellRinging, IconMessageCircle } from "@tabler/icons-react";
 
+import type { TranslationKey } from "@repo/i18n";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
 export interface NotificationPreferences {
   notifications_enabled: boolean;
   push_enabled: boolean;
@@ -33,38 +37,42 @@ type GeneralToggleKey = "notifications_enabled" | "push_enabled" | "show_chat_to
 const GENERAL_TOGGLES: {
   key: GeneralToggleKey;
   icon: React.ReactNode;
-  title: string;
-  description: string;
+  titleKey: TranslationKey;
+  descriptionKey: TranslationKey;
 }[] = [
   {
     key: "notifications_enabled",
     icon: <IconBell size={20} aria-hidden="true" />,
-    title: "In-App Notifications",
-    description: "Show banner notifications while using the app",
+    titleKey: "settings.notifications.inApp.title",
+    descriptionKey: "settings.notifications.inApp.description",
   },
   {
     key: "push_enabled",
     icon: <IconBellRinging size={20} aria-hidden="true" />,
-    title: "Push Notifications",
-    description: "Receive alerts on your device when the app is closed",
+    titleKey: "settings.notifications.push.title",
+    descriptionKey: "settings.notifications.push.description",
   },
   {
     key: "show_chat_toasts",
     icon: <IconMessageCircle size={20} aria-hidden="true" />,
-    title: "Message Toasts in Chat",
-    description: "Show a banner for new messages in the chat you are viewing",
+    titleKey: "settings.notifications.chatToasts.title",
+    descriptionKey: "settings.notifications.chatToasts.description",
   },
 ];
 
-const NOTIFICATION_TYPE_LABELS: { type: keyof Omit<NotificationPreferences, GeneralToggleKey>; label: string }[] = [
-  { type: "payment", label: "Payments" },
-  { type: "message", label: "Messages" },
-  { type: "maintenance", label: "Maintenance" },
-  { type: "apartment", label: "Apartments" },
-  { type: "system", label: "System" },
+const NOTIFICATION_TYPE_KEYS: {
+  type: keyof Omit<NotificationPreferences, GeneralToggleKey>;
+  labelKey: TranslationKey;
+}[] = [
+  { type: "payment", labelKey: "settings.notifications.type.payment" },
+  { type: "message", labelKey: "settings.notifications.type.message" },
+  { type: "maintenance", labelKey: "settings.notifications.type.maintenance" },
+  { type: "apartment", labelKey: "settings.notifications.type.apartment" },
+  { type: "system", labelKey: "settings.notifications.type.system" },
 ];
 
 export function useNotificationPreferences() {
+  const { t } = useTranslation();
   const { profile } = useUser();
   const userId = profile?.id ?? null;
   const [preferences, setPreferences] = useState<NotificationPreferences>(DEFAULT_NOTIFICATION_PREFERENCES);
@@ -128,9 +136,11 @@ export function useNotificationPreferences() {
     updatePrefs(next).catch((err) => {
       console.error("Failed to update notification preferences", err);
       setPreferences(previous);
-      toast.danger("Failed to update", { description: "Try again." });
+      toast.danger(t("settings.notifications.updateFailed"), {
+        description: t("settings.notifications.retry"),
+      });
     });
-  }, [preferences, updatePrefs]);
+  }, [preferences, updatePrefs, t]);
 
   const toggleType = useCallback((type: keyof Omit<NotificationPreferences, GeneralToggleKey>) => {
     const previous = preferences;
@@ -139,9 +149,11 @@ export function useNotificationPreferences() {
     updatePrefs(next).catch((err) => {
       console.error("Failed to update notification preferences", err);
       setPreferences(previous);
-      toast.danger("Failed to update", { description: "Try again." });
+      toast.danger(t("settings.notifications.updateFailed"), {
+        description: t("settings.notifications.retry"),
+      });
     });
-  }, [preferences, updatePrefs]);
+  }, [preferences, updatePrefs, t]);
 
   const resetToDefaults = useCallback(async () => {
     if (!userId) return;
@@ -161,12 +173,14 @@ export function useNotificationPreferences() {
       if (error) throw error;
 
       setPreferences(DEFAULT_NOTIFICATION_PREFERENCES);
-      toast.success("Reset to defaults");
+      toast.success(t("settings.notifications.resetDone"));
     } catch (err) {
       console.error("Failed to reset preferences", err);
-      toast.danger("Couldn't reset", { description: "Try again." });
+      toast.danger(t("settings.notifications.resetFailed"), {
+        description: t("settings.notifications.retry"),
+      });
     }
-  }, [userId]);
+  }, [userId, t]);
 
   return {
     preferences,
@@ -174,7 +188,15 @@ export function useNotificationPreferences() {
     toggleGeneral,
     toggleType,
     resetToDefaults,
-    GENERAL_TOGGLES,
-    NOTIFICATION_TYPE_LABELS,
+    GENERAL_TOGGLES: GENERAL_TOGGLES.map(({ key, icon, titleKey, descriptionKey }) => ({
+      key,
+      icon,
+      title: t(titleKey),
+      description: t(descriptionKey),
+    })),
+    NOTIFICATION_TYPE_LABELS: NOTIFICATION_TYPE_KEYS.map(({ type, labelKey }) => ({
+      type,
+      label: t(labelKey),
+    })),
   };
 }

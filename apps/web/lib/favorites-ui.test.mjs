@@ -5,6 +5,7 @@ import vm from "node:vm";
 import ts from "typescript";
 import { canOptimizePublicApartmentImage } from "./public-apartment-image.ts";
 import { hookRuntime } from "./test-support/hook-runtime.mjs";
+import { translate } from "../../../packages/i18n/src/index.ts";
 
 const apartment = {
   id: "saved-apartment", name: "Irene's Housing", barangay: "Malanday", city: "Valenzuela",
@@ -35,6 +36,12 @@ function loadComponent(file, modules = {}, exportName = "default") {
     "@/lib/public-apartment-image": { canOptimizePublicApartmentImage },
     "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
     "@/app/components/display/StatusChip": { default: "StatusChip" },
+    "@/app/components/i18n/LocaleProvider": {
+      useTranslation: () => ({
+        language: "en",
+        t: (key, vars) => translate("en", key, vars),
+      }),
+    },
     ...modules,
   };
   const source = readFileSync(new URL(`../app/${file}`, import.meta.url), "utf8");

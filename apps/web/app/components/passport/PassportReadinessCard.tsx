@@ -1,20 +1,29 @@
+"use client";
+
 import Link from "next/link";
 import { Button, Card } from "@heroui/react";
 import StatusChip from "@/app/components/display/StatusChip";
 import { IconAlertTriangle, IconCheck, IconCircleDashed, IconMinus, IconPlus } from "@tabler/icons-react";
 
 import type { ApplicationDocumentSlot } from "@repo/constants";
-import { APPLICATION_DOCUMENT_SLOTS, APPLICATION_SLOT_LABELS, getPassportSlotStates } from "@repo/passport";
+import { getPassportSlotStates, APPLICATION_DOCUMENT_SLOTS } from "@repo/passport";
+import {
+  APPLICATION_SLOT_KEYS,
+  PASSPORT_DOC_TYPE_KEYS,
+  enumLabel,
+  type TranslationKey,
+} from "@repo/i18n";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import type { PassportDocumentRow } from "@/hooks/use-passport-documents";
 
 import { PASSPORT_SLOT_UPLOAD_TYPE } from "./passportSlots";
 
-const SLOT_HINT: Record<ApplicationDocumentSlot, string> = {
-  govId: "Required",
-  proofOfBilling: "Required",
-  proofOfIncome: "Required unless you're a student or unemployed",
-  nbiClearance: "Optional",
+const SLOT_HINT_KEYS: Record<ApplicationDocumentSlot, TranslationKey> = {
+  govId: "passport.readiness.hint.required",
+  proofOfBilling: "passport.readiness.hint.required",
+  proofOfIncome: "passport.readiness.hint.income",
+  nbiClearance: "passport.readiness.hint.optional",
 };
 
 interface PassportReadinessCardProps {
@@ -28,6 +37,7 @@ interface PassportReadinessCardProps {
  * missing documents.
  */
 export default function PassportReadinessCard({ documents, onAddDocument }: PassportReadinessCardProps) {
+  const { language, t } = useTranslation();
   const states = getPassportSlotStates(documents);
   const isReady = states.govId.state === "ready" && states.proofOfBilling.state === "ready";
 
@@ -35,9 +45,11 @@ export default function PassportReadinessCard({ documents, onAddDocument }: Pass
     <Card className="rounded-2xl border border-border bg-card p-4 shadow-none">
       <Card.Content className="flex flex-col gap-3 p-0">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="font-nunito text-lg font-semibold text-card-foreground">Application documents</h2>
+          <h2 className="font-nunito text-lg font-semibold text-card-foreground">
+            {t("passport.readiness.title")}
+          </h2>
           <StatusChip size="sm" tone={isReady ? "success" : "warning"} className="shrink-0 text-[11px]">
-            {isReady ? "Ready to apply" : "Not ready yet"}
+            {isReady ? t("passport.readiness.ready") : t("passport.readiness.notReady")}
           </StatusChip>
         </div>
 
@@ -46,6 +58,7 @@ export default function PassportReadinessCard({ documents, onAddDocument }: Pass
             const { doc, state } = states[slot];
             const isOptional = slot === "nbiClearance" || slot === "proofOfIncome";
             const uploadType = slot === "govId" ? null : PASSPORT_SLOT_UPLOAD_TYPE[slot];
+            const slotLabel = enumLabel(language, APPLICATION_SLOT_KEYS, slot);
 
             return (
               <li key={slot} className="flex items-center gap-3 py-2.5">
@@ -70,13 +83,13 @@ export default function PassportReadinessCard({ documents, onAddDocument }: Pass
                   )}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-card-foreground">{APPLICATION_SLOT_LABELS[slot]}</p>
+                  <p className="text-sm font-semibold text-card-foreground">{slotLabel}</p>
                   <p className={`truncate text-xs ${state === "expired" ? "text-danger" : "text-muted-foreground"}`}>
                     {state === "ready" && doc
-                      ? doc.doc_type
+                      ? enumLabel(language, PASSPORT_DOC_TYPE_KEYS, doc.doc_type)
                       : state === "expired"
-                        ? "Expired. Upload a current copy."
-                        : SLOT_HINT[slot]}
+                        ? t("passport.readiness.expired")
+                        : t(SLOT_HINT_KEYS[slot])}
                   </p>
                 </div>
                 {state !== "ready" ? (
@@ -84,15 +97,15 @@ export default function PassportReadinessCard({ documents, onAddDocument }: Pass
                     <Button
                       size="sm"
                       variant="primary"
-                      aria-label={`Add ${APPLICATION_SLOT_LABELS[slot]}`}
+                      aria-label={t("passport.readiness.addAria", { slot: slotLabel })}
                       onPress={() => onAddDocument(uploadType)}
                     >
                       <IconPlus size={16} aria-hidden="true" />
-                      Add
+                      {t("passport.readiness.add")}
                     </Button>
                   ) : (
                     <Link href="/verify" className="text-sm font-medium text-primary hover:underline">
-                      Verify
+                      {t("passport.readiness.verify")}
                     </Link>
                   )
                 ) : null}

@@ -5,6 +5,7 @@ import vm from "node:vm";
 import ts from "typescript";
 import { rankTenantLovedApartments } from "./tenant-loved-apartments.ts";
 import { preferredPortal } from "../../../packages/supabase/src/portal-preference.ts";
+import { translate } from "../../../packages/i18n/src/index.ts";
 
 function loadModule(file, overrides = {}, globals = {}) {
   const jsx = (type, props) => ({ type, props });
@@ -433,6 +434,8 @@ function navbarHarness({ open = false, signedIn = false, pathname = "/about", me
     "next/navigation": { usePathname: () => pathname, useSearchParams: () => new URLSearchParams("existing=keep"), useRouter: () => ({ push: path => pushes.push(path) }) },
     "@/lib/portal-preference": { PORTAL_COOKIE: "portal", preferredPortal },
     "@/app/components/settings/SettingsOverlay": { SETTINGS_QUERY_VALUE: "open" },
+    "@/app/components/i18n/LocaleProvider": { useTranslation: () => ({ language: "en", t: (key, vars) => translate("en", key, vars) }) },
+    "@/app/components/i18n/LanguageToggle": { default: "LanguageToggle" },
     "@/service/signOutService": { signOut: () => pushes.push("signout") },
   }, { URLSearchParams, document: { cookie: "" }, ...globals });
   return { tree: Navbar(), pushes, stateChanges, effects };

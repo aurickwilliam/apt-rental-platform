@@ -9,6 +9,7 @@ import { Pagination, toast } from "@heroui/react";
 import ApartmentCard from "../../components/ui/ApartmentCard";
 import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
 import { useFavorites } from "@/hooks/use-favorites";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { useRememberRecentApartment } from "@/hooks/use-recent-apartment-searches";
 import { BROWSE_GRID_CLASS } from "../lib/browse-layout";
 import type { BrowseApartment } from "../lib/fetch-browse-results";
@@ -114,6 +115,7 @@ export default function RenderApartments({
   gridClassName = BROWSE_GRID_CLASS,
 }: RenderApartmentsProps) {
   const router = useRouter();
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const totalPages = Math.ceil(totalCount / pageSize);
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -154,9 +156,9 @@ export default function RenderApartments({
       try {
         const nextValue = await toggleFavorite(apartmentId);
         if (nextValue) {
-          toast.success("Saved to favorites");
+          toast.success(t("favorites.saved"));
         } else {
-          toast("Removed from favorites");
+          toast(t("favorites.removed"));
         }
       } catch (err: unknown) {
         const error = err as { code?: string; message?: string };
@@ -167,16 +169,16 @@ export default function RenderApartments({
         }
 
         if (error?.code === "NOT_TENANT") {
-          toast.warning(error?.message ?? "Only tenants can save favorites");
+          toast.warning(error?.message ?? t("favorites.tenantsOnly"));
           return;
         }
 
-        toast.danger(error?.message ?? "Unable to update favorites");
+        toast.danger(error?.message ?? t("favorites.updateFailed"));
       } finally {
         setActiveFavoriteId(null);
       }
     },
-    [toggleFavorite],
+    [toggleFavorite, t],
   );
 
   const handleToggleFavorite = useCallback(
@@ -191,8 +193,8 @@ export default function RenderApartments({
       {apartment.length === 0 ? (
         <EmptyState
           icon={IconSearch}
-          title={isVerifiedOnly ? "No verified listings yet" : "No apartments found"}
-          description="Try adjusting your filters"
+          title={isVerifiedOnly ? t("browse.empty.noVerified") : t("browse.empty.none")}
+          description={t("browse.empty.hint")}
         />
       ) : (
         <div className={gridClassName}>
@@ -223,7 +225,7 @@ export default function RenderApartments({
                   onPress={() => handlePageChange(page - 1)}
                 >
                   <Pagination.PreviousIcon />
-                  <span className="hidden sm:inline">Previous</span>
+                  <span className="hidden sm:inline">{t("browse.pagination.previous")}</span>
                 </Pagination.Previous>
               </Pagination.Item>
 
@@ -249,7 +251,7 @@ export default function RenderApartments({
                   isDisabled={page === totalPages}
                   onPress={() => handlePageChange(page + 1)}
                 >
-                  <span className="hidden sm:inline">Next</span>
+                  <span className="hidden sm:inline">{t("browse.pagination.next")}</span>
                   <Pagination.NextIcon />
                 </Pagination.Next>
               </Pagination.Item>
@@ -277,8 +279,8 @@ export default function RenderApartments({
       <AuthPromptModal
         isOpen={isAuthModalOpen}
         onOpenChange={setIsAuthModalOpen}
-        title="Sign in to save favorites"
-        description="Create an account to save apartments and access them anytime."
+        title={t("favorites.signInTitle")}
+        description={t("favorites.signInBody")}
       />
     </div>
   );

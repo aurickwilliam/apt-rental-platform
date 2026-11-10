@@ -5,6 +5,7 @@ import { Button, Modal, useOverlayState } from "@heroui/react";
 import { IconTools } from "@tabler/icons-react";
 
 import ApartmentMaintenanceHistory from "./ApartmentMaintenanceHistory";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import {
   APARTMENT_MAINTENANCE_HISTORY_LIST_LIMIT,
   fetchApartmentMaintenanceHistory,
@@ -16,6 +17,7 @@ interface MaintenanceHistoryButtonProps {
 }
 
 export default function MaintenanceHistoryButton({ apartmentId }: MaintenanceHistoryButtonProps) {
+  const { t } = useTranslation();
   const historyModal = useOverlayState();
 
   const [items, setItems] = useState<ApartmentMaintenanceHistoryItem[]>([]);
@@ -38,7 +40,7 @@ export default function MaintenanceHistoryButton({ apartmentId }: MaintenanceHis
         setTotal(result.total);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to load maintenance history.",
+          err instanceof Error ? err.message : t("apartment.maintenance.loadError"),
         );
       } finally {
         setLoading(false);
@@ -55,11 +57,11 @@ export default function MaintenanceHistoryButton({ apartmentId }: MaintenanceHis
       <Button
         variant="outline"
         fullWidth
-        aria-label="View maintenance history"
+        aria-label={t("apartment.maintenance.buttonAria")}
         onPress={handleOpen}
       >
         <IconTools size={16} />
-        Maintenance History
+        {t("apartment.maintenance.button")}
       </Button>
 
       <Modal isOpen={historyModal.isOpen} onOpenChange={historyModal.setOpen}>
@@ -81,7 +83,7 @@ export default function MaintenanceHistoryButton({ apartmentId }: MaintenanceHis
                   className="bg-red-400/10 text-red-600 border-red-300 hover:bg-red-400/20"
                   onPress={handleClose}
                 >
-                  Close
+                  {t("common.close")}
                 </Button>
               </Modal.Footer>
             </Modal.Dialog>

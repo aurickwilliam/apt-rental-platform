@@ -2,10 +2,12 @@ import { View, Text } from "react-native";
 
 import { IconCircleCheckFilled, IconCircleDashed } from "@tabler/icons-react-native";
 
+import type { TranslationKey } from "@repo/i18n";
 import type { usePasswordValidation } from "@repo/hooks";
 
 import PasswordField from "@/components/inputs/PasswordField";
 import { useColors } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/i18n";
 
 type PasswordRequirements = ReturnType<typeof usePasswordValidation>["passwordRequirements"];
 
@@ -21,12 +23,12 @@ interface NewPasswordFieldsProps {
   passwordLabel?: string;
 }
 
-const REQUIREMENT_LABELS: { key: keyof PasswordRequirements; label: string }[] = [
-  { key: "minLength", label: "At least 8 characters" },
-  { key: "hasLowercase", label: "At least one lowercase letter (a–z)" },
-  { key: "hasUppercase", label: "At least one uppercase letter (A–Z)" },
-  { key: "hasNumber", label: "At least one number (0–9)" },
-  { key: "hasSpecialChar", label: "At least one special character (e.g. ! @ # $ % ^ & *)" },
+const REQUIREMENT_LABELS: { key: keyof PasswordRequirements; labelKey: TranslationKey }[] = [
+  { key: "minLength", labelKey: "auth.passwordRule.minLength" },
+  { key: "hasLowercase", labelKey: "auth.passwordRule.lowercase" },
+  { key: "hasUppercase", labelKey: "auth.passwordRule.uppercase" },
+  { key: "hasNumber", labelKey: "auth.passwordRule.number" },
+  { key: "hasSpecialChar", labelKey: "auth.passwordRule.special" },
 ];
 
 // New password + confirmation with the live strength checklist. Rules come
@@ -40,15 +42,16 @@ export default function NewPasswordFields({
   passwordError,
   confirmPasswordError,
   isDisabled = false,
-  passwordLabel = "Password:",
+  passwordLabel,
 }: NewPasswordFieldsProps) {
   const { colors } = useColors();
+  const { t } = useTranslation();
 
   return (
     <View className="flex gap-3">
       <PasswordField
-        label={passwordLabel}
-        placeholder="Create a password"
+        label={passwordLabel ?? t("authMobile.passwordLabel")}
+        placeholder={t("authMobile.createPasswordPlaceholder")}
         value={password}
         onChangeText={onPasswordChange}
         error={passwordError}
@@ -57,8 +60,8 @@ export default function NewPasswordFields({
       />
 
       <PasswordField
-        label="Confirm Password:"
-        placeholder="Confirm your password"
+        label={t("authMobile.confirmPasswordLabel")}
+        placeholder={t("authMobile.confirmPasswordPlaceholder")}
         value={confirmPassword}
         onChangeText={onConfirmPasswordChange}
         error={confirmPasswordError}
@@ -68,17 +71,20 @@ export default function NewPasswordFields({
 
       <View className="flex-col gap-1 mt-5">
         <Text className="text-foreground font-interSemiBold mb-2">
-          Your password must contain:
+          {t("authMobile.passwordMustContain")}
         </Text>
 
-        {REQUIREMENT_LABELS.map(({ key, label }) => {
+        {REQUIREMENT_LABELS.map(({ key, labelKey }) => {
           const isMet = requirements[key];
+          const label = t(labelKey);
           return (
             <View
               key={key}
               className="flex-row items-center gap-2"
               accessible
-              accessibilityLabel={`${label}: ${isMet ? "met" : "not met"}`}
+              accessibilityLabel={`${label}${
+                isMet ? t("auth.passwordRule.met") : t("auth.passwordRule.notMet")
+              }`}
             >
               {isMet ? (
                 <IconCircleCheckFilled size={22} color={colors.success} />

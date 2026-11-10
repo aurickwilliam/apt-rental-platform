@@ -1,3 +1,5 @@
+import type { TranslationKey } from '@repo/i18n'
+
 import { VALID_IDS, SECONDARY_IDS } from '@repo/constants'
 
 export type CaptureCameraFacing = 'front' | 'back'
@@ -6,8 +8,8 @@ export type CaptureGuideShape = 'rectangle' | 'circle'
 export interface CaptureStepConfig {
   /** Stable identifier for this step, persisted as the key in the store's captures map. */
   id: string
-  /** Tenant-facing label, e.g. "Front", "Back", "Identity Page". */
-  label: string
+  /** Catalog key for the tenant-facing label, e.g. "Front", "Back". */
+  labelKey: TranslationKey
   /** Guided_Frame aspect ratio (width / height) for this step. */
   aspectRatio: number
   /** Device camera used to capture this step. Defaults to the rear camera. */
@@ -36,21 +38,21 @@ export const PASSPORT_ASPECT_RATIO = 125 / 88
  */
 export const SELFIE_STEP: CaptureStepConfig = {
   id: 'selfie',
-  label: 'Selfie',
+  labelKey: 'authMobile.capture.selfie',
   aspectRatio: 1,
   cameraFacing: 'front',
   guideShape: 'circle',
 }
 
 const CARD_SEQUENCE: CaptureStepConfig[] = [
-  { id: 'front', label: 'Front', aspectRatio: CARD_ASPECT_RATIO, cameraFacing: 'back', guideShape: 'rectangle' },
-  { id: 'back', label: 'Back', aspectRatio: CARD_ASPECT_RATIO, cameraFacing: 'back', guideShape: 'rectangle' },
+  { id: 'front', labelKey: 'authMobile.capture.front', aspectRatio: CARD_ASPECT_RATIO, cameraFacing: 'back', guideShape: 'rectangle' },
+  { id: 'back', labelKey: 'authMobile.capture.back', aspectRatio: CARD_ASPECT_RATIO, cameraFacing: 'back', guideShape: 'rectangle' },
 ]
 
 const PASSPORT_SEQUENCE: CaptureStepConfig[] = [
   {
     id: 'identity-page',
-    label: 'Identity Page',
+    labelKey: 'authMobile.capture.identityPage',
     aspectRatio: PASSPORT_ASPECT_RATIO,
     cameraFacing: 'back',
     guideShape: 'rectangle',

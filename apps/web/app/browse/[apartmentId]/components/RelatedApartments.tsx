@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import ApartmentCard from "@/app/components/ui/ApartmentCard";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { Carousel, CarouselApi, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 
 import { Button } from "@heroui/react";
@@ -26,6 +27,7 @@ export default function RelatedApartments({apartments, basePath = "/browse"} : P
   const [api, setApi] = useState<CarouselApi>();
 
   const router = useRouter();
+  const { t } = useTranslation();
 
   // Below lg (the same breakpoint the page stacks at) the strip
   // free-scrolls like a native row; on PC it keeps snapping card to card.
@@ -52,7 +54,7 @@ export default function RelatedApartments({apartments, basePath = "/browse"} : P
     >
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-noto-serif font-medium text-brand md:text-3xl">
-          Related Apartments
+          {t("apartment.related.title")}
         </h2>
 
         <div className="flex items-center gap-2">
@@ -60,6 +62,7 @@ export default function RelatedApartments({apartments, basePath = "/browse"} : P
             variant="outline"
             isIconOnly
             onPress={() => api?.scrollPrev()}
+            aria-label={t("apartment.related.previous")}
           >
             <IconChevronLeft className="w-4 h-4" />
           </Button>
@@ -67,6 +70,7 @@ export default function RelatedApartments({apartments, basePath = "/browse"} : P
             variant="outline"
             isIconOnly
             onPress={() => api?.scrollNext()}
+            aria-label={t("apartment.related.next")}
           >
             <IconChevronRight className="w-4 h-4" />
           </Button>

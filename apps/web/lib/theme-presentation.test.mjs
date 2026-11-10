@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { translate } from "../../../packages/i18n/src/index.ts";
 
 const source = file => readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
 const jsx = (type, props) => ({ type, props: props ?? {} });
@@ -74,6 +75,7 @@ function renderSearch({ basePath, params = "page=3&verified=1", draft = "  Caloo
     },
     "@/lib/recent-apartment-searches": { recentApartmentHref: (base, id) => `${base}/${id}` },
     "@/lib/public-apartment-image": { canOptimizePublicApartmentImage: () => true },
+    "@/app/components/i18n/LocaleProvider": { useTranslation: () => ({ language: "en", t: (key, vars) => translate("en", key, vars) }) },
     "@tabler/icons-react": {
       IconArrowRight: "IconArrowRight", IconSearch: "IconSearch", IconMap2: "IconMap2", IconPhoto: "IconPhoto", IconX: "IconX",
     },

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { compile } from "./test-support/hook-runtime.mjs";
+import { translate } from "../../../packages/i18n/src/index.ts";
 
 const jsx = { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) };
 const nodes = value => !value || typeof value !== "object" ? [] : [value, ...[value.props?.children].flat(Infinity).flatMap(nodes)];
@@ -12,6 +13,7 @@ function backButton(browser = {}) {
     "next/navigation": { useRouter: () => ({ back: () => calls.push("back"), replace: href => calls.push(href) }) },
     "@heroui/react": { Button: "Button" },
     "@tabler/icons-react": { IconArrowLeft: "IconArrowLeft" },
+    "@/app/components/i18n/LocaleProvider": { useTranslation: () => ({ language: "en", t: (key, vars) => translate("en", key, vars) }) },
   }, {
     URL,
     window: { location: { href: "https://apt.example/tenant/pap", origin: "https://apt.example" }, history: { length: browser.length ?? 2 }, navigation: browser.navigation },

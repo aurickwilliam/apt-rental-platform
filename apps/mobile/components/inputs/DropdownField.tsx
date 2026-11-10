@@ -13,6 +13,7 @@ import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { IconCheck, IconChevronDown, IconChevronUp } from '@tabler/icons-react-native'
 
 import { useColors } from "hooks/useTheme";
+import { useTranslation } from "@/hooks/i18n";
 
 interface SearchInputProps {
   value: string;
@@ -45,6 +46,8 @@ interface DropdownFieldProps {
   multiple?: boolean;
   values?: string[];
   onSelectMultiple?: (values: string[]) => void;
+  /** Display text for a stored option; defaults to the option itself. */
+  optionLabel?: (option: string) => string;
   placeholder?: string;
   required?: boolean;
   error?: string;
@@ -63,15 +66,21 @@ export default function DropdownField({
   multiple = false,
   values = [],
   onSelectMultiple,
-  placeholder = 'Select a value',
+  optionLabel,
+  placeholder,
   required = false,
   error,
   enableSearch = false,
-  searchPlaceholder = 'Search...',
+  searchPlaceholder,
   disabled = false,
   readOnly = false,
 }: DropdownFieldProps) {
   const { colors } = useColors();
+  const { t } = useTranslation();
+
+  const displayPlaceholder = placeholder ?? t("common.selectValue");
+  const displaySearchPlaceholder = searchPlaceholder ?? t("common.searchPlaceholder");
+  const labelOf = (option: string) => optionLabel?.(option) ?? option;
 
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -133,7 +142,11 @@ export default function DropdownField({
                   : 'text-gray-500'
               }`}
             >
-              {displayValue || placeholder}
+              {displayValue
+                ? multiple
+                  ? values.map(labelOf).join(', ')
+                  : labelOf(displayValue)
+                : displayPlaceholder}
             </Text>
 
             {!isReadOnly && (
@@ -184,7 +197,7 @@ export default function DropdownField({
                       }}
                     >
                       <Text className="text-base text-foreground text-left font-inter">
-                        {item}
+                        {labelOf(item)}
                       </Text>
 
                       {isSelected && <IconCheck size={20} color={colors.primary} />}
@@ -203,7 +216,7 @@ export default function DropdownField({
                     <SearchInput
                       value={searchQuery}
                       onChangeText={setSearchQuery}
-                      placeholder={searchPlaceholder}
+                      placeholder={displaySearchPlaceholder}
                     />
                   )}
                 </View>
@@ -211,7 +224,9 @@ export default function DropdownField({
               ListEmptyComponent={
                 <View className="py-8 items-center justify-center">
                   <Text className="text-lg text-gray-500 font-inter">
-                    {searchQuery.trim() ? 'No results found' : 'No options available'}
+                    {searchQuery.trim()
+                      ? t("common.noResultsFound")
+                      : t("common.noOptions")}
                   </Text>
                 </View>
               }

@@ -6,7 +6,10 @@ import Link from "next/link";
 import { Card, Chip, Separator } from "@heroui/react";
 import { IconArrowRight, IconHome, IconMapPin, IconUser } from "@tabler/icons-react";
 
+import { APARTMENT_STATUS_KEYS, APARTMENT_TYPE_KEYS, enumLabel } from "@repo/i18n";
+
 import StatusChip from "@/app/components/display/StatusChip";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { statusToneFor } from "@/lib/status-tone";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 
@@ -33,6 +36,20 @@ export default function RatingsListingCard({
   coverImage,
   listingHref,
 }: RatingsListingCardProps) {
+  const { language, t } = useTranslation();
+
+  const statusLabel = status
+    ? APARTMENT_STATUS_KEYS[status]
+      ? enumLabel(language, APARTMENT_STATUS_KEYS, status)
+      : formatApartmentStatus(status)
+    : null;
+
+  const typeLabel = type
+    ? APARTMENT_TYPE_KEYS[type]
+      ? enumLabel(language, APARTMENT_TYPE_KEYS, type)
+      : type
+    : "—";
+
   return (
     <Card className="min-w-0 rounded-3xl border border-border bg-card p-4 shadow-none sm:p-5">
       <div className="flex min-w-0 gap-3 sm:gap-4">
@@ -48,11 +65,11 @@ export default function RatingsListingCard({
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          {status && (
-            <StatusChip tone={statusToneFor(status)} className="self-start capitalize">
+          {statusLabel && (
+            <StatusChip tone={statusToneFor(status ?? "")} className="self-start capitalize">
               <Chip.Label className="flex items-center gap-1.5">
                 <span className="size-1.5 rounded-full bg-current" />
-                {formatApartmentStatus(status)}
+                {statusLabel}
               </Chip.Label>
             </StatusChip>
           )}
@@ -73,22 +90,22 @@ export default function RatingsListingCard({
       <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-2 text-sm">
         <dt className="flex items-center gap-1.5 text-muted-foreground">
           <IconUser size={16} className="shrink-0" aria-hidden="true" />
-          Landlord
+          {t("reviews.listing.landlord")}
         </dt>
         <dd className="min-w-0 font-medium text-card-foreground">{landlordName}</dd>
 
         <dt className="flex items-center gap-1.5 text-muted-foreground">
           <IconHome size={16} className="shrink-0" aria-hidden="true" />
-          Type
+          {t("reviews.listing.type")}
         </dt>
-        <dd className="min-w-0 font-medium text-card-foreground">{type ?? "—"}</dd>
+        <dd className="min-w-0 font-medium text-card-foreground">{typeLabel}</dd>
       </dl>
 
       <Link
         href={listingHref}
         className="mt-3 inline-flex w-fit items-center gap-1 rounded-md text-sm font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       >
-        View listing
+        {t("reviews.listing.view")}
         <IconArrowRight size={16} aria-hidden="true" />
       </Link>
     </Card>

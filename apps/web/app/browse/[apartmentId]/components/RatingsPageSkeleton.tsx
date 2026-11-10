@@ -1,4 +1,8 @@
+"use client";
+
 import { Card, Skeleton } from "@heroui/react";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 const REVIEW_PLACEHOLDER_COUNT = 2;
 
@@ -7,11 +11,13 @@ function Sk({ className }: { className: string }) {
 }
 
 export default function RatingsPageSkeleton() {
+  const { t } = useTranslation();
+
   return (
     <div
       className="mx-auto w-full max-w-7xl p-4 sm:p-6"
       aria-busy="true"
-      aria-label="Loading reviews"
+      aria-label={t("reviews.loading")}
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
@@ -19,7 +25,7 @@ export default function RatingsPageSkeleton() {
             <Sk className="h-5 w-32 rounded-lg" />
           </div>
           <h1 className="mt-2 font-nunito text-2xl font-bold text-foreground md:text-3xl">
-            Ratings &amp; Reviews
+            {t("reviews.title")}
           </h1>
           <div aria-hidden="true">
             <Sk className="mt-1 h-5 w-72 max-w-full rounded-lg" />
@@ -72,7 +78,7 @@ export default function RatingsPageSkeleton() {
 
         <div className="flex min-w-0 flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-nunito text-lg font-semibold">Tenant Reviews</h2>
+            <h2 className="font-nunito text-lg font-semibold">{t("reviews.sectionTitle")}</h2>
             <Sk className="h-9 w-32 rounded-full" />
           </div>
 

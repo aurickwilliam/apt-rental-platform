@@ -6,7 +6,14 @@ import type { NextConfig } from "next";
 const IMAGE_CACHE_SECONDS = 60 * 60 * 24 * 30;
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@repo/supabase", "@repo/constants", "@repo/utils", "@repo/hooks", "@repo/passport"],
+  transpilePackages: [
+    "@repo/supabase",
+    "@repo/constants",
+    "@repo/utils",
+    "@repo/hooks",
+    "@repo/passport",
+    "@repo/i18n",
+  ],
   turbopack: {
     resolveAlias: {
       'react-native': './empty-module.ts',

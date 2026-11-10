@@ -45,6 +45,8 @@ import { IconArrowsExchange as ArrowLeftRight, IconLogout as LogOut, IconSelecto
 
 import { signOut } from "@/service/signOutService";
 import { usePendingNavigation } from "@/hooks/use-pending-navigation";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+import type { TranslationKey } from "@repo/i18n";
 import SidebarLinkPending from "./SidebarLinkPending";
 import { Tooltip as RailTooltip, TooltipContent as RailTooltipContent, TooltipProvider as RailTooltipProvider, TooltipTrigger as RailTooltipTrigger } from "@/components/ui/tooltip";
 import SidebarNotificationsItem from "./SidebarNotificationsItem";
@@ -181,26 +183,26 @@ function subscribeThemeMounted() {
 
 type NavItem = {
   href: string;
-  label: string;
+  labelKey: TranslationKey;
   icon: string;
   activityKey?: SidebarActivityKey;
   /** Warm this route on hover/focus and when the mobile menu opens. */
   prefetchOnIntent?: boolean;
   /** Stable `data-tour` key the first-time tutorial highlights (see `TUTORIAL_TARGETS` in `@repo/utils`). */
   tourKey?: string;
-  /** Name of the group this item belongs to; consecutive items sharing it sit together under a separator. */
-  section?: string;
+  /** Group this item belongs to; consecutive items sharing it sit together under a separator. */
+  sectionKey?: TranslationKey;
 };
 
-type NavGroup = { section?: string; items: NavItem[] };
+type NavGroup = { sectionKey?: TranslationKey; items: NavItem[] };
 
-/** Splits the flat nav list into consecutive same-`section` groups (one unlabeled group when none is set). */
+/** Splits the flat nav list into consecutive same-section groups (one unlabeled group when none is set). */
 function groupNavItems(navItems: NavItem[]): NavGroup[] {
   const groups: NavGroup[] = [];
   for (const item of navItems) {
     const last = groups[groups.length - 1];
-    if (last && last.section === item.section) last.items.push(item);
-    else groups.push({ section: item.section, items: [item] });
+    if (last && last.sectionKey === item.sectionKey) last.items.push(item);
+    else groups.push({ sectionKey: item.sectionKey, items: [item] });
   }
   return groups;
 }
@@ -214,7 +216,7 @@ function UnreadActivityDot({ active = false, collapsed = false }: { active?: boo
   );
 }
 
-export type SwitchTarget = { href: string; label: string };
+export type SwitchTarget = { href: string; labelKey: TranslationKey };
 
 /**
  * One-click portal switch entries, offered only for portals whose role the
@@ -237,23 +239,23 @@ export function getSwitchTargets(
   if (activePortal === "admin") {
     return [
       userRoles.includes("landlord")
-        ? { href: "/landlord/dashboard", label: "View as Landlord" }
+        ? { href: "/landlord/dashboard", labelKey: "nav.viewAsLandlord" }
         : null,
       userRoles.includes("tenant")
-        ? { href: "/tenant/my-rental", label: "View as Tenant" }
+        ? { href: "/tenant/my-rental", labelKey: "nav.viewAsTenant" }
         : null,
     ].filter((item): item is SwitchTarget => item !== null);
   }
 
   return [
     userRoles.includes("admin")
-      ? { href: "/admin/dashboard", label: "Back to Admin view" }
+      ? { href: "/admin/dashboard", labelKey: "nav.backToAdminView" }
       : null,
     activePortal === "tenant" && userRoles.includes("landlord")
-      ? { href: "/landlord/dashboard", label: "Switch to Landlord view" }
+      ? { href: "/landlord/dashboard", labelKey: "nav.switchToLandlordView" }
       : null,
     activePortal === "landlord" && userRoles.includes("tenant")
-      ? { href: "/tenant/my-rental", label: "Switch to Tenant view" }
+      ? { href: "/tenant/my-rental", labelKey: "nav.switchToTenantView" }
       : null,
   ].filter((item): item is SwitchTarget => item !== null);
 }
@@ -313,6 +315,7 @@ export function AppSidebar({
 }: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useTranslation();
   const { pendingHref, navigate } = usePendingNavigation();
   const { notifications } = useNotifications(activePortal ?? null);
   const activity = useMemo(
@@ -352,12 +355,12 @@ export function AppSidebar({
   );
   const sidebarLabel =
     activePortal === "tenant"
-      ? "Tenant sidebar"
+      ? t("nav.sidebar.tenant")
       : activePortal === "landlord"
-        ? "Landlord sidebar"
+        ? t("nav.sidebar.landlord")
         : collapsible
-          ? "Admin sidebar"
-          : "Portal sidebar";
+          ? t("nav.sidebar.admin")
+          : t("nav.sidebar.portal");
 
   // The sidebar is `hidden md:flex`, so an open account menu would be
   // orphaned over the page once the window drops below md.
@@ -365,13 +368,16 @@ export function AppSidebar({
   const closeAccountMenu = useCallback(() => setAccountMenuOpen(false), []);
   useCloseOverlayAt("(max-width: 767.98px)", true, closeAccountMenu);
 
-  const displayName = userName?.trim() || "User";
+  const displayName = userName?.trim() || t("nav.role.user");
   const roleLabel = userRole?.trim() || "";
   const profileHref = accountProfileHref ?? (roleLabel.toLowerCase() === "landlord"
     ? "/landlord/profile"
     : "/tenant/profile");
 
-  const switchTargets = getSwitchTargets(activePortal, userRoles);
+  const switchTargets = getSwitchTargets(activePortal, userRoles).map((target) => ({
+    ...target,
+    label: t(target.labelKey),
+  }));
 
   // Warm account destinations when the menu opens.
   const handleAccountMenuOpenChange = useCallback(
@@ -398,7 +404,7 @@ export function AppSidebar({
               <span className="inline-flex">
           <Button
             variant="ghost"
-            aria-label="Expand sidebar"
+            aria-label={t("nav.expandSidebar")}
             aria-expanded={false}
             onClick={toggleCollapsed}
             className="button--bare group relative flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
@@ -423,7 +429,7 @@ export function AppSidebar({
           </Button>
               </span>
             </RailTooltipTrigger>
-            <RailTooltipContent side="right" sideOffset={8}>Expand sidebar</RailTooltipContent>
+            <RailTooltipContent side="right" sideOffset={8}>{t("nav.expandSidebar")}</RailTooltipContent>
           </RailTooltip>
         ) : (
           <Link
@@ -443,7 +449,7 @@ export function AppSidebar({
         {collapsible && !collapsed ? (
           <Button
             variant="ghost"
-            aria-label="Collapse sidebar"
+            aria-label={t("nav.collapseSidebar")}
             aria-expanded={true}
             className="button--bare group flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-xl text-sidebar-foreground/70 hover:bg-primary/10 hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
             onClick={toggleCollapsed}
@@ -459,19 +465,22 @@ export function AppSidebar({
 
       {/* Nav — good UX: clear hierarchy, 44px touch target, primary active */}
       <nav
-        aria-label="Portal pages"
+        aria-label={t("nav.portalPages")}
         className={`flex flex-1 flex-col overflow-y-auto ${collapsed ? "gap-1 px-2 py-2" : "gap-1.5 px-3 py-4"}`}
       >
         <RailTooltipProvider delayDuration={0}>
-        {navGroups.map((group, groupIndex) => (
+        {navGroups.map((group, groupIndex) => {
+          const sectionLabel = group.sectionKey ? t(group.sectionKey) : undefined;
+          return (
           <div
-            key={group.section ?? "pages"}
-            role={group.section ? "group" : undefined}
-            aria-label={group.section}
+            key={group.sectionKey ?? "pages"}
+            role={sectionLabel ? "group" : undefined}
+            aria-label={sectionLabel}
             className={`flex flex-col ${collapsed ? "gap-1" : "gap-1.5"}`}
           >
             {groupIndex > 0 ? <Separator className={collapsed ? "my-1" : "my-1.5"} /> : null}
-            {group.items.map(({ label, href, icon, activityKey, prefetchOnIntent, tourKey }) => {
+            {group.items.map(({ labelKey, href, icon, activityKey, prefetchOnIntent, tourKey }) => {
+          const label = t(labelKey);
           const active = isActive(pathname, href);
           const hasActivity = !!activityKey && activity.has(activityKey);
           const Icon =
@@ -487,7 +496,7 @@ export function AppSidebar({
               onMouseEnter={prefetchOnIntent ? () => router.prefetch(href) : undefined}
               onFocus={prefetchOnIntent ? () => router.prefetch(href) : undefined}
               aria-current={active ? "page" : undefined}
-              aria-label={hasActivity ? `${label}, Unread activity` : collapsed ? label : undefined}
+              aria-label={hasActivity ? t("nav.unreadActivity", { label }) : collapsed ? label : undefined}
               className={`group relative flex min-h-11 w-full items-center rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring ${collapsed ? "justify-center" : "gap-3 py-2.5 pl-3 pr-7"} ${
                 active
                   ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
@@ -506,14 +515,15 @@ export function AppSidebar({
               </RailTooltipTrigger>
               {collapsed ? (
                 <RailTooltipContent side="right" sideOffset={8}>
-                  {`${label}${hasActivity ? ", Unread activity" : ""}`}
+                  {hasActivity ? t("nav.unreadActivity", { label }) : label}
                 </RailTooltipContent>
               ) : null}
             </RailTooltip>
           );
             })}
           </div>
-        ))}
+          );
+        })}
         </RailTooltipProvider>
         <SidebarNotificationsItem activePortal={activePortal} collapsed={collapsed} />
       </nav>
@@ -526,7 +536,7 @@ export function AppSidebar({
           <Button
             variant="ghost"
             aria-busy={pendingHref !== null || undefined}
-            aria-label={collapsed ? `${displayName} account menu` : undefined}
+            aria-label={collapsed ? t("nav.accountMenu", { name: displayName }) : undefined}
             className={`relative w-full group flex items-center h-auto hover:bg-primary/10 text-sidebar-foreground rounded-xl hover:text-sidebar-accent-foreground ${collapsed ? "justify-center p-2" : "gap-3 px-2.5 py-2.5 justify-start"}`}
           >
             <UserAvatar
@@ -551,7 +561,7 @@ export function AppSidebar({
             ) : null}
             {pendingHref ? (
               <span className={collapsed ? "pointer-events-none absolute bottom-0.5 right-0.5 flex size-4 items-center justify-center rounded-full bg-sidebar" : "ml-auto shrink-0"}>
-                <Spinner size="sm" aria-label="Opening page" />
+                <Spinner size="sm" aria-label={t("nav.openingPage")} />
               </span>
             ) : !collapsed &&
               (iconSet === "tabler" ? (
@@ -590,26 +600,26 @@ export function AppSidebar({
               }}
             >
                 {showAccountLinks ? (<>
-                <Dropdown.Item id="profile" textValue="Profile">
+                <Dropdown.Item id="profile" textValue={t("nav.profile")}>
                   <Label className="flex items-center gap-2">
                     {iconSet === "tabler" ? (
                       <IconUser size={18} aria-hidden="true" />
                     ) : (
                       <UserRound size={18} aria-hidden="true" />
                     )}
-                    Profile
+                    {t("nav.profile")}
                   </Label>
                 </Dropdown.Item>
                 {favoritesHref ? (
                   <Dropdown.Item
                     id="favorites"
-                    textValue="Favorites"
+                    textValue={t("nav.favorites")}
                     aria-current={isActive(pathname, favoritesHref) ? "page" : undefined}
                     className={isActive(pathname, favoritesHref) ? "bg-primary/10 text-primary" : undefined}
                   >
                     <Label className={`flex items-center gap-2 ${isActive(pathname, favoritesHref) ? "font-semibold text-primary" : ""}`}>
                       <IconHeart size={18} aria-hidden="true" />
-                      Favorites
+                      {t("nav.favorites")}
                     </Label>
                   </Dropdown.Item>
                 ) : null}
@@ -621,14 +631,14 @@ export function AppSidebar({
                   an Admin entry and single-portal accounts see nothing. */}
                 {switchTargets.length > 0 ? (
                   <Dropdown.SubmenuTrigger>
-                    <Dropdown.Item id="switch-portal" textValue="Switch Portal" className="group">
+                    <Dropdown.Item id="switch-portal" textValue={t("nav.switchPortal")} className="group">
                       <Label className="flex w-full items-center gap-2">
                         {iconSet === "tabler" ? (
                           <IconArrowsExchange size={18} className="shrink-0 text-primary" aria-hidden="true" />
                         ) : (
                           <ArrowLeftRight size={18} className="shrink-0 text-primary" aria-hidden="true" />
                         )}
-                        Switch Portal
+                        {t("nav.switchPortal")}
                         <span className="ml-auto flex shrink-0 items-center">
                           <Dropdown.SubmenuIndicator className="text-grey-500! group-hover:text-primary! group-data-[focused=true]:text-primary! group-data-[open=true]:text-primary!" />
                         </span>
@@ -640,7 +650,7 @@ export function AppSidebar({
                       carries its own onAction with the same guard logic. */}
                     <Dropdown.Popover placement="end">
                       <Dropdown.Menu
-                        aria-label="Switch portal"
+                        aria-label={t("nav.switchPortal")}
                         onAction={(key) => {
                           const target = switchTargets.find((item) => `switch:${item.href}` === key);
                           if (target) navigate(target.href);
@@ -657,11 +667,11 @@ export function AppSidebar({
                           const isTenantTarget = target.href.startsWith("/tenant");
                           const isAdminTarget = target.href.startsWith("/admin");
                           const submenuLabel = isLandlordTarget
-                            ? "Switch to Landlord"
+                            ? t("nav.switchToLandlord")
                             : isTenantTarget
-                              ? "Switch to Tenant"
+                              ? t("nav.switchToTenant")
                               : isAdminTarget
-                                ? "Switch to Admin"
+                                ? t("nav.switchToAdmin")
                                 : target.label;
                           return (
                             <Dropdown.Item
@@ -717,7 +727,7 @@ export function AppSidebar({
                   </Dropdown.Item>
                   ))
                 )}
-                <Dropdown.Item id="theme" textValue="Dark Mode">
+                <Dropdown.Item id="theme" textValue={t("nav.darkMode")}>
                   <Label className="flex w-full items-center gap-2">
                     {iconSet === "tabler" ? (
                       isDark ? (
@@ -730,45 +740,45 @@ export function AppSidebar({
                     ) : (
                       <Sun size={18} aria-hidden="true" />
                     )}
-                    Dark Mode
+                    {t("nav.darkMode")}
                     <span className="ml-auto pointer-events-none flex items-center">
                       <ToggleSwitch
                         isSelected={isDark}
                         onValueChange={toggleTheme}
                         disabled={!themeMounted}
-                        aria-label="Toggle dark mode"
+                        aria-label={t("nav.toggleDarkMode")}
                       />
                     </span>
                   </Label>
                 </Dropdown.Item>
                 {settingsHref || settingsQueryParam || !accountProfileHref ? (
-                  <Dropdown.Item id="settings" textValue="Settings">
+                  <Dropdown.Item id="settings" textValue={t("nav.settings")}>
                     <Label className="flex items-center gap-2">
                       {iconSet === "tabler" ? (
                         <IconSettings size={18} aria-hidden="true" />
                       ) : (
                         <Settings size={18} aria-hidden="true" />
                       )}
-                      Settings
+                      {t("nav.settings")}
                     </Label>
                   </Dropdown.Item>
                 ) : null}
               </>) : null}
-              <Dropdown.Item id="logout" variant="danger" textValue="Log Out">
+              <Dropdown.Item id="logout" variant="danger" textValue={t("nav.logOut")}>
                 <Label className="flex items-center gap-2">
                   {iconSet === "tabler" ? (
                     <IconLogout size={18} aria-hidden="true" />
                   ) : (
                     <LogOut size={18} aria-hidden="true" />
                   )}{" "}
-                  Log Out
+                  {t("nav.logOut")}
                 </Label>
               </Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown.Popover>
         </Dropdown>
       </div>
-      {pendingHref ? <span role="status" className="sr-only">Opening {pendingHref.split("/").at(-1)}…</span> : null}
+      {pendingHref ? <span role="status" className="sr-only">{t("nav.opening", { page: pendingHref.split("/").at(-1) ?? "" })}</span> : null}
     </aside>
   );
 }
@@ -776,9 +786,6 @@ export function AppSidebar({
 type MobileSidebarNavigationProps = {
   navItems: NavItem[];
   iconSet?: "lucide" | "tabler";
-  navLabel?: string;
-  menuLabel?: string;
-  buttonLabel?: string;
   // Same multi-role switching inputs as AppSidebar, so this menu offers the
   // same entries instead of being role-blind on phones.
   userRoles?: string[];
@@ -806,15 +813,13 @@ function drawerRowClass(active: boolean) {
 function MobileSidebarMenu({
   navItems,
   iconSet,
-  navLabel,
-  menuLabel,
-  buttonLabel,
   userRoles,
   activePortal,
   profileHref,
   favoritesHref,
 }: MobileSidebarNavigationProps) {
   const pathname = usePathname();
+  const { t } = useTranslation();
   const navGroups = useMemo(() => groupNavItems(navItems), [navItems]);
   const router = useRouter();
   const { pendingHref, navigate } = usePendingNavigation();
@@ -825,6 +830,27 @@ function MobileSidebarMenu({
   );
   const searchParams = useSearchParams();
   const { resolvedTheme, setTheme } = useTheme();
+
+  // The drawer names itself after the portal so its accessible labels stay in
+  // step with the sidebar it replaces below `md`.
+  const navLabel =
+    activePortal === "landlord"
+      ? t("nav.landlordNavigation")
+      : activePortal === "admin"
+        ? t("nav.adminNavigation")
+        : t("nav.tenantNavigation");
+  const menuLabel =
+    activePortal === "landlord"
+      ? t("nav.landlordPages")
+      : activePortal === "admin"
+        ? t("nav.adminPages")
+        : t("nav.tenantPages");
+  const buttonLabel =
+    activePortal === "landlord"
+      ? t("nav.openLandlordNavigation")
+      : activePortal === "admin"
+        ? t("nav.openAdminNavigation")
+        : t("nav.openTenantNavigation");
 
   // Mirrors the sidebar footer so the theme icon matches in both menus.
   const themeMounted = useSyncExternalStore(
@@ -879,7 +905,10 @@ function MobileSidebarMenu({
   };
 
   // Same helper the sidebar dropdown uses, so both menus stay in step.
-  const switchTargets = getSwitchTargets(activePortal, userRoles ?? []);
+  const switchTargets = getSwitchTargets(activePortal, userRoles ?? []).map((target) => ({
+    ...target,
+    label: t(target.labelKey),
+  }));
 
   // Closes the drawer and navigates inside a transition, so the top bar can
   // show pending feedback while the route loads.
@@ -908,7 +937,7 @@ function MobileSidebarMenu({
           {pendingHref ? (
             <>
               <Spinner size="sm" color="current" aria-hidden="true" />
-              <span className="sr-only">Opening…</span>
+              <span className="sr-only">{t("nav.openingPage")}</span>
             </>
           ) : (
             <IconMenu2 size={22} aria-hidden="true" />
@@ -916,7 +945,7 @@ function MobileSidebarMenu({
         </Button>
         {pendingHref ? (
           <span role="status" className="sr-only">
-            Opening {pendingHref.split("/").at(-1)}…
+            {t("nav.opening", { page: pendingHref.split("/").at(-1) ?? "" })}
           </span>
         ) : null}
         <Link href={navItems[0]?.href ?? "/"} className="flex shrink-0 items-center">
@@ -961,7 +990,7 @@ function MobileSidebarMenu({
                   variant="ghost"
                   size="sm"
                   onPress={closeMobileMenu}
-                  aria-label="Close navigation"
+                  aria-label={t("nav.closeNavigation")}
                 >
                   <IconX size={18} aria-hidden="true" />
                 </Button>
@@ -972,15 +1001,18 @@ function MobileSidebarMenu({
                 inert={tourHoldsMenu}
                 className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-3 py-3"
               >
-                {navGroups.map((group, groupIndex) => (
+                {navGroups.map((group, groupIndex) => {
+                  const sectionLabel = group.sectionKey ? t(group.sectionKey) : undefined;
+                  return (
                   <div
-                    key={group.section ?? "pages"}
-                    role={group.section ? "group" : undefined}
-                    aria-label={group.section}
+                    key={group.sectionKey ?? "pages"}
+                    role={sectionLabel ? "group" : undefined}
+                    aria-label={sectionLabel}
                     className="flex flex-col gap-1"
                   >
                     {groupIndex > 0 ? <Separator className="my-1.5" /> : null}
-                    {group.items.map(({ href, label, icon, activityKey, tourKey }) => {
+                    {group.items.map(({ labelKey, href, icon, activityKey, tourKey }) => {
+                      const label = t(labelKey);
                       const Icon = iconFor(icon);
                       const active = isActive(pathname, href);
                       const hasActivity = !!activityKey && activity.has(activityKey);
@@ -991,7 +1023,7 @@ function MobileSidebarMenu({
                           data-tour={tourKey}
                           onClick={() => go(href)}
                           aria-current={active ? "page" : undefined}
-                          aria-label={hasActivity ? `${label}, Unread activity` : undefined}
+                          aria-label={hasActivity ? t("nav.unreadActivity", { label }) : undefined}
                           className={`button--bare relative pr-7 ${drawerRowClass(active)}`}
                         >
                           <Icon size={20} aria-hidden="true" />
@@ -1001,11 +1033,12 @@ function MobileSidebarMenu({
                       );
                     })}
                   </div>
-                ))}
+                  );
+                })}
 
                 <Separator className="my-1.5" />
 
-                <div role="group" aria-label="Account" className="flex flex-col gap-1">
+                <div role="group" aria-label={t("nav.account")} className="flex flex-col gap-1">
                   {profileHref ? (
                     <Button
                       variant="ghost"
@@ -1014,7 +1047,7 @@ function MobileSidebarMenu({
                       className={`button--bare ${drawerRowClass(profileActive)}`}
                     >
                       <IconUser size={20} aria-hidden="true" />
-                      Profile
+                      {t("nav.profile")}
                     </Button>
                   ) : null}
                   {favoritesHref ? (
@@ -1025,7 +1058,7 @@ function MobileSidebarMenu({
                       className={`button--bare ${drawerRowClass(favoritesActive)}`}
                     >
                       <IconHeart size={20} aria-hidden="true" />
-                      Favorites
+                      {t("nav.favorites")}
                     </Button>
                   ) : null}
 
@@ -1047,7 +1080,7 @@ function MobileSidebarMenu({
                     className={`button--bare ${drawerRowClass(false)}`}
                   >
                     <IconSettings size={20} aria-hidden="true" />
-                    Settings
+                    {t("nav.settings")}
                   </Button>
 
                   {(activePortal === "tenant" ||
@@ -1059,7 +1092,7 @@ function MobileSidebarMenu({
                       className={`button--bare ${drawerRowClass(false)}`}
                     >
                       <IconBell size={20} aria-hidden="true" />
-                      Notifications
+                      {t("nav.notifications")}
                       {unreadCount > 0 && (
                         <span className="ml-auto flex min-h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[11px] font-bold text-white">
                           {unreadCount > 9 ? "9+" : unreadCount}
@@ -1083,13 +1116,13 @@ function MobileSidebarMenu({
                     ) : (
                       <IconSun size={20} aria-hidden="true" />
                     )}
-                    Dark Mode
+                    {t("nav.darkMode")}
                     <span className="pointer-events-none ml-auto flex items-center">
                       <ToggleSwitch
                         isSelected={isDark}
                         onValueChange={toggleTheme}
                         disabled={!themeMounted}
-                        aria-label="Toggle dark mode"
+                        aria-label={t("nav.toggleDarkMode")}
                       />
                     </span>
                   </Button>
@@ -1106,7 +1139,7 @@ function MobileSidebarMenu({
                   className={`button--bare ${DRAWER_ROW_CLASS} text-danger hover:bg-danger/10`}
                 >
                   <IconLogout size={20} aria-hidden="true" />
-                  Log Out
+                  {t("nav.logOut")}
                 </Button>
               </div>
               <div ref={setTutorialLayerHost} data-tutorial-host />
