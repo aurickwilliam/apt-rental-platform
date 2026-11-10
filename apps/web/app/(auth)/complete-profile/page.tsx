@@ -1,9 +1,13 @@
 import { redirect } from "next/navigation";
 import Image from "next/image";
 
+import { translate } from "@repo/i18n";
 import { createClient } from "@repo/supabase/server";
+
+import { getServerLocale } from "@/lib/i18n/locale";
 import { preferredPortal } from "@/lib/portal-preference";
 
+import LanguageToggle from "@/app/components/i18n/LanguageToggle";
 import CompleteProfileForm from "./components/CompleteProfileForm";
 
 interface UserRolesProfile {
@@ -31,6 +35,7 @@ export default async function CompleteProfilePage({
   searchParams,
 }: CompleteProfilePageProps) {
   const { role: requestedRole } = await searchParams;
+  const language = await getServerLocale();
   const role =
     requestedRole === "landlord" || requestedRole === "tenant"
       ? requestedRole
@@ -70,6 +75,10 @@ export default async function CompleteProfilePage({
     ? "landlord"
     : "tenant";
   const effectiveRole = role ?? profileRole;
+  const roleLabel = translate(
+    language,
+    effectiveRole === "landlord" ? "auth.role.landlord" : "auth.role.tenant",
+  );
 
   return (
     // min-h-screen + fluid padding: the page grows rather than clipping
@@ -77,17 +86,18 @@ export default async function CompleteProfilePage({
     <div className="min-h-screen w-full bg-card">
       <div className="mx-auto w-full max-w-4xl px-[clamp(1rem,4vw,2rem)] py-[clamp(1.5rem,4vh,2rem)]">
         {/* Header */}
-        <div className="mb-[clamp(1.5rem,4vh,2rem)] flex flex-col gap-4">
+        <div className="mb-[clamp(1.5rem,4vh,2rem)] flex items-center justify-between gap-4">
           <Image src="/logo/logo.svg" alt="APT Logo" width={75} height={75} />
+          <LanguageToggle />
         </div>
 
         {/* Title */}
         <div className="mb-[clamp(1.5rem,4vh,2rem)]">
           <h1 className="text-[clamp(1.5rem,4vw,1.875rem)] font-semibold font-noto-serif text-default-900">
-            Complete the {effectiveRole === "landlord" ? "Landlord" : "Tenant"} Form
+            {translate(language, "auth.signUpForm.title", { role: roleLabel })}
           </h1>
           <p className="mt-1 text-default-500">
-            Join us and start your apartment rental journey today!
+            {translate(language, "auth.signUpForm.description")}
           </p>
         </div>
 

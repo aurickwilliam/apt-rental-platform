@@ -8,6 +8,7 @@ import CashPaymentForm, { type CashPaymentErrors } from './CashPaymentForm'
 import BankTransferPicker from './BankTransferPicker'
 import type { BankCode } from '@repo/constants'
 import { paymentMethodLabel, type PaymentMethod } from '@repo/utils'
+import { useTranslation } from '@/hooks/i18n'
 export type { PaymentMethod } from '@repo/utils'
 
 const METHODS: Record<PaymentMethod, {
@@ -65,7 +66,7 @@ interface PaymentMethodSelectorProps {
 }
 
 export default function PaymentMethodSelector({
-  description = "Select how you'd like to pay this month's rent.",
+  description,
   selectedMethod,
   onPaymentMethodChange,
   cashPaymentDate,
@@ -80,28 +81,29 @@ export default function PaymentMethodSelector({
   onBankChange,
   bankError,
 }: PaymentMethodSelectorProps) {
+  const { language, t } = useTranslation();
   const offered = Object.values(METHODS).filter((entry) => acceptedMethods.includes(entry.method))
 
   return (
     <View>
       <View className='flex mb-3 gap-2'>
         <Text className='text-accent text-lg font-nunitoSemiBold'>
-          Choose Payment Method
+          {t("checkout.pick.title")}
         </Text>
         <Text className='text-gray-500 text-base font-inter'>
-          {description}
+          {description ?? t("checkout.pick.defaultDescription")}
         </Text>
       </View>
 
       <Card className='shadow-none rounded-3xl'>
         <Card.Body>
           {methodsLoading && <View className='flex-row items-center gap-2'>
-            <Spinner size='sm' accessibilityLabel='Loading payment methods' />
-            <Text className='text-muted text-sm font-inter'>Loading payment methods…</Text>
+            <Spinner size='sm' accessibilityLabel={t("checkout.pick.loadingAria")} />
+            <Text className='text-muted text-sm font-inter'>{t("checkout.pick.loading")}</Text>
           </View>}
           {methodsError && <View className='gap-2'>
             <Text accessibilityRole='alert' className='text-danger text-sm font-inter'>{methodsError}</Text>
-            <Button variant='tertiary' size='sm' onPress={onRetryMethods}><Button.Label>Retry</Button.Label></Button>
+            <Button variant='tertiary' size='sm' onPress={onRetryMethods}><Button.Label>{t("common.retry")}</Button.Label></Button>
           </View>}
           {offered.length > 0 && (
             <View className="flex-row flex-wrap justify-between gap-y-3">
@@ -111,8 +113,8 @@ export default function PaymentMethodSelector({
                   variant='tile'
                   imageSource={method.imageSource}
                   icon={method.icon}
-                  label={paymentMethodLabel(method.method)}
-                  accessibilityLabel={paymentMethodLabel(method.method)}
+                  label={paymentMethodLabel(method.method, language)}
+                  accessibilityLabel={paymentMethodLabel(method.method, language)}
                   selected={selectedMethod === method.method}
                   onPress={() => onPaymentMethodChange(method.method)}
                 />

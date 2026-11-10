@@ -11,6 +11,11 @@ function load(file) {
     "@tabler/icons-react": new Proxy({}, { get: (_, name) => name }),
     "@heroui/react": { Button: "Button" },
     "next/link": { default: "Link" },
+    // The Passport header is a client component; a key-echo lookup keeps the
+    // typography assertions focused on class names.
+    "@/app/components/i18n/LocaleProvider": {
+      useTranslation: () => ({ language: "en", pending: false, setLanguage() {}, t: key => key }),
+    },
   };
   const source = readFileSync(new URL(`../app/${file}`, import.meta.url), "utf8");
   const compiled = ts.transpileModule(source, {

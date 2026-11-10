@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 
 import RatingBreakdown from "./RatingBreakdown";
 import RatingsHeader from "./RatingsHeader";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { useApartmentReviews } from "@/hooks/use-apartment-reviews";
 
 interface RatingSectionProps {
@@ -16,6 +17,7 @@ export default function RatingSection({
   basePath = "/browse",
 }: RatingSectionProps) {
   const router = useRouter();
+  const { t } = useTranslation();
   const { overallRating, totalReviews, ratingsCount, loading, error } =
     useApartmentReviews(apartmentId, false);
 
@@ -27,7 +29,7 @@ export default function RatingSection({
       <RatingsHeader onSeeAll={() => router.push(`${basePath}/${apartmentId}/ratings`)} />
 
       {loading ? (
-        <p className="text-sm text-default-500">Loading ratings…</p>
+        <p className="text-sm text-default-500">{t("reviews.loading")}</p>
       ) : !error ? (
         <RatingBreakdown
           overallRate={overallRating}

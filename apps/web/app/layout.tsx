@@ -4,6 +4,8 @@ import Script from "next/script";
 import localFont from "next/font/local";
 import { Providers } from "./providers";
 import { themeInitScript } from "./theme-init-script";
+import { LocaleProvider } from "./components/i18n/LocaleProvider";
+import { getServerLocale } from "@/lib/i18n/locale";
 
 // Self-hosted Nunito + Inter, subset to the latin range as woff2 from the
 // same TTFs the mobile app bundles (`apps/mobile/assets/fonts`, the canonical
@@ -42,14 +44,19 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Cookie → Accept-Language → English. Reading it here makes every route
+  // dynamic, which is the accepted cost of a correct `lang` on first byte and
+  // no flash of English for a visitor who already chose Filipino.
+  const language = await getServerLocale();
+
   return (
     <html
-      lang="en"
+      lang={language}
       suppressHydrationWarning
       className={`${inter.variable} ${nunito.variable}`}
     >
@@ -61,7 +68,9 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning>
-        <Providers>{children}</Providers>
+        <LocaleProvider initialLanguage={language}>
+          <Providers>{children}</Providers>
+        </LocaleProvider>
       </body>
     </html>
   );

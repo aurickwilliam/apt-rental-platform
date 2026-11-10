@@ -12,6 +12,8 @@ export function isPaymentMethod(value: string): value is PaymentMethod {
   return PAYMENT_METHOD_TYPES.some((method) => method === value);
 }
 
-export function paymentMethodLabel(method: PaymentMethod): string {
-  return method === "Debit/Credit-Card" ? "Debit/Credit Card" : method;
+import { PAYMENT_METHOD_KEYS, enumLabel, type LanguageCode } from "@repo/i18n";
+
+export function paymentMethodLabel(method: PaymentMethod, language: LanguageCode = "en"): string {
+  return enumLabel(language, PAYMENT_METHOD_KEYS, method);
 }

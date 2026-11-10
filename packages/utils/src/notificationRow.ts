@@ -1,13 +1,15 @@
+import { translate, type LanguageCode } from "@repo/i18n";
+
 /**
  * Notification feed row composition.
  *
- * A feed row (web drawer and mobile list) is one control, so its accessible name has to spell out the
- * text the row shows — sender/title, action, preview and timestamp — plus
+ * A feed row (web drawer and mobile list) is one control, so its accessible
+ * name has to spell out the text the row shows — sender/title, action, preview and timestamp — plus
  * unread state. Compact expanded members keep the sender in their accessible
  * name even though their visible identity is supplied by the parent summary.
  *
- * Kept pure and free of package imports so it runs under `node:test`
- * (`pnpm --filter web test`) and the mobile Jest suite.
+ * Pure and dependency-free apart from the catalog, so it runs under
+ * `node:test` (`pnpm --filter web test`) and the mobile Jest suite.
  */
 export interface NotificationRowLabelParts {
   title: string;
@@ -17,18 +19,21 @@ export interface NotificationRowLabelParts {
   timestamp?: string;
 }
 
-export function composeNotificationRowLabel({
-  title,
-  message,
-  preview,
-  isRead,
-  timestamp,
-}: NotificationRowLabelParts): string {
+export function composeNotificationRowLabel(
+  {
+    title,
+    message,
+    preview,
+    isRead,
+    timestamp,
+  }: NotificationRowLabelParts,
+  language: LanguageCode = "en",
+): string {
   const parts: string[] = [title];
 
   if (message) parts.push(message);
   if (preview) parts.push(preview);
-  if (!isRead) parts.push("unread");
+  if (!isRead) parts.push(translate(language, "notifications.unreadLabel"));
   if (timestamp) parts.push(timestamp);
 
   return parts.join(", ");
@@ -48,6 +53,7 @@ interface NotificationRowContent {
 export function getNotificationRowPresentation(
   notification: NotificationRowContent,
   reactionPreview: string | null,
+  language: LanguageCode = "en",
 ): { action: string | null; preview: string | null } {
   const data = notification.data;
   const payload = data && typeof data === "object" && !Array.isArray(data)
@@ -56,6 +62,7 @@ export function getNotificationRowPresentation(
   const event = payload.event;
   if (notification.type !== "message") return { action: null, preview: notification.message };
   if (event === "reaction") {
+    // Stored English prose from the server; rendered as authored.
     const message = notification.message?.trim();
     return {
       action: message ? message[0].toLowerCase() + message.slice(1) : null,
@@ -67,5 +74,8 @@ export function getNotificationRowPresentation(
   }
   // Keep media placeholders as previews too: the payload does not reliably
   // distinguish an attachment placeholder from identical user-authored text.
-  return { action: "sent you a message", preview: notification.message };
+  return {
+    action: translate(language, "notifications.action.sentMessage"),
+    preview: notification.message,
+  };
 }

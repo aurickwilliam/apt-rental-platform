@@ -15,6 +15,9 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from "expo-router/js-tabs";
 
+import type { TranslationKey } from '@repo/i18n';
+
+import { useTranslation } from 'hooks/i18n';
 import { useColors } from 'hooks/useTheme';
 import { registerTutorialTarget } from '@/components/tutorial/targetRegistry';
 
@@ -35,7 +38,8 @@ export type TablerIconComponent = React.ComponentType<{
 
 export type CustomTabConfig = {
   name: string;
-  label: string;
+  label?: string;
+  labelKey?: TranslationKey;
   icon: TablerIconComponent;
   iconFilled: TablerIconComponent;
   /** Unread/pending count shown as a badge. Hidden at 0 or undefined. */
@@ -331,6 +335,7 @@ type TabItemProps = {
 };
 
 function TabItem({ config, isFocused, onPress, colors }: TabItemProps) {
+  const { t } = useTranslation();
   const Icon = config.icon;
   const IconFilled = config.iconFilled;
   const badge = config.badge ?? 0;
@@ -346,8 +351,9 @@ function TabItem({ config, isFocused, onPress, colors }: TabItemProps) {
 
   const iconStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
+  const label = config.labelKey ? t(config.labelKey) : (config.label ?? config.name);
   const accessibilityLabel =
-    badge > 0 ? `${config.label}, ${badge} unread` : config.label;
+    badge > 0 ? `${label}, ${badge} unread` : label;
 
   return (
     <Pressable
@@ -384,7 +390,7 @@ function TabItem({ config, isFocused, onPress, colors }: TabItemProps) {
           className="font-nunitoSemiBold text-[10px]"
           style={{ color: isFocused ? colors.primary : colors.gray300 }}
         >
-          {config.label}
+          {config.labelKey ? t(config.labelKey) : label}
         </Text>
       </View>
     </Pressable>

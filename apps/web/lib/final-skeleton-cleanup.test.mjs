@@ -74,6 +74,8 @@ test("See All shows the filtered results skeleton while its navigation is pendin
     "@/hooks/use-favorites": { useFavorites: () => ({ isFavorite: () => false, toggleFavorite() {} }) },
     "@/hooks/use-recent-apartment-searches": { useRememberRecentApartment: () => () => {} },
     "./use-hover-preview": { useHoverPreview: () => ({ preview: null, dismissPreview: () => { dismissed++; } }) },
+    "@/app/components/i18n/LocaleProvider": { useTranslation: () => ({ language: "en", t: key => key }) },
+    "../lib/section-labels": { sectionTitleKey: () => null },
     "./BrowsePageSkeleton": { BrowseResultsGridSkeleton: "ResultsSkeleton", BrowseFilterRailSkeleton: "RailSkeleton" },
   };
   const Browse = compile("app/browse/components/BrowseSectionsList.tsx", dependencies).default;

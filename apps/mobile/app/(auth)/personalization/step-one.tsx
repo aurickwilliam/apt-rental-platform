@@ -10,9 +10,11 @@ import PersonalizationProgress from "./components/PersonalizationProgress";
 import { Button } from "heroui-native";
 
 import { usePersonalizationStore } from "@/stores/usePersonalizationStore";
+import { useTranslation } from "@/hooks/i18n";
 
 export default function StepOne() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const { selectedCities, toggleCity } = usePersonalizationStore();
 
@@ -31,11 +33,11 @@ export default function StepOne() {
           {/* Question and Description */}
           <View className="flex gap-3 mb-5">
             <Text className="text-accent text-2xl font-nunitoMedium">
-              Which city or area would you like to explore?
+              {t("authMobile.personalization.cityQuestion")}
             </Text>
 
             <Text className="text-foreground text-base font-inter">
-              Enter your target city or neighborhood to narrow down property searches.
+              {t("authMobile.personalization.cityBody")}
             </Text>
           </View>
 
@@ -54,10 +56,10 @@ export default function StepOne() {
 
         <View className="flex-row gap-3">
           <Button variant="secondary" className="flex-1" isDisabled>
-            <Button.Label>Back</Button.Label>
+            <Button.Label>{t("common.back")}</Button.Label>
           </Button>
           <Button className="flex-1" onPress={handleNext}>
-            <Button.Label>Next</Button.Label>
+            <Button.Label>{t("common.next")}</Button.Label>
           </Button>
         </View>
       </View>

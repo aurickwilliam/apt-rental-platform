@@ -16,8 +16,9 @@ import {
 } from "@heroui/react";
 
 import { IconAccessible, IconCar, IconPaw, IconSmoking } from "@tabler/icons-react";
-import { manilaToday } from "@repo/utils";
+import { formatDate, manilaToday } from "@repo/utils";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import FormStepActions from "@/app/components/layout/FormStepActions";
 import PreferenceParkingFields from "@/app/components/preferences/PreferenceParkingFields";
 import PreferencePetFields from "@/app/components/preferences/PreferencePetFields";
@@ -60,13 +61,10 @@ export default function PreferencesStep({
   onBack,
   onNext,
 }: PreferencesStepProps) {
+  const { language, t } = useTranslation();
   // The earliest move-in is tomorrow; `validatePreferences` repeats this.
   const earliestMoveIn = useMemo(() => parseDate(manilaToday()).add({ days: 1 }), []);
-  const earliestMoveInLabel = new Date(`${earliestMoveIn.toString()}T00:00:00`).toLocaleDateString("en-PH", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
+  const earliestMoveInLabel = formatDate(earliestMoveIn.toString(), "long", language);
 
   const answer = (
     field: "hasPets" | "isSmoker" | "needParking" | "hasDisability",
@@ -93,7 +91,7 @@ export default function PreferencesStep({
             isInvalid={!!errors.moveInDate}
             isRequired
           >
-            <Label>Preferred Move-In Date</Label>
+            <Label>{t("apply.prefs.moveInDate")}</Label>
             <DateField.Group fullWidth className="border border-border bg-card">
               <DateField.Input>
                 {(segment) => (
@@ -112,12 +110,12 @@ export default function PreferencesStep({
             <FieldError>{errors.moveInDate}</FieldError>
             {!errors.moveInDate && (
               <Description className="text-muted-foreground">
-                The earliest move-in date is {earliestMoveInLabel}.
+                {t("apply.prefs.earliestMoveIn", { date: earliestMoveInLabel })}
               </Description>
             )}
             <DatePicker.Popover>
               {/* Set here too: HeroUI's Calendar default limits override the DatePicker's. */}
-              <Calendar aria-label="Preferred move-in date" minValue={earliestMoveIn}>
+              <Calendar aria-label={t("apply.prefs.moveInDate")} minValue={earliestMoveIn}>
                 <Calendar.Header>
                   <Calendar.YearPickerTrigger className="cursor-pointer">
                     <Calendar.YearPickerTriggerHeading />
@@ -167,7 +165,7 @@ export default function PreferencesStep({
             isInvalid={!!errors.noOccupants}
             isRequired
           >
-            <Label>Number of Occupants</Label>
+            <Label>{t("apply.prefs.occupants")}</Label>
             <NumberField.Group className="flex items-center border border-border rounded-field overflow-hidden bg-card focus-within:border-primary! focus-within:ring-1 focus-within:ring-primary/20 transition-colors">
               <NumberField.DecrementButton className="px-4 py-3 text-muted-foreground hover:bg-muted active:bg-muted/80 border-r border-border flex items-center justify-center min-w-11 cursor-pointer disabled:cursor-not-allowed" />
               <NumberField.Input
@@ -179,7 +177,7 @@ export default function PreferencesStep({
             <FieldError>{errors.noOccupants}</FieldError>
             {maxOccupants !== null && !errors.noOccupants && (
               <Description className="text-muted-foreground">
-                This unit allows a maximum of {maxOccupants} occupant(s).
+                {t("apply.prefs.maxOccupants", { count: maxOccupants })}
               </Description>
             )}
           </NumberField>
@@ -189,12 +187,12 @@ export default function PreferencesStep({
 
         {isPrefilled ? (
           <p className="-mb-2 text-xs text-muted-foreground">
-            Filled in from your saved rental preferences. Change any answer for this application.
+            {t("apply.prefs.prefilled")}
           </p>
         ) : null}
 
         <PreferenceYesNoField
-          label="Do you have pets?"
+          label={t("apply.prefs.hasPets")}
           icon={<IconPaw size={18} />}
           required
           value={toBoolean(form.hasPets)}
@@ -223,7 +221,7 @@ export default function PreferencesStep({
         )}
 
         <PreferenceYesNoField
-          label="Do you need parking?"
+          label={t("apply.prefs.parking")}
           icon={<IconCar size={18} />}
           required
           value={toBoolean(form.needParking)}
@@ -255,7 +253,7 @@ export default function PreferencesStep({
         )}
 
         <PreferenceYesNoField
-          label="Are you a smoker?"
+          label={t("apply.prefs.smoker")}
           icon={<IconSmoking size={18} />}
           required
           value={toBoolean(form.isSmoker)}
@@ -264,7 +262,7 @@ export default function PreferencesStep({
         />
 
         <PreferenceYesNoField
-          label="Does anyone in your household have a disability?"
+          label={t("apply.prefs.disability")}
           icon={<IconAccessible size={18} />}
           required
           value={toBoolean(form.hasDisability)}
@@ -275,15 +273,15 @@ export default function PreferencesStep({
         <Separator />
 
         <TextField value={form.additionalNotes} onChange={(value: string) => onChange({ additionalNotes: value })}>
-          <Label>Additional Notes</Label>
+          <Label>{t("apply.prefs.notes")}</Label>
           <TextArea
-            placeholder="Enter any additional information or preferences"
+            placeholder={t("apply.prefs.notesPlaceholder")}
             rows={5}
             maxLength={NOTES_MAX_LENGTH}
             className={INPUT_CLASS}
           />
           <Description className="text-muted-foreground">
-            {form.additionalNotes.length}/{NOTES_MAX_LENGTH} characters
+            {t("apply.prefs.notesCount", { count: form.additionalNotes.length, max: NOTES_MAX_LENGTH })}
           </Description>
         </TextField>
       </div>

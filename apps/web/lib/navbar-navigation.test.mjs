@@ -3,7 +3,17 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { translate } from "../../../packages/i18n/src/translate.ts";
 import { PORTAL_COOKIE, preferredPortal } from "./portal-preference.ts";
+
+const locale = {
+  useTranslation: () => ({
+    language: "en",
+    pending: false,
+    setLanguage: () => {},
+    t: (key, vars) => translate("en", key, vars),
+  }),
+};
 
 function renderNavbar({ roles, pathname = "/browse", cookie = "" }) {
   const pushes = [];
@@ -16,8 +26,10 @@ function renderNavbar({ roles, pathname = "/browse", cookie = "" }) {
     "next/link": { default: "Link" }, "next/image": { default: "Image" },
     "@heroui/react": { Dropdown: dropdown, Button: "Button", Label: "Label", buttonVariants: ({ className = "" }) => className },
     "@tabler/icons-react": {},
+    "@/app/components/i18n/LocaleProvider": locale,
     "@/hooks/use-hydrated": { useHydrated: () => true },
     "./ThemeToggle": { default: "ThemeToggle" },
+    "@/app/components/i18n/LanguageToggle": { default: "LanguageToggle" },
     "@/app/components/profile/UserAvatar": { default: "UserAvatar" },
     "@/hooks/use-user": { useUser: () => ({ user: roles ? { id: "auth-a", email: "test@example.com" } : null, profile: roles ? { roles } : null, loading: false }) },
     "@/service/signOutService": { signOut: () => {} },

@@ -3,47 +3,20 @@
 import Link from "next/link";
 import { IconAlertCircle, IconExternalLink } from "@tabler/icons-react";
 
+import type { TranslationKey } from "@repo/i18n";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import SettingsRow from "../SettingsRow";
 import ComingSoonChip from "../ComingSoonChip";
 import { policyHref, type PolicyPortal } from "@/lib/policy-routes";
 
-const faqs = [
-  {
-    id: 1,
-    question: "How do I pay my rent?",
-    answer:
-      "Open My Rental and choose Pay now on your current bill, then pick your payment method. Online checkout currently runs in test mode and does not process real money, and cash payments stay pending until your property owner confirms them.",
-  },
-  {
-    id: 2,
-    question: "How do I submit a maintenance request?",
-    answer:
-      "Open Maintenance from My Rental, choose Request Maintenance, describe the issue, and set how urgent it is. Your landlord can review and respond inside APT.",
-  },
-  {
-    id: 3,
-    question: "How do I view my lease agreement?",
-    answer:
-      "Once your landlord has uploaded it, open Signed lease in My Rental to view the current document and confirm that you have read it.",
-  },
-  {
-    id: 4,
-    question: "How do I contact my landlord?",
-    answer:
-      "Use Messages to contact your landlord. Apartment-related conversations keep questions and updates about that property in one thread.",
-  },
-  {
-    id: 5,
-    question: "How do I list my property?",
-    answer:
-      "From My Properties in the landlord portal, add a new listing with the CAMANAVA address, rent and deposit terms, amenities, and photos, then publish it for review.",
-  },
-  {
-    id: 6,
-    question: "How do I verify my account?",
-    answer:
-      "Open your profile and choose Verify Account. Phones and tablets capture your government ID and a selfie right in the browser; on a desktop you can scan a QR code to continue on your phone or use your webcam.",
-  },
+const FAQS: { id: number; questionKey: TranslationKey; answerKey: TranslationKey }[] = [
+  { id: 1, questionKey: "settings.help.faq.1.question", answerKey: "settings.help.faq.1.answer" },
+  { id: 2, questionKey: "settings.help.faq.2.question", answerKey: "settings.help.faq.2.answer" },
+  { id: 3, questionKey: "settings.help.faq.3.question", answerKey: "settings.help.faq.3.answer" },
+  { id: 4, questionKey: "settings.help.faq.4.question", answerKey: "settings.help.faq.4.answer" },
+  { id: 5, questionKey: "settings.help.faq.5.question", answerKey: "settings.help.faq.5.answer" },
+  { id: 6, questionKey: "settings.help.faq.6.question", answerKey: "settings.help.faq.6.answer" },
 ];
 
 const linkClassName =
@@ -56,21 +29,22 @@ export default function HelpTab({
   isAdmin?: boolean;
   activePortal?: PolicyPortal | null;
 }) {
+  const { t } = useTranslation();
   return (
     <>
       <h2 className="font-nunito text-lg font-bold text-primary">
-        Help &amp; Support
+        {t("settings.help.title")}
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
         {isAdmin
-          ? "Read our policies and learn more about APT."
-          : "Find answers and read our policies."}
+          ? t("settings.help.admin.description")
+          : t("settings.help.description")}
       </p>
       {!isAdmin ? (
         <div className="mt-3 divide-y divide-border">
           <SettingsRow
             icon={<IconAlertCircle size={18} />}
-            title="Report a Problem"
+            title={t("settings.help.reportProblem")}
             disabled
             suffix={<ComingSoonChip />}
           />
@@ -79,13 +53,13 @@ export default function HelpTab({
       {!isAdmin ? (
         <section aria-labelledby="settings-faq-heading" className="mt-4">
           <h3 id="settings-faq-heading" className="font-nunito text-base font-bold text-foreground">
-            Frequently Asked Questions
+            {t("settings.help.faq")}
           </h3>
           <div className="mt-3 flex flex-col gap-3">
-            {faqs.map((faq) => (
+            {FAQS.map((faq) => (
               <article key={faq.id} className="rounded-xl bg-muted/30 p-4">
-                <p className="font-nunito text-base font-semibold text-foreground">{faq.question}</p>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{faq.answer}</p>
+                <p className="font-nunito text-base font-semibold text-foreground">{t(faq.questionKey)}</p>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t(faq.answerKey)}</p>
               </article>
             ))}
           </div>
@@ -96,27 +70,27 @@ export default function HelpTab({
           href={policyHref("terms", activePortal)}
           className={linkClassName}
         >
-          Terms and Conditions
+          {isAdmin ? t("settings.help.terms.admin") : t("settings.help.terms")}
         </Link>
         <Link
           href={policyHref("privacy", activePortal)}
           className={linkClassName}
         >
-          Privacy Policy
+          {t("settings.help.privacy")}
         </Link>
         {isAdmin ? (
           <Link
             href="/cookies"
             className={linkClassName}
           >
-            Cookie policy
+            {t("settings.help.cookies")}
           </Link>
         ) : (
           <Link
             href="/about"
             className={linkClassName}
           >
-            About Us
+            {t("settings.help.about")}
           </Link>
         )}
       </div>
@@ -125,7 +99,7 @@ export default function HelpTab({
           href="/about"
           className="mt-4 inline-block text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
-          Learn more about APT{" "}
+          {t("settings.help.learnMore")}{" "}
           <IconExternalLink
             size={16}
             className="ml-1 inline"

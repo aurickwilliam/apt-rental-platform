@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { translate } from "@repo/i18n";
 import { AppSidebar, MobileSidebarNavigation } from "../components/layout/AppSidebar";
 import SettingsOverlay from "../components/settings/SettingsOverlay";
 import NotificationsOverlay from "../components/notifications/NotificationsOverlay";
@@ -8,16 +9,17 @@ import TutorialTour from "../components/tutorial/TutorialTour";
 import { getServerIdentity } from "@/lib/server-identity";
 
 import { canViewPassport } from "@/lib/passport-access";
+import { getServerLocale } from "@/lib/i18n/locale";
 
 const PASSPORT_HREF = "/tenant/passport";
 const FAVORITES_HREF = "/tenant/favorites";
 
 const TENANT_NAV = [
-  { href: "/tenant/browse", label: "Browse", icon: "Search", tourKey: "nav-browse" },
-  { href: "/tenant/my-rental", label: "My Rental", icon: "Home", activityKey: "rental", tourKey: "nav-my-rental" },
-  { href: "/tenant/maintenance", label: "Maintenance", icon: "Tool", activityKey: "maintenance", tourKey: "nav-maintenance" },
-  { href: PASSPORT_HREF, label: "APT Passport", icon: "FileCheck", activityKey: "passport" },
-  { href: "/tenant/messages", label: "Messages", icon: "MessageCircle", activityKey: "messages", tourKey: "nav-messages" },
+  { href: "/tenant/browse", labelKey: "nav.browse", icon: "Search", tourKey: "nav-browse" },
+  { href: "/tenant/my-rental", labelKey: "nav.myRental", icon: "Home", activityKey: "rental", tourKey: "nav-my-rental" },
+  { href: "/tenant/maintenance", labelKey: "nav.maintenance", icon: "Tool", activityKey: "maintenance", tourKey: "nav-maintenance" },
+  { href: PASSPORT_HREF, labelKey: "nav.passport", icon: "FileCheck", activityKey: "passport" },
+  { href: "/tenant/messages", labelKey: "nav.messages", icon: "MessageCircle", activityKey: "messages", tourKey: "nav-messages" },
 ] as const;
 
 export default async function TenantLayout({
@@ -25,8 +27,10 @@ export default async function TenantLayout({
 }: {
   children: React.ReactNode;
 }) {
-  let userName = "Tenant";
-  const userRole = "Tenant";
+  const language = await getServerLocale();
+  const tenantRole = translate(language, "nav.role.tenant");
+  let userName = tenantRole;
+  const userRole = tenantRole;
   let userRoles: string[] = ["tenant"];
   let userAvatarUrl: string | null = null;
   let accountStatus: string | null = null;
@@ -74,9 +78,6 @@ export default async function TenantLayout({
           profileHref="/tenant/profile"
           favoritesHref={FAVORITES_HREF}
           iconSet="tabler"
-          navLabel="Tenant navigation"
-          menuLabel="Tenant pages"
-          buttonLabel="Open tenant navigation"
           userRoles={userRoles}
           activePortal="tenant"
         />

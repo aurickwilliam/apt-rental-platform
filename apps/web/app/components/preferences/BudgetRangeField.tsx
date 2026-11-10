@@ -15,6 +15,7 @@ import {
   orderBudgetRange,
   parseBudgetDraftAmount,
 } from "@/lib/tenant-preferences";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import SettingsSelect from "../settings/SettingsSelect";
 
 // Marks a card choice the user cleared on purpose, so the saved values
@@ -101,6 +102,7 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
     { budgetMin, budgetMax, onRangeChange, resolveInitialSelection = false, idPrefix = "budget", layout = "cards" },
     ref,
   ) {
+    const { t } = useTranslation();
     // Explicit budget-card choice. Null means "follow the values";
     // BUDGET_NONE_ID means the user cleared the choice.
     const [budgetSel, setBudgetSel] = useState<string | null>(null);
@@ -126,7 +128,7 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
       const min = resolveDraft(minDraft, budgetMin);
       const max = resolveDraft(maxDraft, budgetMax);
       if (Number.isNaN(min) || Number.isNaN(max)) {
-        setBudgetError("Enter a valid peso amount.");
+        setBudgetError(t("settings.budget.invalid"));
         return false;
       }
       setBudgetError(null);
@@ -179,14 +181,14 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
           onRangeChange(values[0], values[1]);
         }}
       >
-        <Label>Monthly rent</Label>
+        <Label>{t("settings.budget.title")}</Label>
         <Slider.Output>
           {() => `₱${budgetMin.toLocaleString("en-PH")} – ₱${budgetMax.toLocaleString("en-PH")}`}
         </Slider.Output>
         <Slider.Track>
           <Slider.Fill />
-          <Slider.Thumb index={0} aria-label="Minimum monthly rent" />
-          <Slider.Thumb index={1} aria-label="Maximum monthly rent" />
+          <Slider.Thumb index={0} aria-label={t("settings.budget.minimum")} />
+          <Slider.Thumb index={1} aria-label={t("settings.budget.maximum")} />
         </Slider.Track>
       </Slider>
     );
@@ -195,7 +197,7 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
       <>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor={`${idPrefix}-min`}>Minimum monthly rent</Label>
+            <Label htmlFor={`${idPrefix}-min`}>{t("settings.budget.minimum")}</Label>
             <InputGroup className="rounded-xl border border-border bg-card transition-colors focus-within:border-primary">
               <InputGroup.Prefix>
                 <span className="pl-3 text-sm font-semibold text-muted-foreground" aria-hidden="true">
@@ -206,7 +208,7 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
                 id={`${idPrefix}-min`}
                 inputMode="numeric"
                 autoComplete="off"
-                aria-label="Minimum monthly rent in pesos"
+                aria-label={t("settings.budget.minimum.aria")}
                 value={minDraft ?? budgetMin.toLocaleString()}
                 onChange={(e) => {
                   setMinDraft(e.target.value);
@@ -222,7 +224,7 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
             </InputGroup>
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor={`${idPrefix}-max`}>Maximum monthly rent</Label>
+            <Label htmlFor={`${idPrefix}-max`}>{t("settings.budget.maximum")}</Label>
             <InputGroup className="rounded-xl border border-border bg-card transition-colors focus-within:border-primary">
               <InputGroup.Prefix>
                 <span className="pl-3 text-sm font-semibold text-muted-foreground" aria-hidden="true">
@@ -233,7 +235,7 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
                 id={`${idPrefix}-max`}
                 inputMode="numeric"
                 autoComplete="off"
-                aria-label="Maximum monthly rent in pesos"
+                aria-label={t("settings.budget.maximum.aria")}
                 value={maxDraft ?? budgetMax.toLocaleString()}
                 onChange={(e) => {
                   setMaxDraft(e.target.value);
@@ -264,13 +266,13 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
             ₱{budgetMin.toLocaleString()} – ₱{budgetMax.toLocaleString()}
           </p>
           <div className="flex items-center justify-between gap-3">
-            <Label className="text-sm text-foreground">Budget preset</Label>
+            <Label className="text-sm text-foreground">{t("settings.budget.preset")}</Label>
             <SettingsSelect
-              label="Budget preset"
+              label={t("settings.budget.preset")}
               value={budgetSelection ?? BUDGET_CUSTOM_ID}
               options={[
                 ...BUDGET_PRESETS.map((preset) => ({ value: preset.id, label: preset.label })),
-                { value: BUDGET_CUSTOM_ID, label: "Custom range" },
+                { value: BUDGET_CUSTOM_ID, label: t("settings.budget.custom") },
               ]}
               onChange={(value) => {
                 if (value === BUDGET_CUSTOM_ID) {
@@ -297,7 +299,11 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
 
     return (
       <div className="flex flex-col gap-4">
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2" role="group" aria-label="Budget range options">
+        <div
+          className="grid grid-cols-1 gap-2.5 sm:grid-cols-2"
+          role="group"
+          aria-label={t("settings.budget.options")}
+        >
           {BUDGET_PRESETS.map((preset) => (
             <PreferenceOptionCard
               key={preset.id}
@@ -315,7 +321,7 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
           ))}
           <div className="sm:col-span-2">
             <PreferenceOptionCard
-              label="Custom range"
+              label={t("settings.budget.custom")}
               selected={budgetSelection === BUDGET_CUSTOM_ID}
               className={`w-full cursor-pointer ${
                 budgetSelection === BUDGET_CUSTOM_ID

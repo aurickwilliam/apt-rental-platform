@@ -3,6 +3,7 @@
 import { Button, toast } from "@heroui/react";
 import { IconShare2 } from "@tabler/icons-react";
 import { buildApartmentShareText, getApartmentSharePath } from "@repo/utils";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 interface ShareBtnProps {
   apartmentId: string;
@@ -17,6 +18,8 @@ export default function ShareBtn({
   city,
   monthlyRent,
 }: ShareBtnProps) {
+  const { t } = useTranslation();
+
   const handleShare = async () => {
     // Always the public listing link, even when opened from a portal route.
     const url = `${window.location.origin}${getApartmentSharePath(apartmentId)}`;
@@ -51,8 +54,8 @@ export default function ShareBtn({
       variant="tertiary"
       size="md"
       isIconOnly
-      aria-label="Share this apartment"
       className="cursor-pointer"
+      aria-label={t("apartment.share.aria")}
       onPress={handleShare}
     >
       <IconShare2 size={20} />

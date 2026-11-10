@@ -1,4 +1,8 @@
+"use client";
+
 import { Skeleton } from "@heroui/react";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 /**
  * Matches the verification activity block while the latest submission
@@ -6,8 +10,10 @@ import { Skeleton } from "@heroui/react";
  * stands in for the independent timeline beneath it.
  */
 export default function VerificationActivitySkeleton() {
+  const { t } = useTranslation();
+
   return (
-    <div aria-busy="true" aria-label="Loading verification progress">
+    <div aria-busy="true" aria-label={t("passport.activity.loading")}>
       <div className="border-t border-border" aria-hidden="true" />
       <Skeleton className="mt-4 h-4 w-40 rounded-md bg-skeleton!" />
       <div className="mt-3 flex flex-col gap-4">

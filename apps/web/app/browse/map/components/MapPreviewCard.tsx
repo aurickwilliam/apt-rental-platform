@@ -7,6 +7,7 @@ import { IconHeart, IconHeartFilled, IconShieldCheckFilled, IconStarFilled, Icon
 
 import { formatPesoDisplay } from "@repo/utils";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { canOptimizePublicApartmentImage } from "@/lib/public-apartment-image";
 
 import type { MapApartment } from "../../lib/fetch-map-results";
@@ -30,10 +31,11 @@ export default function MapPreviewCard({
   onOpen,
   onClose,
 }: MapPreviewCardProps) {
+  const { t } = useTranslation();
   const specs = [
-    apartment.bedrooms != null ? `${apartment.bedrooms} bed` : null,
-    apartment.bathrooms != null ? `${apartment.bathrooms} bath` : null,
-    apartment.areaSqm != null ? `${apartment.areaSqm} sqm` : null,
+    apartment.bedrooms != null ? t("browse.preview.bed", { count: apartment.bedrooms }) : null,
+    apartment.bathrooms != null ? t("browse.preview.bath", { count: apartment.bathrooms }) : null,
+    apartment.areaSqm != null ? t("browse.preview.sqm", { count: apartment.areaSqm }) : null,
   ].filter(Boolean);
 
   return (
@@ -42,7 +44,7 @@ export default function MapPreviewCard({
         <Button
           variant="ghost"
           onClick={onOpen}
-          aria-label={`View ${apartment.name}`}
+          aria-label={t("browse.map.viewAria", { name: apartment.name })}
           className="button--bare block aspect-[4/3] w-full cursor-pointer focus-visible:outline-2 focus-visible:outline-primary"
         >
           <Image
@@ -58,7 +60,7 @@ export default function MapPreviewCard({
         {apartment.isVerified ? (
           <span className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-600">
             <IconShieldCheckFilled size={14} />
-            Verified
+            {t("browse.preview.verified")}
           </span>
         ) : null}
 
@@ -68,7 +70,7 @@ export default function MapPreviewCard({
             variant="ghost"
             size="sm"
             className="cursor-pointer bg-white/90 shadow-sm"
-            aria-label={isFavorite ? "Remove from favorites" : "Save to favorites"}
+            aria-label={isFavorite ? t("favorites.remove.aria") : t("favorites.save.aria")}
             isPending={isFavoriteLoading}
             onPress={onToggleFavorite}
           >
@@ -87,7 +89,7 @@ export default function MapPreviewCard({
             variant="ghost"
             size="sm"
             className="cursor-pointer bg-white/90 shadow-sm"
-            aria-label="Close preview"
+            aria-label={t("browse.map.closePreview")}
             onPress={onClose}
           >
             <IconX size={18} className="text-grey-500" />

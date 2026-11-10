@@ -11,6 +11,8 @@ import PersonalizationProgress from "./components/PersonalizationProgress";
 
 import { getPetsError } from "@repo/constants";
 
+import { useTranslation } from "@/hooks/i18n";
+
 import { supabase } from "@repo/supabase";
 import { useProfile } from "hooks/auth";
 
@@ -38,6 +40,7 @@ export default function StepFive() {
   } = personalization;
 
   const { profile, loading: profileLoading, refetch: refetchProfile } = useProfile();
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
 
@@ -49,7 +52,7 @@ export default function StepFive() {
     if (petsError) {
       toast.show({
         variant: "danger",
-        label: "Check your pets",
+        label: t("authMobile.personalization.checkPets"),
         description: petsError,
       });
       return;
@@ -62,8 +65,8 @@ export default function StepFive() {
       if (!currentProfile?.user_id) {
         toast.show({
           variant: "danger",
-          label: "Couldn't load your account",
-          description: "Please try again to finish personalization.",
+          label: t("authMobile.personalization.accountLoadFailed"),
+          description: t("authMobile.personalization.tryFinish"),
         });
         return;
       }
@@ -94,8 +97,8 @@ export default function StepFive() {
         console.error("Failed to save preferences:", error);
         toast.show({
           variant: "danger",
-          label: "Couldn't save your preferences",
-          description: "Please try again.",
+          label: t("authMobile.personalization.saveFailed"),
+          description: t("authMobile.personalization.tryAgain"),
         });
         return;
       }
@@ -108,8 +111,8 @@ export default function StepFive() {
       console.error("Unexpected error saving preferences:", err);
       toast.show({
         variant: "danger",
-        label: "Something went wrong",
-        description: "Check your connection and try again.",
+        label: t("authMobile.personalization.networkFailed"),
+        description: t("authMobile.personalization.networkBody"),
       });
     } finally {
       setIsSaving(false);
@@ -125,18 +128,17 @@ export default function StepFive() {
           {/* Question and Description */}
           <View className="flex gap-3 mb-5">
             <Text className="text-accent text-2xl font-nunitoMedium">
-              What is your rental preferences?
+              {t("authMobile.personalization.preferencesQuestion")}
             </Text>
             <Text className="text-foreground text-base font-inter">
-              Fill-up the form and select the appropriate response to curate the
-              properties that will fit for you.
+              {t("authMobile.personalization.preferencesBody")}
             </Text>
           </View>
 
           {/* Pets */}
           <View className="flex gap-5">
             <YesNoRadioField
-              label="Do you have any pets?"
+              label={t("authMobile.personalization.hasPetsQuestion")}
               value={answered.hasPets ? hasPets : undefined}
               onChange={setHasPets}
             />
@@ -162,7 +164,7 @@ export default function StepFive() {
           {/* Parking */}
           <View className="flex gap-5">
             <YesNoRadioField
-              label="Do you need a parking space?"
+              label={t("authMobile.personalization.hasParkingQuestion")}
               value={answered.hasParking ? hasParking : undefined}
               onChange={setHasParking}
             />
@@ -182,7 +184,7 @@ export default function StepFive() {
           <Separator className="my-5" />
 
           <YesNoRadioField
-            label="Is anyone in your household a smoker?"
+            label={t("authMobile.personalization.smokerQuestion")}
             value={answered.hasSmoker ? hasSmoker : undefined}
             onChange={setHasSmoker}
           />
@@ -190,7 +192,7 @@ export default function StepFive() {
           <Separator className="my-5" />
 
           <YesNoRadioField
-            label="Do you have any household members with a disability?"
+            label={t("authMobile.personalization.disabilityQuestion")}
             value={answered.hasDisability ? hasDisability : undefined}
             onChange={setHasDisability}
           />
@@ -198,11 +200,11 @@ export default function StepFive() {
 
         <View className="flex-row gap-3">
           <Button variant="secondary" className="flex-1" onPress={() => router.replace("/personalization/step-four")} isDisabled={isSaving}>
-            <Button.Label>Back</Button.Label>
+            <Button.Label>{t("common.back")}</Button.Label>
           </Button>
           <Button className="flex-1" onPress={handleNext} isDisabled={isSaving || profileLoading}>
             <Button.Label>
-              {isSaving ? "Saving..." : profileLoading ? "Loading account..." : "Let's find your place!"}
+              {isSaving ? t("authMobile.personalization.saving") : profileLoading ? t("authMobile.personalization.loadingAccount") : t("authMobile.personalization.finish")}
             </Button.Label>
           </Button>
         </View>

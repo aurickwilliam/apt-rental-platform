@@ -2,19 +2,27 @@
 
 import { Link } from "@heroui/react";
 import { useAuth } from './AuthContext';
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 export default function BottomLinks() {
+  const { t } = useTranslation();
   const { type } = useAuth();
   return (
     <>
       {
         type === 'sign-in' ? (
           <p>
-            New Here? <Link href="/sign-up" className="text-primary underline cursor-pointer">Create an account</Link>
+            {t("auth.newHere")}{" "}
+            <Link href="/sign-up" className="text-primary underline cursor-pointer">
+              {t("auth.createAccount")}
+            </Link>
           </p>
         ) : (
           <p>
-            Already have an account? <Link href="/sign-in" className="text-primary underline cursor-pointer">Sign In</Link>
+            {t("auth.alreadyHaveAccount")}{" "}
+            <Link href="/sign-in" className="text-primary underline cursor-pointer">
+              {t("auth.signIn.action")}
+            </Link>
           </p>
         )
       }

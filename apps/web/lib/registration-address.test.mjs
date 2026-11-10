@@ -9,6 +9,7 @@ import { GENDERS } from "../../../packages/constants/src/user/gender.ts";
 import { validateBirthDate } from "./birth-date.ts";
 import { addressConstants, addressRules, validAddress } from "./test-support/registration-address-runtime.mjs";
 import { compile, hookRuntime } from "./test-support/hook-runtime.mjs";
+import { GENDER_KEYS, enumLabel, translate } from "../../../packages/i18n/src/index.ts";
 
 const { EMPTY_REGISTRATION_ADDRESS: empty, changeRegistrationAddress: change, resolveRegistrationAddress: resolve, validateRegistrationAddress: validate } = addressRules;
 const plain = value => JSON.parse(JSON.stringify(value));
@@ -26,8 +27,12 @@ const ui = {
 };
 const { validatePHMobile, formatPHMobileInput } = compile("../../packages/constants/src/user/ph-mobile.ts");
 const constants = { ...addressConstants, GENDERS, SUFFIXES: [], getPasswordRequirements: () => [], validatePHMobile, formatPHMobileInput };
+const icons = { IconInfoCircle: "IconInfoCircle" };
+const locale = { useTranslation: () => ({ language: "en", t: (key, vars) => translate("en", key, vars) }) };
+const i18n = { GENDER_KEYS, enumLabel, translate };
 const fields = compile("app/(auth)/components/RegistrationAddressFields.tsx", {
-  "react/jsx-runtime": jsxRuntime, "@heroui/react": ui, "@repo/constants": constants, "@/lib/registration-address": addressRules,
+  "react/jsx-runtime": jsxRuntime, "@heroui/react": ui, "@tabler/icons-react": icons, "@repo/constants": constants, "@/lib/registration-address": addressRules,
+  "@/app/components/i18n/LocaleProvider": locale,
 }).default;
 
 function fieldHarness(initial = empty) {
@@ -175,7 +180,8 @@ test("an unrecognized ZIP shows the note as a gray description under the field, 
   const recognized = nodes(fieldHarness(validAddress).field("postalCode"));
   assert.equal(recognized.some(node => node.props?.role === "status"), false);
   const html = renderToStaticMarkup(compile("app/(auth)/components/RegistrationAddressFields.tsx", {
-    "react/jsx-runtime": { jsx, jsxs }, "@heroui/react": HeroUI, "@repo/constants": constants, "@/lib/registration-address": addressRules,
+    "react/jsx-runtime": { jsx, jsxs }, "@heroui/react": HeroUI, "@tabler/icons-react": icons, "@repo/constants": constants, "@/lib/registration-address": addressRules,
+    "@/app/components/i18n/LocaleProvider": locale,
   }).default({ value: { ...validAddress, postalCode: "9999" }, onChange() {} }));
   assert.match(html, /role="status"/);
   assert.match(html, /text-muted-foreground/);
@@ -208,7 +214,8 @@ test("shared fields preserve ordered two-column desktop / stacked mobile layout 
 
 test("installed HeroUI provides input error association and disabled dependent selectors", () => {
   const nativeFields = compile("app/(auth)/components/RegistrationAddressFields.tsx", {
-    "react/jsx-runtime": { jsx, jsxs }, "@heroui/react": HeroUI, "@repo/constants": constants, "@/lib/registration-address": addressRules,
+    "react/jsx-runtime": { jsx, jsxs }, "@heroui/react": HeroUI, "@tabler/icons-react": icons, "@repo/constants": constants, "@/lib/registration-address": addressRules,
+    "@/app/components/i18n/LocaleProvider": locale,
   }).default;
   const html = renderToStaticMarkup(nativeFields({ value: empty, onChange() {}, errors: validate(empty) }));
   assert.match(html, /aria-invalid="true"/);
@@ -224,6 +231,7 @@ function formHarness(kind, role, initialAddress = undefined) {
     react: { ...runtime.react, startTransition: callback => callback(), useActionState: () => [{}, () => {}, false] },
     "react/jsx-runtime": jsxRuntime, "@heroui/react": ui, "@repo/constants": constants,
     "@/lib/registration-address": addressRules, "@/lib/birth-date": { validateBirthDate },
+    "@/app/components/i18n/LocaleProvider": locale, "@repo/i18n": i18n,
     "@/lib/registration-policies": policyRules,
     "../../components/RegistrationPolicyAcceptance": { default: "RegistrationPolicyAcceptance" },
     "../../components/RegistrationAddressFields": { default: "RegistrationAddressFields" },
@@ -377,6 +385,8 @@ test("Complete Profile loads only the caller's saved address and keys the draft 
       "next/navigation": { redirect: () => assert.fail("incomplete account must retain onboarding") }, "next/image": { default: "Image" },
       "@repo/supabase/server": { createClient: async () => ({ auth: { getUser: async () => ({ data: { user: { id: account } } }) }, from: () => q }) },
       "@/lib/portal-preference": { preferredPortal: () => "tenant" }, "./components/CompleteProfileForm": { default: "CompleteProfileForm" },
+      "@repo/i18n": i18n, "@/lib/i18n/locale": { getServerLocale: async () => "en" },
+      "@/app/components/i18n/LanguageToggle": { default: "LanguageToggle" },
     }).default;
     const form = nodes(await page({ searchParams: Promise.resolve({ role: "tenant" }) })).find(node => node.type === "CompleteProfileForm");
     assert.deepEqual(plain(form.props.initialAddress), validAddress);

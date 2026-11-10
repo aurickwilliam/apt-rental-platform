@@ -4,6 +4,8 @@ import { IconKey, IconBuilding } from '@tabler/icons-react-native';
 
 import { useColors } from 'hooks/useTheme';
 
+import { useTranslation } from '@/hooks/i18n';
+
 type RoleTabProps = {
   userSide: 'tenant' | 'landlord';
   onValueChange: (value: string) => void;
@@ -15,6 +17,7 @@ type RoleTabProps = {
 // RN icons cannot inherit the label's CSS color.
 export default function RoleTab({ userSide, onValueChange }: RoleTabProps) {
   const { colors } = useColors();
+  const { t } = useTranslation();
 
   return (
     <Tabs
@@ -32,7 +35,7 @@ export default function RoleTab({ userSide, onValueChange }: RoleTabProps) {
               size={15}
               color={userSide === 'tenant' ? colors.primary : colors.textSecondary}
             />
-            <Tabs.Label>Tenant</Tabs.Label>
+            <Tabs.Label>{t("auth.role.tenant")}</Tabs.Label>
           </View>
         </Tabs.Trigger>
 
@@ -42,7 +45,7 @@ export default function RoleTab({ userSide, onValueChange }: RoleTabProps) {
               size={15}
               color={userSide === 'landlord' ? colors.primary : colors.textSecondary}
             />
-            <Tabs.Label>Landlord</Tabs.Label>
+            <Tabs.Label>{t("auth.role.landlord")}</Tabs.Label>
           </View>
         </Tabs.Trigger>
       </Tabs.List>

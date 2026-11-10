@@ -5,7 +5,17 @@ import { getImgProps } from "next/dist/shared/lib/get-img-props.js";
 import imageConfigModule from "next/dist/shared/lib/image-config.js";
 import imageLoaderModule from "next/dist/shared/lib/image-loader.js";
 import { canOptimizePublicApartmentImage } from "./public-apartment-image.ts";
+import { translate } from "../../../packages/i18n/src/translate.ts";
 import { compile, hookRuntime, settle, deferred } from "./test-support/hook-runtime.mjs";
+
+const locale = {
+  useTranslation: () => ({
+    language: "en",
+    pending: false,
+    setLanguage: () => {},
+    t: (key, vars) => translate("en", key, vars),
+  }),
+};
 
 const source = file => readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
 const origin = "https://listing-project.supabase.co";
@@ -80,6 +90,12 @@ test("public card and rental hero preserve source selection, geometry, null fall
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
     "@repo/utils": { formatPesoDisplay: value => String(value) },
     "@heroui/react": { Card: { Footer: "Card.Footer" }, Button: "Button" },
+    "@/app/components/i18n/LocaleProvider": {
+      useTranslation: () => ({
+        language: "en",
+        t: (key, vars) => translate("en", key, vars),
+      }),
+    },
   };
   const Card = compile("app/components/ui/ApartmentCard.tsx", common).default;
   const card = nodes(Card({ thumbnailUrl: publicPhoto.replace(".jpg", "_thumb.jpg"), name: "Unit", price: 5000, rating: 0, priority: true }));
@@ -124,6 +140,7 @@ test("Settings and Notifications download no unopened UI and retain their mounte
     const modules = {
       react: runtime.react, "react/jsx-runtime": jsxRuntime, "next/dynamic": { default: lazy.dynamic },
       "next/navigation": { useSearchParams: () => query },
+      "@/app/components/i18n/LocaleProvider": locale,
       "@/lib/tutorial-controller": { requestTutorialReplay() {} },
     };
     for (const name of kind === "settings" ? ["SettingsModal", "ChangePasswordModal", "ChangeEmailModal"] : ["NotificationDrawer"]) {

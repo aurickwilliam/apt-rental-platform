@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { translate } from "../../../packages/i18n/src/index.ts";
 
 import { profileVerificationHref, verificationApartmentPath } from "./profile-verification-navigation.ts";
 import { maliciousVerificationReturns } from "./test-support/verification-security-cases.mjs";
@@ -65,6 +66,9 @@ function issuesTree(accountStatus, issues = [{ code: "unverified", message: "Ver
     "@tabler/icons-react": { IconAlertTriangle: "Icon" },
     "@/app/components/passport/passportSlots": { passportFixHref: () => "/tenant/passport?add=Proof%20of%20Income" },
     "@/lib/profile-verification-navigation": { profileVerificationHref },
+    "@repo/i18n": { APPLICATION_SLOT_KEYS: {}, enumLabel: (_lang, _map, value) => value },
+    "@/app/components/i18n/LocaleProvider": { useTranslation: () => ({ language: "en", pending: false, setLanguage() {}, t: (key, vars) => translate("en", key, vars) }) },
+    "next/navigation": { usePathname: () => "/tenant/browse/apartment-1" },
   };
   const source = readFileSync(new URL("../app/browse/[apartmentId]/apply/components/ApplicationIssues.tsx", import.meta.url), "utf8");
   const compiled = ts.transpileModule(source, {

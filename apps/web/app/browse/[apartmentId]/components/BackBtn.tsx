@@ -5,12 +5,15 @@ import { Button } from "@heroui/react";
 
 import { IconArrowLeft } from "@tabler/icons-react";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
 interface BackBtnProps {
   fallbackHref?: string;
 }
 
 export default function BackBtn({ fallbackHref }: BackBtnProps = {}) {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const goBack = () => {
     if (!fallbackHref) {
@@ -41,7 +44,7 @@ export default function BackBtn({ fallbackHref }: BackBtnProps = {}) {
       onPress={goBack}
     >
       <IconArrowLeft size={18} aria-hidden="true" />
-      Back
+      {t("apartment.back")}
     </Button>
   );
 }

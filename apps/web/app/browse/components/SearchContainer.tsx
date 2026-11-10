@@ -19,6 +19,7 @@ import {
 } from "@tabler/icons-react";
 import { CAMANAVA_CITIES } from "@repo/constants";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import {
   useRecentApartmentSearches,
   useRememberRecentApartment,
@@ -59,6 +60,7 @@ export default function SearchContainer({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -173,7 +175,7 @@ export default function SearchContainer({
             variant="ghost"
             size="sm"
             onPress={handleSearch}
-            aria-label="Search"
+            aria-label={t("browse.search.aria")}
             className="h-auto w-auto min-w-0 shrink-0 cursor-pointer p-0 hover:bg-transparent focus-visible:outline-2 focus-visible:outline-primary"
           >
             <IconSearch size={20} className="text-grey-500" />
@@ -183,7 +185,7 @@ export default function SearchContainer({
       <InputGroup.Input
         ref={inputRef}
         className="min-w-0 text-ellipsis"
-        placeholder="Search by name or location..."
+        placeholder={t("browse.search.placeholder")}
         value={search}
         onChange={(e) => handleChange(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -306,10 +308,10 @@ export default function SearchContainer({
     <div className={BROWSE_HEADER_CLASS}>
       <div className="hidden md:block">
         <h2 className="font-nunito text-2xl font-semibold leading-tight text-balance text-primary sm:text-3xl">
-          Find your next home
+          {t("browse.hero.title")}
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Verified listings in Caloocan, Malabon, Navotas, and Valenzuela
+          {t("browse.hero.subtitle")}
         </p>
       </div>
 

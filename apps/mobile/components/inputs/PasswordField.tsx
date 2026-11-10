@@ -5,6 +5,7 @@ import { FieldError, InputGroup, Label, TextField } from "heroui-native";
 
 import { IconEye, IconEyeOff } from "@tabler/icons-react-native";
 
+import { useTranslation } from "@/hooks/i18n";
 import { useColors } from "@/hooks/useTheme";
 
 interface PasswordFieldProps {
@@ -30,7 +31,9 @@ export default function PasswordField({
   textContentType = "password",
 }: PasswordFieldProps) {
   const { colors } = useColors();
+  const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(false);
+  const fieldName = label.replace(/:$/, "").toLowerCase();
 
   return (
     <TextField isRequired isInvalid={!!error} isDisabled={isDisabled}>
@@ -52,7 +55,11 @@ export default function PasswordField({
             onPress={() => setIsVisible((visible) => !visible)}
             hitSlop={20}
             accessibilityRole="button"
-            accessibilityLabel={`${isVisible ? "Hide" : "Show"} ${label.replace(/:$/, "").toLowerCase()}`}
+            accessibilityLabel={
+              isVisible
+                ? t("authMobile.hidePasswordFor", { field: fieldName })
+                : t("authMobile.showPasswordFor", { field: fieldName })
+            }
           >
             {isVisible ? (
               <IconEyeOff size={20} color={colors.gray400} />

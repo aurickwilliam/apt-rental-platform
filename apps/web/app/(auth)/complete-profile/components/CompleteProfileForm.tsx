@@ -14,6 +14,8 @@ import {
 
 import { startTransition, useActionState, useRef, useState } from "react";
 import { completeProfile, type CompleteProfileState } from "../../actions/complete-profile";
+import { GENDER_KEYS, enumLabel } from "@repo/i18n";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { validateBirthDate } from "@/lib/birth-date";
 import { GENDERS, PH_MOBILE_MAX_INPUT_LENGTH, formatPHMobileInput, validatePHMobile } from "@repo/constants";
 import RegistrationAddressFields from "../../components/RegistrationAddressFields";
@@ -45,6 +47,7 @@ export default function CompleteProfileForm({
   initialAddress,
   initialBirthDate,
 }: Props) {
+  const { language, t } = useTranslation();
   const [state, action, isPending] = useActionState(completeProfile, {});
   // A rejected submit's banner describes the data that was submitted, so hide
   // it as soon as the user edits anything; a new response replaces it.
@@ -133,32 +136,46 @@ export default function CompleteProfileForm({
       {/* Personal Information */}
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-medium font-noto-serif text-foreground">
-          Personal Information
+          {t("auth.form.personalInfo")}
         </h2>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <TextField name="email" isReadOnly defaultValue={email} fullWidth>
-            <Label>Email</Label>
+            <Label>{t("auth.email")}</Label>
             <Input className="bg-card! text-foreground!" />
           </TextField>
 
           <TextField name="first_name" isRequired defaultValue={firstName} fullWidth>
-            <Label>First Name</Label>
-            <Input className="bg-card! text-foreground!" placeholder="Enter your first name" />
+            <Label>{t("auth.form.firstName")}</Label>
+            <Input
+              className="bg-card! text-foreground!"
+              placeholder={t("auth.form.firstNamePlaceholder")}
+            />
           </TextField>
 
           <TextField name="last_name" isRequired defaultValue={lastName} fullWidth>
-            <Label>Last Name</Label>
-            <Input className="bg-card! text-foreground!" placeholder="Enter your last name" />
+            <Label>{t("auth.form.lastName")}</Label>
+            <Input
+              className="bg-card! text-foreground!"
+              placeholder={t("auth.form.lastNamePlaceholder")}
+            />
           </TextField>
 
           <TextField name="middle_name" fullWidth>
-            <Label>Middle Name</Label>
-            <Input className="bg-card! text-foreground!" placeholder="Enter your middle name (optional)" />
+            <Label>{t("auth.form.middleName")}</Label>
+            <Input
+              className="bg-card! text-foreground!"
+              placeholder={t("auth.form.middleNamePlaceholder")}
+            />
           </TextField>
 
-          <Select name="gender" isRequired fullWidth placeholder="Select your gender">
-            <Label>Gender</Label>
+          <Select
+            name="gender"
+            isRequired
+            fullWidth
+            placeholder={t("auth.form.genderPlaceholder")}
+          >
+            <Label>{t("auth.form.gender")}</Label>
             <Select.Trigger className="bg-card! text-foreground!">
               <Select.Value />
               <Select.Indicator />
@@ -166,8 +183,12 @@ export default function CompleteProfileForm({
             <Select.Popover>
               <ListBox>
                 {GENDERS.map((gender) => (
-                  <ListBox.Item key={gender} id={gender} textValue={gender}>
-                    {gender}
+                  <ListBox.Item
+                    key={gender}
+                    id={gender}
+                    textValue={enumLabel(language, GENDER_KEYS, gender)}
+                  >
+                    {enumLabel(language, GENDER_KEYS, gender)}
                   </ListBox.Item>
                 ))}
               </ListBox>
@@ -183,8 +204,8 @@ export default function CompleteProfileForm({
             onBlur={() => setMobileTouched(true)}
             isInvalid={!!mobileError}
           >
-            <Label>Mobile Number</Label>
-            <Input ref={mobileRef} inputMode="tel" className="bg-card! text-foreground!" placeholder="09XX XXX XXXX" maxLength={PH_MOBILE_MAX_INPUT_LENGTH} />
+            <Label>{t("auth.form.mobile")}</Label>
+            <Input ref={mobileRef} inputMode="tel" className="bg-card! text-foreground!" placeholder={t("auth.form.mobilePlaceholder")} maxLength={PH_MOBILE_MAX_INPUT_LENGTH} />
             <FieldError className="text-xs">{mobileError}</FieldError>
           </TextField>
 
@@ -198,7 +219,7 @@ export default function CompleteProfileForm({
       {/* Address Information */}
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-medium font-noto-serif text-foreground">
-          Address Information
+          {t("auth.form.addressInfo")}
         </h2>
 
         <RegistrationAddressFields value={address} onChange={value => { setAddress(value); dismissServerError(); }} errors={addressErrors} isDisabled={isPending}
@@ -225,10 +246,10 @@ export default function CompleteProfileForm({
         {isPending ? (
           <>
             <Spinner size="sm" />
-            Completing Profile...
+            {t("auth.form.completingProfile")}
           </>
         ) : (
-          "Complete Profile"
+          t("auth.form.completeProfile")
         )}
       </Button>
     </form>

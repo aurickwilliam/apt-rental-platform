@@ -3,6 +3,10 @@
 import { PERKS } from "../../../components/inputs/perks";
 import type { ReactNode } from "react";
 
+import { AMENITY_KEYS, enumLabel } from "@repo/i18n";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
 // import { Button } from "@heroui/react";
 
 interface AmenitiesProps {
@@ -11,12 +15,14 @@ interface AmenitiesProps {
 }
 
 export default function Amenities({ apartmentPerks, headingIcon }: AmenitiesProps) {
+  const { language, t } = useTranslation();
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
         <h3 className="flex items-center gap-2 font-nunito text-lg font-semibold">
           {headingIcon}
-          Amenities
+          {t("apartment.amenities.title")}
         </h3>
 
         {/* <Button
@@ -41,7 +47,11 @@ export default function Amenities({ apartmentPerks, headingIcon }: AmenitiesProp
           return (
             <li key={perk.id} className="flex items-center gap-2 min-w-0">
               <Icon size={20} className="text-primary shrink-0" />
-              <span className="text-sm sm:text-base break-words">{perk.name}</span>
+              <span className="text-sm sm:text-base break-words">
+                {AMENITY_KEYS[perk.id]
+                  ? enumLabel(language, AMENITY_KEYS, perk.id)
+                  : perk.name}
+              </span>
             </li>
           );
         })}

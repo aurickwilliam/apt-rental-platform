@@ -1,7 +1,9 @@
 "use server";
 
 import { createClient } from "@repo/supabase/server";
-import { CAPTCHA_FAILED_MESSAGE, getEmailCodeRequestError, isCaptchaError } from "@repo/utils";
+import { translate } from "@repo/i18n";
+import { emailCodeRequestErrorMessage, isCaptchaError } from "@repo/utils";
+import { getServerLocale } from "@/lib/i18n/locale";
 import { validateBirthDate } from "@/lib/birth-date";
 import { validateRegistrationAcceptance, type AcceptanceErrors, type RegistrationAcceptance } from "@/lib/registration-policies";
 
@@ -32,7 +34,8 @@ export async function sendEmailOtp(email: string, password: string, firstName: s
     },
   });
 
-  if (isCaptchaError(error)) return { error: CAPTCHA_FAILED_MESSAGE };
-  if (error) return { error: getEmailCodeRequestError(error.message) };
+  const language = await getServerLocale();
+  if (isCaptchaError(error)) return { error: translate(language, "auth.error.captchaFailed") };
+  if (error) return { error: emailCodeRequestErrorMessage(language, error.message) };
   return { success: true };
 }

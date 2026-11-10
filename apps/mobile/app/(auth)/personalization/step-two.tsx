@@ -7,9 +7,11 @@ import PersonalizationProgress from "./components/PersonalizationProgress";
 import { Button, Slider } from "heroui-native";
 
 import { usePersonalizationStore } from "@/stores/usePersonalizationStore";
+import { useTranslation } from "@/hooks/i18n";
 
 export default function StepTwo() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const { budgetMin, budgetMax, setBudgetRange } = usePersonalizationStore();
 
@@ -26,11 +28,11 @@ export default function StepTwo() {
           {/* Question and Description */}
           <View className="flex gap-3">
             <Text className="text-accent text-2xl font-nunitoMedium">
-              Got a budget in mind for your place?
+              {t("authMobile.personalization.budgetQuestion")}
             </Text>
 
             <Text className="text-foreground text-base font-inter">
-              Select your preferred price range to see listings that fit your budget.
+              {t("authMobile.personalization.budgetBody")}
             </Text>
           </View>
 
@@ -67,10 +69,10 @@ export default function StepTwo() {
 
         <View className="flex-row gap-3">
           <Button variant="secondary" className="flex-1" onPress={() => router.replace("/personalization/step-one")}>
-            <Button.Label>Back</Button.Label>
+            <Button.Label>{t("common.back")}</Button.Label>
           </Button>
           <Button className="flex-1" onPress={handleNext}>
-            <Button.Label>Next</Button.Label>
+            <Button.Label>{t("common.next")}</Button.Label>
           </Button>
         </View>
       </View>

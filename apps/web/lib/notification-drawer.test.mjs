@@ -8,6 +8,7 @@ import {
   groupNotificationsByLocalDate,
   sortNotificationsNewestFirst,
 } from "../../../packages/utils/src/notificationOrder.ts";
+import { translate } from "../../../packages/i18n/src/translate.ts";
 import * as audience from "./notification-audience.ts";
 import * as conversationContacts from "./conversation-contacts.ts";
 import { EMPTY_NOTIFICATION_FEED, NotificationFeedStore } from "./notification-feed-store.ts";
@@ -88,6 +89,7 @@ function createFeed({ recipientId = "viewer", ownershipRecords = null } = {}) {
   };
   const notificationGroups = load("../../../packages/utils/src/notificationGroups.ts", {
     "./notificationOrder": { sortNotificationsNewestFirst },
+    "@repo/i18n": { translate },
   });
   const chatAudience = load("./chat-notification-audience.ts", { "./notification-audience": audience });
   const resolvedRows = () => ownershipRecords === null ? serverRows
@@ -128,6 +130,14 @@ function createFeed({ recipientId = "viewer", ownershipRecords = null } = {}) {
         return notificationGroups.groupNotificationFeed(notifications);
       },
     },
+    "@/app/components/i18n/LocaleProvider": {
+      useTranslation: () => ({
+        language: "en",
+        pending: false,
+        setLanguage: () => {},
+        t: (key, vars) => translate("en", key, vars),
+      }),
+    },
     "@/hooks/use-notifications": hook,
     "@/hooks/use-notification-display-preferences": { useNotificationDisplayPreferences: () => ({ preferences: { entry: "bell", drawerSide }, update: () => {} }) },
     "@/app/components/display/EmptyState": { default: function EmptyState({ title, description, action }) { return { type: "EmptyStateView", props: { children: [title, description, action] } }; } },
@@ -140,6 +150,7 @@ function createFeed({ recipientId = "viewer", ownershipRecords = null } = {}) {
   }).default;
   const groupRow = load("../app/components/notifications/NotificationGroupRow.tsx", {
     "react/jsx-runtime": { jsx, jsxs: jsx },
+    "@repo/i18n": { translate },
     "@heroui/react": { Button: "Button" },
     "@tabler/icons-react": { IconChevronDown: "IconChevronDown", IconMessageCircle: "IconMessageCircle" },
     "@repo/utils": { ...notificationGroups, getRelativeTime: () => "Just now" },

@@ -4,10 +4,11 @@ import { useRouter } from 'expo-router'
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
+import ComingSoonChip from 'components/display/ComingSoonChip'
 
 import { ListGroup, Separator, Chip } from 'heroui-native'
 
-import { IconKey, IconMail, IconBell, IconMoonStars, IconAlertCircle, IconHelpCircle, IconFileText, IconShieldCheck, IconUsersGroup, IconChevronRight, IconAdjustments, IconCreditCard, IconRoute } from '@tabler/icons-react-native';
+import { IconKey, IconMail, IconBell, IconMoonStars, IconAlertCircle, IconHelpCircle, IconFileText, IconShieldCheck, IconUsersGroup, IconGlobe, IconChevronRight, IconAdjustments, IconCreditCard, IconRoute } from '@tabler/icons-react-native';
 import type { Icon } from '@tabler/icons-react-native';
 
 import { useColors, useThemePreference } from '@/hooks/useTheme'
@@ -17,6 +18,9 @@ import { useEmailChangeEligibility, usePasswordSignInStatus } from '@/hooks/auth
 import { usePortalStore } from '@/stores/usePortalStore'
 import { useTutorialStore } from '@/stores/useTutorialStore'
 import { portalHome } from '@/service/auth/portalPreference'
+
+import { ALLOW_FILIPINO } from '@repo/i18n'
+import { useTranslation } from '@/hooks/i18n/useTranslation'
 
 import AppearanceSheet, { getThemeModeLabel } from './components/AppearanceSheet'
 
@@ -42,12 +46,9 @@ function StatusChip({ label }: { label: string }) {
   );
 }
 
-function ComingSoonChip() {
-  return <StatusChip label="Coming soon" />;
-}
-
 export default function Index() {
   const router = useRouter()
+  const { language, t } = useTranslation()
   const { colors } = useColors();
   const { themeMode, setThemeMode } = useThemePreference();
   const [appearanceSheetOpen, setAppearanceSheetOpen] = useState(false);
@@ -62,13 +63,13 @@ export default function Index() {
   // Both masters on → "On", both off → "Off", mixed → "Partial".
   const notificationSummary =
     notifPrefs.notifications_enabled && notifPrefs.push_enabled
-      ? 'On'
+      ? t('settings.mobile.summary.on')
       : !notifPrefs.notifications_enabled && !notifPrefs.push_enabled
-        ? 'Off'
-        : 'Partial';
+        ? t('settings.mobile.summary.off')
+        : t('settings.mobile.summary.partial');
 
   const rentalSummary = (() => {
-    if (!rentalPrefs || !hasPrefs) return "Not set";
+    if (!rentalPrefs || !hasPrefs) return t('settings.mobile.summary.notSet');
     const cities = rentalPrefs.selectedCities;
     const cityPart = cities.length > 0 ? cities.slice(0, 2).join(", ") + (cities.length > 2 ? ` +${cities.length - 2}` : "") : "CAMANAVA";
     return `${cityPart} · ₱${rentalPrefs.budgetMin.toLocaleString()}–${rentalPrefs.budgetMax.toLocaleString()}`;
@@ -77,7 +78,7 @@ export default function Index() {
   // Opens only for accounts with a password; Google-only accounts have none to
   // change. Stays disabled while the status loads or if it can't be read.
   const changePasswordItem = (): SettingItem => {
-    const base = { icon: IconKey, title: 'Change Password' };
+    const base = { icon: IconKey, title: t('settings.security.changePassword') };
     if (passwordSignInStatus === 'has_password') {
       return {
         ...base,
@@ -86,7 +87,11 @@ export default function Index() {
       };
     }
     if (passwordSignInStatus === 'no_password') {
-      return { ...base, disabled: true, suffix: <StatusChip label="Signed in with Google" /> };
+      return {
+        ...base,
+        disabled: true,
+        suffix: <StatusChip label={t('settings.security.googleOnly')} />,
+      };
     }
     return { ...base, disabled: true };
   };
@@ -95,7 +100,7 @@ export default function Index() {
   // password accounts stay on Google sign-in for email changes. Stays
   // disabled while the status loads or if it can't be read.
   const changeEmailItem = (): SettingItem => {
-    const base = { icon: IconMail, title: 'Change Email' };
+    const base = { icon: IconMail, title: t('settings.security.changeEmail') };
     if (emailChangeEligibility === 'eligible') {
       return {
         ...base,
@@ -104,25 +109,29 @@ export default function Index() {
       };
     }
     if (emailChangeEligibility === 'google') {
-      return { ...base, disabled: true, suffix: <StatusChip label="Signed in with Google" /> };
+      return {
+        ...base,
+        disabled: true,
+        suffix: <StatusChip label={t('settings.security.googleOnly')} />,
+      };
     }
     return { ...base, disabled: true };
   };
 
   const sections: SettingSection[] = [
     {
-      title: 'Security',
+      title: t('settings.mobile.security'),
       items: [
         changePasswordItem(),
         changeEmailItem(),
       ],
     },
     {
-      title: 'Preferences',
+      title: t('settings.mobile.preferences'),
       items: [
         {
           icon: IconAdjustments,
-          title: 'Rental Preferences',
+          title: t('settings.rentalPreferences'),
           onPress: () => router.push('/settings/preferences'),
           suffix: (
             <View className="flex-row items-center gap-1 max-w-[160px]">
@@ -133,6 +142,20 @@ export default function Index() {
             </View>
           ),
         },
+        {
+          icon: IconGlobe,
+          title: t('settings.mobile.languageRegion'),
+          // The screen exists and is store-backed; the switch itself stays
+          // gated until the core surfaces are translated. Flip the flag to
+          // enable this row and the switchers together.
+          disabled: !ALLOW_FILIPINO,
+          onPress: ALLOW_FILIPINO ? () => router.push('/settings/language-region') : undefined,
+          suffix: ALLOW_FILIPINO ? (
+            <IconChevronRight size={16} color={colors.gray500} />
+          ) : (
+            <ComingSoonChip />
+          ),
+        },
         ...(isLandlordPortal ? [{
           icon: IconCreditCard,
           title: 'Payment Methods',
@@ -141,7 +164,7 @@ export default function Index() {
         }] : []),
         {
           icon: IconBell,
-          title: 'Notifications',
+          title: t('settings.notifications'),
           onPress: () => router.push('/settings/notifications'),
           suffix: (
             <View className="flex-row items-center gap-1">
@@ -154,12 +177,12 @@ export default function Index() {
         },
         {
           icon: IconMoonStars,
-          title: 'Appearance',
+          title: t('settings.mobile.appearance'),
           onPress: () => setAppearanceSheetOpen(true),
           suffix: (
             <View className="flex-row items-center gap-1">
               <Text className='text-muted text-sm font-inter'>
-                {getThemeModeLabel(themeMode)}
+                {getThemeModeLabel(themeMode, language)}
               </Text>
               <IconChevronRight size={16} color={colors.gray500} />
             </View>
@@ -185,32 +208,32 @@ export default function Index() {
         }]
       : []),
     {
-      title: 'Help & Support',
+      title: t('settings.help'),
       items: [
         {
           icon: IconAlertCircle,
-          title: 'Report a Problem',
+          title: t('settings.help.reportProblem'),
           disabled: true,
           suffix: <ComingSoonChip />,
         },
         {
           icon: IconHelpCircle,
-          title: 'FAQs',
+          title: t('settings.help.faq'),
           onPress: () => router.push('/settings/faq'),
         },
         {
           icon: IconFileText,
-          title: 'Terms and Conditions',
+          title: t('settings.mobile.terms'),
           onPress: () => router.push('/settings/terms'),
         },
         {
           icon: IconShieldCheck,
-          title: 'Privacy Policy',
+          title: t('settings.help.privacy'),
           onPress: () => router.push('/settings/privacy-policy'),
         },
         {
           icon: IconUsersGroup,
-          title: 'About Us',
+          title: t('settings.help.about'),
           onPress: () => router.push('/settings/about'),
         }
       ],
@@ -222,7 +245,7 @@ export default function Index() {
       background="grouped"
       scrollable
       bottomPadding={50}
-      header={<StandardHeader title='Settings' />}
+      header={<StandardHeader title={t('settings.title')} />}
       className='p-5'
     >
       {sections.map((section, sIndex) => (
