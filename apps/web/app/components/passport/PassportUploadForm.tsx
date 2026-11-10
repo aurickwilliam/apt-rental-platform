@@ -60,9 +60,9 @@ export default function PassportUploadForm({
 
   const expiryError = validateExpiry(expiresAt, t);
   const typeLabel = enumLabel(language, PASSPORT_DOC_TYPE_KEYS, docType);
-  // `previewUrl` is only ever a `URL.createObjectURL()` result, but only a
-  // `blob:` URL may reach `src` (CodeQL js/xss-through-dom).
-  const safePreviewUrl = previewUrl?.startsWith("blob:") ? previewUrl : null;
+  // `previewUrl` is only ever a `URL.createObjectURL()` result. The preview
+  // below only renders when it starts with `blob:`, so no other scheme can
+  // reach `src` (CodeQL js/xss-through-dom).
 
   // Object URLs hold the file in memory until revoked.
   useEffect(() => {
@@ -148,17 +148,17 @@ export default function PassportUploadForm({
                     : "border-border text-muted-foreground hover:border-primary hover:bg-accent"
               }`}
             >
-              {file && safePreviewUrl && isImageDocument(file.type, file.name) ? (
+              {file && previewUrl && previewUrl.startsWith("blob:") && isImageDocument(file.type, file.name) ? (
                 // Local object URL preview; next/image cannot load blob: URLs.
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={safePreviewUrl}
+                  src={previewUrl}
                   alt={t("passport.upload.previewAlt", { type: typeLabel })}
                   className="absolute inset-0 size-full object-contain"
                 />
-              ) : file && safePreviewUrl && isPdfDocument(file.type, file.name) ? (
+              ) : file && previewUrl && previewUrl.startsWith("blob:") && isPdfDocument(file.type, file.name) ? (
                 <PdfThumbnail
-                  url={safePreviewUrl}
+                  url={previewUrl}
                   cacheKey={`local:${file.name}:${file.size}:${file.lastModified}`}
                   alt={t("passport.upload.previewAlt", { type: typeLabel })}
                   fit="contain"
