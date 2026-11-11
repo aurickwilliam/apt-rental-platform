@@ -4,7 +4,6 @@ import { useSyncExternalStore } from "react";
 import {
   IconDeviceDesktop,
   IconLanguage,
-  IconMapPin,
   IconMoon,
   IconPlayerPause,
   IconSun,
@@ -14,7 +13,6 @@ import { useTheme } from "next-themes";
 import { ALLOW_FILIPINO, isLanguageCode } from "@repo/i18n";
 
 import { useTranslation } from "@/app/components/i18n/LocaleProvider";
-import ComingSoonChip from "../ComingSoonChip";
 import SettingsRow from "../SettingsRow";
 import SettingsSelect from "../SettingsSelect";
 import ToggleSwitch from "../ToggleSwitch";
@@ -62,13 +60,11 @@ export default function GeneralTab() {
         {t("settings.general.description")}
       </p>
 
-      {/* Language and Region stay grouped apart from Appearance. Region is an
-          intentional disabled stub: the feature is planned but not built, so
-          it explains itself with a chip instead of pretending to work. */}
+      {/* Language stands alone. Region was removed: it will not be implemented. */}
       {ALLOW_FILIPINO ? (
-        <section className="mt-5" aria-labelledby="settings-language-region-heading">
+        <section className="mt-5" aria-labelledby="settings-language-heading">
           <h3
-            id="settings-language-region-heading"
+            id="settings-language-heading"
             className="px-4 font-nunito text-xs font-semibold uppercase tracking-wide text-muted-foreground"
           >
             {t("settings.languageRegion.heading")}
@@ -89,13 +85,6 @@ export default function GeneralTab() {
                 />
               }
             />
-            <SettingsRow
-              icon={<IconMapPin size={18} />}
-              title={t("settings.region.title")}
-              description={t("settings.region.description")}
-              disabled
-              suffix={<ComingSoonChip />}
-            />
           </div>
         </section>
       ) : null}
@@ -110,7 +99,7 @@ export default function GeneralTab() {
             <SettingsSelect
               label={t("settings.theme.label")}
               value={activeTheme}
-              options={THEME_OPTIONS.map(({ value, label, icon }) => ({ value: t(`settings.theme.${value}`), label, icon }))}
+              options={THEME_OPTIONS.map(({ value, icon }) => ({ value, label: t(`settings.theme.${value}`), icon }))}
               onChange={setTheme}
               isDisabled={!mounted}
               className="w-full min-w-0 sm:w-40"
