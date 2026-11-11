@@ -6,6 +6,15 @@ Discover apartments, connect with property owners, and manage your rental journe
 
 **[Live site: apt-ph.app](https://apt-ph.app)** · [Browse apartments](https://apt-ph.app/browse) · [For owners](https://apt-ph.app/forowners) · [Download for Android](https://apt-ph.app/download)
 
+## For AI agents
+
+Before making changes, read in order:
+
+1. [AGENTS.md](AGENTS.md) — engineering entry point and conventions.
+2. [DESIGN.md](DESIGN.md) (+ [design-tokens.json](design-tokens.json)) if touching UI.
+3. [ARCHITECTURE.md](ARCHITECTURE.md) if touching system behavior.
+4. [SECURITY.md](SECURITY.md) for boundaries and disclosure policy.
+
 ## What is APT?
 
 APT is a rental platform for tenants and landlords in the Philippines. Tenants browse and apply, landlords publish and manage — both on web and mobile, with verified listings and APT Passport documents attached by reference.
