@@ -2,6 +2,7 @@ import type { PropsWithChildren, ReactNode } from "react";
 import type { PressableProps } from "react-native";
 import { RefreshControl } from "react-native";
 import { fireEvent, render } from "@testing-library/react-native";
+import { spyOnClassComponent } from "../support/classComponentProps";
 import CategoryExpensesScreen from "@/app/landlord/category-expenses";
 
 const mockParams: {
@@ -182,8 +183,8 @@ describe("Category expenses route", () => {
     mockFinance.report.error = undefined;
   });
 
-  test("lists the category's transactions for the applied scope", () => {
-    const screen = render(<CategoryExpensesScreen />);
+  test("lists the category's transactions for the applied scope", async () => {
+    const screen = await render(<CategoryExpensesScreen />);
     expect(mockHeader).toHaveBeenLastCalledWith(
       expect.objectContaining({ title: "Maintenance & repairs" }),
     );
@@ -203,14 +204,16 @@ describe("Category expenses route", () => {
     expect(screen.getByText("₱ 3,000")).toBeTruthy();
   });
 
-  test("shows the HeroUI spinner while refreshing and hides the native indicator", () => {
+  test("shows the HeroUI spinner while refreshing and hides the native indicator", async () => {
+    const refreshControl = spyOnClassComponent(RefreshControl);
     mockExpenses.isRefetching = true;
-    const screen = render(<CategoryExpensesScreen />);
+    const screen = await render(<CategoryExpensesScreen />);
 
     // Only the HeroUI spinner is visible while the transactions refetch.
     expect(screen.getByLabelText("Refreshing")).toBeTruthy();
 
-    const nativeControl = screen.UNSAFE_getByType(RefreshControl);
+    const nativeControl = { props: refreshControl.latestProps() };
+    refreshControl.restore();
     expect(nativeControl.props).toMatchObject({
       refreshing: false,
       tintColor: "transparent",
@@ -219,9 +222,9 @@ describe("Category expenses route", () => {
     });
   });
 
-  test("an unknown category falls back to the unfiltered list", () => {
+  test("an unknown category falls back to the unfiltered list", async () => {
     mockParams.category = "bogus";
-    render(<CategoryExpensesScreen />);
+    await render(<CategoryExpensesScreen />);
     expect(mockHeader).toHaveBeenLastCalledWith(
       expect.objectContaining({ title: "Expense transactions" }),
     );
@@ -233,8 +236,8 @@ describe("Category expenses route", () => {
     );
   });
 
-  test("shows the category total from the report, not the loaded rows", () => {
-    const screen = render(<CategoryExpensesScreen />);
+  test("shows the category total from the report, not the loaded rows", async () => {
+    const screen = await render(<CategoryExpensesScreen />);
     expect(screen.getByTestId("category-total-card")).toBeTruthy();
     expect(screen.getByText("Total this month")).toBeTruthy();
     expect(screen.getByText("₱ 600")).toBeTruthy();
@@ -242,63 +245,63 @@ describe("Category expenses route", () => {
     expect(screen.getByText("₱ 400")).toBeTruthy();
   });
 
-  test("an unknown category has no total card", () => {
+  test("an unknown category has no total card", async () => {
     mockParams.category = "junk";
-    const screen = render(<CategoryExpensesScreen />);
+    const screen = await render(<CategoryExpensesScreen />);
     expect(screen.queryByTestId("category-total-card")).toBeNull();
   });
 
-  test("shows skeleton rows while only the list loads", () => {
+  test("shows skeleton rows while only the list loads", async () => {
     mockExpenses.isLoading = true;
     mockExpenses.data = { pages: [] };
-    const screen = render(<CategoryExpensesScreen />);
+    const screen = await render(<CategoryExpensesScreen />);
     expect(screen.getByTestId("expense-rows-skeleton")).toBeTruthy();
   });
 
-  test("shows the loading skeleton while the report loads", () => {
+  test("shows the loading skeleton while the report loads", async () => {
     mockFinance.report.isLoading = true;
-    const screen = render(<CategoryExpensesScreen />);
+    const screen = await render(<CategoryExpensesScreen />);
     expect(screen.getByTestId("finance-skeleton")).toBeTruthy();
   });
 
-  test("shows a retryable error when the report fails", () => {
+  test("shows a retryable error when the report fails", async () => {
     mockFinance.report.error = new Error("nope");
-    render(<CategoryExpensesScreen />);
+    await render(<CategoryExpensesScreen />);
     const error = mockFinanceError.mock.calls.at(-1)![0];
     expect(error.message).toBe("Failed");
     error.onRetry();
     expect(mockRetry).toHaveBeenCalledTimes(1);
   });
 
-  test("shows the empty state when the category has nothing recorded", () => {
+  test("shows the empty state when the category has nothing recorded", async () => {
     mockExpenses.data = { pages: [{ rows: [], next: null }] };
-    const screen = render(<CategoryExpensesScreen />);
+    const screen = await render(<CategoryExpensesScreen />);
     expect(screen.getByText("No expenses in this category")).toBeTruthy();
     expect(
       screen.getByText("Nothing recorded in September 2026 for Villa."),
     ).toBeTruthy();
   });
 
-  test("loads more transactions", () => {
+  test("loads more transactions", async () => {
     mockExpenses.hasNextPage = true;
-    const screen = render(<CategoryExpensesScreen />);
-    fireEvent.press(screen.getByText("Load more expenses"));
+    const screen = await render(<CategoryExpensesScreen />);
+    await fireEvent.press(screen.getByText("Load more expenses"));
     expect(mockFetchNextPage).toHaveBeenCalledTimes(1);
   });
 
-  test("back returns to Profit & planning, falling back when there is no history", () => {
-    render(<CategoryExpensesScreen />);
+  test("back returns to Profit & planning, falling back when there is no history", async () => {
+    await render(<CategoryExpensesScreen />);
     mockHeader.mock.calls.at(-1)![0].onBackPress?.();
     expect(mockBack).toHaveBeenCalledTimes(1);
     mockCanGoBack.mockReturnValue(false);
-    render(<CategoryExpensesScreen />);
+    await render(<CategoryExpensesScreen />);
     mockHeader.mock.calls.at(-1)![0].onBackPress?.();
     expect(mockReplace).toHaveBeenCalledWith("/landlord/analytics");
   });
 
-  test("pressing a transaction opens its edit page with only ids in the route", () => {
-    const screen = render(<CategoryExpensesScreen />);
-    fireEvent.press(
+  test("pressing a transaction opens its edit page with only ids in the route", async () => {
+    const screen = await render(<CategoryExpensesScreen />);
+    await fireEvent.press(
       screen.getByLabelText("Edit Repaint, ₱ 3,000, paid 2026-09-10"),
     );
     expect(mockPush).toHaveBeenCalledWith({

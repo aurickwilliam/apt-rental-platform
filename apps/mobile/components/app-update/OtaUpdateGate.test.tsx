@@ -29,20 +29,20 @@ jest.mock("@/components/display/AppDialog", () => {
 
 beforeEach(() => { jest.clearAllMocks(); mockState = { isReady: true }; });
 
-it("renders nothing until an update has been downloaded", () => {
+it("renders nothing until an update has been downloaded", async () => {
   mockState = { isReady: false };
-  expect(render(<OtaUpdateGate />).toJSON()).toBeNull();
+  expect((await render(<OtaUpdateGate />)).toJSON()).toBeNull();
 });
 
-it("restarts to apply the update", () => {
-  const screen = render(<OtaUpdateGate />);
+it("restarts to apply the update", async () => {
+  const screen = await render(<OtaUpdateGate />);
   expect(screen.getByText("Update ready")).toBeTruthy();
-  fireEvent.press(screen.getByText("Restart now"));
+  await fireEvent.press(screen.getByText("Restart now"));
   expect(mockRestart).toHaveBeenCalledTimes(1);
 });
 
-it("lets the user postpone it", () => {
-  const screen = render(<OtaUpdateGate />);
-  fireEvent.press(screen.getByText("Later"));
+it("lets the user postpone it", async () => {
+  const screen = await render(<OtaUpdateGate />);
+  await fireEvent.press(screen.getByText("Later"));
   expect(mockDefer).toHaveBeenCalledTimes(1);
 });

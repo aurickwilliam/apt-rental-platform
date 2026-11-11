@@ -28,22 +28,22 @@ beforeEach(() => {
   mockSaveToLibrary.mockResolvedValue(undefined);
 });
 
-const mounted = () => {
-  const hook = renderHook(() => useSaveReceiptPhoto());
+const mounted = async () => {
+  const hook = await renderHook(() => useSaveReceiptPhoto());
   (hook.result.current.receiptRef as { current: unknown }).current = { view: true };
   return hook;
 };
 
 describe("useSaveReceiptPhoto", () => {
   // These two run first: a module that loads is cached, one that throws is retried.
-  it("does not load the native modules just by being imported or rendered", () => {
-    mounted();
+  it("does not load the native modules just by being imported or rendered", async () => {
+    await mounted();
     expect(mockLoads).toBe(0);
   });
 
   it("answers unavailable, rather than throwing, when a native module is missing from this build", async () => {
     mockMissing = true;
-    const { result } = mounted();
+    const { result } = await mounted();
     await expect(result.current.save()).resolves.toBe("unavailable");
     expect(mockCapture).not.toHaveBeenCalled();
     expect(mockSaveToLibrary).not.toHaveBeenCalled();
@@ -51,7 +51,7 @@ describe("useSaveReceiptPhoto", () => {
   });
 
   it("asks for add-only access, captures the receipt as a PNG file and adds it to the library", async () => {
-    const { result } = mounted();
+    const { result } = await mounted();
     await expect(result.current.save()).resolves.toBe("saved");
     expect(mockRequest).toHaveBeenCalledWith(true);
     expect(mockCapture).toHaveBeenCalledWith(result.current.receiptRef, { format: "png", quality: 1, result: "tmpfile" });
@@ -60,26 +60,26 @@ describe("useSaveReceiptPhoto", () => {
 
   it("captures and saves nothing when access is refused", async () => {
     mockRequest.mockResolvedValue({ granted: false });
-    const { result } = mounted();
+    const { result } = await mounted();
     await expect(result.current.save()).resolves.toBe("denied");
     expect(mockCapture).not.toHaveBeenCalled();
     expect(mockSaveToLibrary).not.toHaveBeenCalled();
   });
 
   it("fails loudly when the receipt is not on screen", async () => {
-    const { result } = renderHook(() => useSaveReceiptPhoto());
+    const { result } = await renderHook(() => useSaveReceiptPhoto());
     await expect(result.current.save()).rejects.toThrow("not on screen");
     expect(mockSaveToLibrary).not.toHaveBeenCalled();
   });
 
   it("does not report a save when the capture or the library write fails", async () => {
     mockCapture.mockRejectedValueOnce(new Error("capture failed"));
-    const first = mounted();
+    const first = await mounted();
     await expect(first.result.current.save()).rejects.toThrow("capture failed");
     expect(mockSaveToLibrary).not.toHaveBeenCalled();
 
     mockSaveToLibrary.mockRejectedValueOnce(new Error("write failed"));
-    const second = mounted();
+    const second = await mounted();
     await expect(second.result.current.save()).rejects.toThrow("write failed");
   });
 });

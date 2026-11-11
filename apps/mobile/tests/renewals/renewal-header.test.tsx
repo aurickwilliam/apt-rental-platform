@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Card, Chip } from "heroui-native";
+import { findAllInTree } from "../support/testTraversal";
 import { STATUS_COLORS } from "@repo/constants";
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import LeaseRenewalScreen from "@/components/renewals/LeaseRenewalScreen";
@@ -72,56 +72,56 @@ function loaded(data = context(), busy = false) {
   mockRenewal.mockReturnValue({ data, busy, act: mockAct, view: mockView, refetch: mockRefresh, isLocked: () => busy });
 }
 
-it.each(["loading", "error"])("keeps the renewal detail header outside padded scrolling content when %s", (state) => {
+it.each(["loading", "error"])("keeps the renewal detail header outside padded scrolling content when %s", async (state) => {
   if (state === "error") mockRenewal.mockReturnValue({ error: new Error("Renewal unavailable.") });
-  render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
+  await render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
   expect(within(screen.getByTestId("fixed-header")).getByText("Lease renewal")).toBeTruthy();
   expect(within(screen.getByTestId("scrolling-content")).queryByText("Lease renewal")).toBeNull();
   expect(screen.getByTestId("scrolling-content").props.className).toBe("px-5 pt-4 pb-5");
 });
 
-it("groups the current lease, progress, request actions and history with readable dates and the deposit warning", () => {
-  loaded();
-  render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
+it("groups the current lease, progress, request actions and history with readable dates and the deposit warning", async () => {
+  await loaded();
+  await render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
   expect(screen.getAllByRole("header").map((node) => node.props.children)).toEqual([
     "Current agreed lease", "Renewal progress", "Would you like to renew?", "Renewal history",
   ]);
   expect(screen.getByText("Dec 1, 2025 – Nov 30, 2026")).toBeTruthy();
   expect(screen.getByText(/not a verified remaining balance/)).toBeTruthy();
-  const cards = screen.UNSAFE_getAllByType(Card).filter((node) => node.props.className === "rounded-3xl border border-border bg-surface p-4 shadow-none");
+  const cards = findAllInTree(screen.root!, (node) => node.props.className === "rounded-3xl border border-border bg-surface p-4 shadow-none");
   expect(cards).toHaveLength(4);
-  for (const card of cards) expect(card.props.children.props.className).toBe("gap-4");
-  fireEvent.press(screen.getByText("View original agreement"));
+  for (const card of cards) expect((card.children[0] as { props: { className?: string } }).props.className).toBe("gap-4");
+  await fireEvent.press(screen.getByText("View original agreement"));
   expect(mockView).toHaveBeenCalledWith("original.pdf", "signed-leases");
-  fireEvent.press(screen.getByText("Request Lease Renewal"));
+  await fireEvent.press(screen.getByText("Request Lease Renewal"));
   expect(mockAct).toHaveBeenCalledWith("request", { durationMonths: 12 });
 });
 
-it("keeps out-of-window requests unavailable and does not label an unknown rent as zero", () => {
-  loaded(context({ today: "2026-10-01", monthlyRent: null }));
-  render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
+it("keeps out-of-window requests unavailable and does not label an unknown rent as zero", async () => {
+  await loaded(context({ today: "2026-10-01", monthlyRent: null }));
+  await render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
   expect(screen.queryByText("Request Lease Renewal")).toBeNull();
   expect(screen.getByText("Not recorded")).toBeTruthy();
   expect(screen.queryByText("₱0.00")).toBeNull();
 });
 
-it("shows server-provided proposal charges, the active stage, and the existing acceptance action", () => {
-  loaded(renewalContext("awaiting_tenant_confirmation"));
-  render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
+it("shows server-provided proposal charges, the active stage, and the existing acceptance action", async () => {
+  await loaded(renewalContext("awaiting_tenant_confirmation"));
+  await render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
   expect(screen.getByLabelText("Terms: current step")).toBeTruthy();
   expect(screen.getByText("Total renewal payment")).toBeTruthy();
   expect(screen.getByText("₱ 22,000")).toBeTruthy();
   expect(screen.getByText("Verified applicable credit (deducted)")).toBeTruthy();
   expect(screen.getByText(/not independently verified by APT/)).toBeTruthy();
-  fireEvent.press(screen.getByText("Accept Renewal Terms"));
+  await fireEvent.press(screen.getByText("Accept Renewal Terms"));
   expect(mockAct).toHaveBeenCalledWith("accept", { proposalId: proposal.id });
 });
 
-it.each(["tenant", "landlord"] as const)("shows Proposal 1 in the %s portal for the first proposal with internal version 3", (portal) => {
+it.each(["tenant", "landlord"] as const)("shows Proposal 1 in the %s portal for the first proposal with internal version 3", async (portal) => {
   const data = renewalContext("awaiting_tenant_confirmation");
   data.proposals = [{ ...proposal, version: 3 }];
-  loaded(data);
-  render(<LeaseRenewalScreen tenancyId="tenancy" portal={portal} />);
+  await loaded(data);
+  await render(<LeaseRenewalScreen tenancyId="tenancy" portal={portal} />);
   expect(screen.getByText("Proposal 1 · 12 months")).toBeTruthy();
   expect(screen.getByText("Proposal 1")).toBeTruthy();
   expect(screen.getByLabelText("View saved proposal 1")).toBeTruthy();
@@ -129,101 +129,101 @@ it.each(["tenant", "landlord"] as const)("shows Proposal 1 in the %s portal for 
   expect(data.proposals[0].version).toBe(3);
 });
 
-it("keeps current and saved proposal labels consecutive after a revised proposal arrives", () => {
+it("keeps current and saved proposal labels consecutive after a revised proposal arrives", async () => {
   const data = renewalContext("awaiting_tenant_confirmation");
   data.proposals = [{ ...proposal, id: "revision", version: 8 }, { ...proposal, version: 3 }];
   data.renewal = { ...data.renewal!, current_proposal_id: "revision" };
-  loaded(data);
-  render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
+  await loaded(data);
+  await render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
   expect(screen.getByText("Proposal 2 · 12 months")).toBeTruthy();
   expect(screen.getByLabelText("View saved proposal 1")).toBeTruthy();
   expect(screen.getByLabelText("View saved proposal 2")).toBeTruthy();
-  fireEvent.press(screen.getByText("Accept Renewal Terms"));
+  await fireEvent.press(screen.getByText("Accept Renewal Terms"));
   expect(mockAct).toHaveBeenCalledWith("accept", { proposalId: "revision" });
 });
 
-it.each(["declined", "not_renewing", "requires_review"] as const)("does not show successful completed stages for %s", (status) => {
-  loaded(renewalContext(status));
-  render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
+it.each(["declined", "not_renewing", "requires_review"] as const)("does not show successful completed stages for %s", async (status) => {
+  await loaded(renewalContext(status));
+  await render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
   expect(screen.queryByLabelText("Renewal stages")).toBeNull();
   expect(screen.queryByText("Accept Renewal Terms")).toBeNull();
 });
 
 it("keeps landlord approval and decline inside the decision card", async () => {
-  loaded(renewalContext("pending_landlord_review"));
-  render(<LeaseRenewalScreen tenancyId="tenancy" portal="landlord" />);
+  await loaded(renewalContext("pending_landlord_review"));
+  await render(<LeaseRenewalScreen tenancyId="tenancy" portal="landlord" />);
   expect(screen.getByText("Renewal decision")).toBeTruthy();
-  fireEvent.press(screen.getByText("Approve request"));
+  await fireEvent.press(screen.getByText("Approve request"));
   expect(mockAct).toHaveBeenCalledWith("approve");
-  fireEvent.press(screen.getByText("Decline Renewal"));
-  fireEvent.changeText(screen.getByLabelText("Reason for declining"), "Unable to extend");
-  await act(async () => { fireEvent.press(screen.getByText("Confirm decision")); });
+  await fireEvent.press(screen.getByText("Decline Renewal"));
+  await fireEvent.changeText(screen.getByLabelText("Reason for declining"), "Unable to extend");
+  await act(async () => { await fireEvent.press(screen.getByText("Confirm decision")); });
   expect(mockAct).toHaveBeenCalledWith("decline", { reason: "Unable to extend", durationMonths: 12 });
 });
 
-it("keeps confirmation saved and disabled while allowing the agreement to be viewed", () => {
-  loaded({ ...renewalContext("awaiting_agreement_confirmation"), agreement: { path: "agreement.pdf", tenant_confirmed_at: "2026-11-06", landlord_confirmed_at: null } });
-  render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
+it("keeps confirmation saved and disabled while allowing the agreement to be viewed", async () => {
+  await loaded({ ...renewalContext("awaiting_agreement_confirmation"), agreement: { path: "agreement.pdf", tenant_confirmed_at: "2026-11-06", landlord_confirmed_at: null } });
+  await render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
   expect(screen.getByRole("button", { name: "Confirmation saved" })).toBeDisabled();
-  fireEvent.press(screen.getByText("View renewal agreement"));
+  await fireEvent.press(screen.getByText("View renewal agreement"));
   expect(mockView).toHaveBeenCalledWith("agreement.pdf");
 });
 
-it("preserves the full document labels and their original file targets", () => {
-  loaded({ ...renewalContext("awaiting_agreement_confirmation"), agreement: { path: "agreement.pdf", tenant_confirmed_at: null, landlord_confirmed_at: null } });
-  render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
-  fireEvent.press(screen.getByRole("button", { name: "View original agreement" }));
+it("preserves the full document labels and their original file targets", async () => {
+  await loaded({ ...renewalContext("awaiting_agreement_confirmation"), agreement: { path: "agreement.pdf", tenant_confirmed_at: null, landlord_confirmed_at: null } });
+  await render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
+  await fireEvent.press(screen.getByRole("button", { name: "View original agreement" }));
   expect(mockView).toHaveBeenLastCalledWith("original.pdf", "signed-leases");
-  fireEvent.press(screen.getByRole("button", { name: "View supporting document" }));
+  await fireEvent.press(screen.getByRole("button", { name: "View supporting document" }));
   expect(mockView).toHaveBeenLastCalledWith("evidence.pdf");
-  fireEvent.press(screen.getByRole("button", { name: "View renewal agreement" }));
+  await fireEvent.press(screen.getByRole("button", { name: "View renewal agreement" }));
   expect(mockView).toHaveBeenLastCalledWith("agreement.pdf");
-  fireEvent.press(screen.getByLabelText("View saved proposal 1"));
-  fireEvent.press(screen.getByRole("button", { name: "View preserved agreement" }));
+  await fireEvent.press(screen.getByLabelText("View saved proposal 1"));
+  await fireEvent.press(screen.getByRole("button", { name: "View preserved agreement" }));
   expect(mockView).toHaveBeenLastCalledWith("saved.pdf");
 });
 
-it("disables renewal writes while saving and keeps saved proposals collapsed until requested", () => {
-  loaded(renewalContext("awaiting_tenant_confirmation"), true);
-  render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
+it("disables renewal writes while saving and keeps saved proposals collapsed until requested", async () => {
+  await loaded(renewalContext("awaiting_tenant_confirmation"), true);
+  await render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
   expect(screen.getByRole("button", { name: "Accept Renewal Terms" })).toBeDisabled();
   expect(screen.getByRole("button", { name: "Decline Renewal" })).toBeDisabled();
   expect(screen.queryByText("View preserved agreement")).toBeNull();
-  fireEvent.press(screen.getByLabelText("View saved proposal 1"));
+  await fireEvent.press(screen.getByLabelText("View saved proposal 1"));
   expect(screen.getByRole("button", { name: "View preserved agreement" })).toBeDisabled();
 });
 
-it("renders request cards with status and preserves navigation", () => {
+it("renders request cards with status and preserves navigation", async () => {
   mockQuery.mockReturnValue({ data: [{ id: "renewal", tenancy_id: "tenancy", apartment_name: "Navotas apartment", tenant_name: "Test Tenant", status: "pending_landlord_review" }] });
-  render(<RenewalRequestsScreen />);
+  await render(<RenewalRequestsScreen />);
   expect(screen.getByText("Pending landlord review")).toBeTruthy();
-  fireEvent.press(screen.getByText("Review renewal"));
+  await fireEvent.press(screen.getByText("Review renewal"));
   expect(mockPush).toHaveBeenCalledWith({ pathname: "/lease-renewal/[tenancyId]", params: { tenancyId: "tenancy" } });
 });
 
-it.each([false, true])("uses the existing status palette with dark mode = %s", (dark) => {
+it.each([false, true])("uses the existing status palette with dark mode = %s", async (dark) => {
   mockIsDark = dark;
-  loaded(renewalContext("renewed"));
-  render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
+  await loaded(renewalContext("renewed"));
+  await render(<LeaseRenewalScreen tenancyId="tenancy" portal="tenant" />);
   const palette = STATUS_COLORS[dark ? "dark" : "light"].success;
-  const chips = screen.UNSAFE_getAllByType(Chip).filter((node) => node.props.style);
+  const chips = findAllInTree(screen.root!, (node) => node.props.stubIsChip === true && node.props.style);
   expect(chips).toHaveLength(1);
   expect(chips[0].props.style).toEqual({ backgroundColor: palette.backgroundColor, borderColor: palette.borderColor, borderWidth: 1 });
   expect(screen.getByLabelText("Payment: completed")).toBeTruthy();
   expect(screen.getByText("Renewed — scheduled")).toBeTruthy();
 });
 
-it("keeps the dashboard entry aligned with renewal details and preserves its destination", () => {
-  loaded();
-  render(<LeaseRenewalEntry tenancyId="tenancy" portal="tenant" />);
+it("keeps the dashboard entry aligned with renewal details and preserves its destination", async () => {
+  await loaded();
+  await render(<LeaseRenewalEntry tenancyId="tenancy" portal="tenant" />);
   expect(screen.getByText("Current lease ends Nov 30, 2026")).toBeTruthy();
-  fireEvent.press(screen.getByText("Review renewal options"));
+  await fireEvent.press(screen.getByText("Review renewal options"));
   expect(mockPush).toHaveBeenCalledWith({ pathname: "/lease-renewal/[tenancyId]", params: { tenancyId: "tenancy" } });
 });
 
-it.each(["loading", "error", "empty"])("keeps the renewal list header outside padded scrolling content when %s", (state) => {
+it.each(["loading", "error", "empty"])("keeps the renewal list header outside padded scrolling content when %s", async (state) => {
   mockQuery.mockReturnValue({ isLoading: state === "loading", error: state === "error", data: [] });
-  render(<RenewalRequestsScreen />);
+  await render(<RenewalRequestsScreen />);
   expect(within(screen.getByTestId("fixed-header")).getByText("Lease renewals")).toBeTruthy();
   expect(within(screen.getByTestId("scrolling-content")).queryByText("Lease renewals")).toBeNull();
   expect(screen.getByTestId("scrolling-content").props.className).toBe("px-5 pt-4 pb-5");

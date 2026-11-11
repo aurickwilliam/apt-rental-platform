@@ -4,6 +4,7 @@ import SelectId from '@/app/(auth)/verify-account/select-id';
 import UploadId from '@/app/(auth)/verify-account/upload-id';
 import SelfiePrep from '@/app/(auth)/verify-account/selfie-prep';
 import UploadSelfie from '@/app/(auth)/verify-account/upload-selfie';
+import { findAllInTree } from '../support/testTraversal';
 import { useVerificationStore, initialVerificationState } from '@/stores/useVerificationStore';
 
 jest.mock('@/hooks/useTheme', () => ({
@@ -73,78 +74,81 @@ jest.mock('heroui-native', () => {
 
 const captureResult = (uri: string, width = 100, height = 63) => ({ uri, width, height });
 
+const disabledNodes = () =>
+  findAllInTree(screen.root!, (node) => node.props.disabled === true || node.props.accessibilityState?.disabled === true);
+
 describe('verification flow (integration)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     useVerificationStore.setState({ ...initialVerificationState });
   });
 
-  it('walks the happy path: select-id → upload-id auto-forward → capture all steps → confirm → selfie → submit', () => {
+  it('walks the happy path: select-id → upload-id auto-forward → capture all steps → confirm → selfie → submit', async () => {
     // --- select-id: picking an ID starts a fresh session and pushes upload-id
     useVerificationStore.setState({
       selectedId: 'Passport',
       captures: { front: captureResult('file://stale.jpg') },
     });
-    render(<SelectId />);
+    await render(<SelectId />);
 
-    fireEvent.press(screen.getByText('National ID (PhilSys/PhilID)'));
+    await fireEvent.press(screen.getByText('National ID (PhilSys/PhilID)'));
 
     expect(useVerificationStore.getState().selectedId).toBe('National ID (PhilSys/PhilID)');
     expect(useVerificationStore.getState().captures).toEqual({});
     expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/upload-id');
 
-    screen.unmount();
+    await screen.unmount();
 
     // --- upload-id: fresh session auto-forwards to the first capture step
-    render(<UploadId />);
+    await render(<UploadId />);
 
     expect(mockPush).toHaveBeenCalledWith(
       '/(auth)/verify-account/live-capture?idType=National%20ID%20(PhilSys%2FPhilID)&stepId=front',
     );
 
     // --- simulate what live-capture writes on "Use Photo" for each step
-    act(() => {
+    await act(() => {
       useVerificationStore.getState().setCaptureResult('front', captureResult('file://front.jpg'));
       useVerificationStore.getState().setCaptureResult('back', captureResult('file://back.jpg'));
     });
 
     // Still locked until the confirmation checkbox is pressed.
-    expect(screen.UNSAFE_getAllByProps({ disabled: true }).length).toBeGreaterThan(0);
+    expect(disabledNodes().length).toBeGreaterThan(0);
 
-    fireEvent.press(screen.getByText(/I confirm/));
-    expect(screen.UNSAFE_queryAllByProps({ disabled: true })).toHaveLength(0);
+    await fireEvent.press(screen.getByText(/I confirm/));
+    expect(disabledNodes()).toHaveLength(0);
 
-    fireEvent.press(screen.getByText('Continue to Selfie'));
+    await fireEvent.press(screen.getByText('Continue to Selfie'));
     expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/selfie-prep');
 
-    screen.unmount();
+    await screen.unmount();
 
     // --- selfie-prep: completed IDs are required and "I'm Ready" opens the selfie page
-    render(<SelfiePrep />);
+    await render(<SelfiePrep />);
 
     expect(screen.getByText('Get ready for your selfie')).toBeTruthy();
-    fireEvent.press(screen.getByText("I'm Ready"));
+    await fireEvent.press(screen.getByText("I'm Ready"));
     expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/upload-selfie');
 
-    screen.unmount();
+    await screen.unmount();
 
     // --- upload-selfie: guards pass (ID steps complete), capture selfie, submit
-    render(<UploadSelfie />);
+    await render(<UploadSelfie />);
 
     expect(mockReplace).not.toHaveBeenCalled();
     expect(screen.getByText('Review & Submit')).toBeTruthy();
-    expect(screen.UNSAFE_getAllByProps({ disabled: true }).length).toBeGreaterThan(0);
+    expect(disabledNodes().length).toBeGreaterThan(0);
 
-    fireEvent.press(screen.getByText('Capture Selfie'));
+    await fireEvent.press(screen.getByText('Capture Selfie'));
     expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/live-capture?stepId=selfie');
 
-    act(() => {
+    await act(() => {
       useVerificationStore.getState().setCaptureResult('selfie', captureResult('file://selfie.jpg', 200, 200));
     });
 
-    expect(screen.UNSAFE_queryAllByProps({ disabled: true })).toHaveLength(0);
+    expect(disabledNodes()).toHaveLength(0);
 
-    fireEvent.press(screen.getByText('Review & Submit'));
+    await fireEvent.press(screen.getByText('Review & Submit'));
     expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/review');
 
     expect(useVerificationStore.getState()).toEqual(
@@ -159,24 +163,24 @@ describe('verification flow (integration)', () => {
     );
   });
 
-  it('upload-selfie with no selectedId redirects to select-id instead of rendering', () => {
+  it('upload-selfie with no selectedId redirects to select-id instead of rendering', async () => {
     useVerificationStore.setState({ selectedId: null, captures: {} });
-    render(<UploadSelfie />);
+    await render(<UploadSelfie />);
 
     expect(mockReplace).toHaveBeenCalledWith('/(auth)/verify-account/select-id');
   });
 
-  it('upload-selfie with incomplete ID captures redirects to upload-id', () => {
+  it('upload-selfie with incomplete ID captures redirects to upload-id', async () => {
     useVerificationStore.setState({
       selectedId: 'National ID (PhilSys/PhilID)',
       captures: { front: captureResult('file://front.jpg') },
     });
-    render(<UploadSelfie />);
+    await render(<UploadSelfie />);
 
     expect(mockReplace).toHaveBeenCalledWith('/(auth)/verify-account/upload-id');
   });
 
-  it('upload-selfie back button returns to the previous screen', () => {
+  it('upload-selfie back button returns to the previous screen', async () => {
     useVerificationStore.setState({
       selectedId: 'National ID (PhilSys/PhilID)',
       captures: {
@@ -184,15 +188,15 @@ describe('verification flow (integration)', () => {
         back: captureResult('file://back.jpg'),
       },
     });
-    render(<UploadSelfie />);
+    await render(<UploadSelfie />);
 
-    fireEvent.press(screen.getByTestId('close-button'));
+    await fireEvent.press(screen.getByTestId('close-button'));
 
     expect(mockBack).toHaveBeenCalledTimes(1);
   });
 
   describe('upload-selfie automatic camera forward', () => {
-    it('opens the selfie camera on focused entry without a stored selfie', () => {
+    it('opens the selfie camera on focused entry without a stored selfie', async () => {
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
         captures: {
@@ -200,12 +204,12 @@ describe('verification flow (integration)', () => {
           back: captureResult('file://back.jpg'),
         },
       });
-      render(<UploadSelfie />);
+      await render(<UploadSelfie />);
 
       expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/live-capture?stepId=selfie');
     });
 
-    it('does not reopen the camera once a selfie is stored', () => {
+    it('does not reopen the camera once a selfie is stored', async () => {
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
         captures: {
@@ -214,14 +218,14 @@ describe('verification flow (integration)', () => {
           selfie: captureResult('file://selfie.jpg', 200, 200),
         },
       });
-      render(<UploadSelfie />);
+      await render(<UploadSelfie />);
 
       expect(mockPush).not.toHaveBeenCalled();
     });
 
-    it('does not open the camera when redirecting an invalid session', () => {
+    it('does not open the camera when redirecting an invalid session', async () => {
       useVerificationStore.setState({ selectedId: null, captures: {} });
-      render(<UploadSelfie />);
+      await render(<UploadSelfie />);
 
       expect(mockPush).not.toHaveBeenCalled();
       expect(mockReplace).toHaveBeenCalledWith('/(auth)/verify-account/select-id');

@@ -112,7 +112,7 @@ function mockApartment(
 }
 
 async function submitApplication() {
-  const { result } = renderHook(() => useSubmitApplication())
+  const { result } = await renderHook(() => useSubmitApplication())
   let submission: Awaited<ReturnType<typeof result.current.submit>> | undefined
   await act(async () => {
     submission = await result.current.submit({ apartmentId: 'apartment-id' })

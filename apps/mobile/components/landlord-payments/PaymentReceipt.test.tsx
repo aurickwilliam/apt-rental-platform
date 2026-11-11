@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { findAllInTree } from "../../tests/support/testTraversal";
 
 import PaymentReceipt from "./PaymentReceipt";
 
@@ -60,8 +61,8 @@ const payment = (change: Record<string, unknown> = {}) => ({
 beforeEach(() => { mockSetString.mockReset(); mockSetString.mockResolvedValue(undefined); });
 
 describe("PaymentReceipt", () => {
-  it("shows a received payment the way the web does", () => {
-    render(<PaymentReceipt payment={payment() as never} footer={null} />);
+  it("shows a received payment the way the web does", async () => {
+    await render(<PaymentReceipt payment={payment() as never} footer={null} />);
     for (const text of ["Payment received", "March 2026", "Tenant", "MAHARTT Navales", "Apartment", "San Jose Corner Suite 2BR", "Paid on", "Method", "Status", "Reference No.", "APT-L44ZOUGS", "method chip cash"]) {
       expect(screen.getByText(text)).toBeTruthy();
     }
@@ -71,24 +72,24 @@ describe("PaymentReceipt", () => {
     expect(screen.queryByText("Total")).toBeNull();
   });
 
-  it("words a pending, declined and failed payment for the landlord", () => {
-    const pending = render(<PaymentReceipt payment={payment({ status: "pending" }) as never} footer={null} />);
+  it("words a pending, declined and failed payment for the landlord", async () => {
+    const pending = await render(<PaymentReceipt payment={payment({ status: "pending" }) as never} footer={null} />);
     expect(screen.getByText("Payment pending")).toBeTruthy();
     expect(screen.getByText("Recorded on")).toBeTruthy();
     expect(screen.getByText("icon:clock")).toBeTruthy();
-    pending.unmount();
+    await pending.unmount();
 
-    const declined = render(<PaymentReceipt payment={payment({ status: "rejected" }) as never} footer={null} />);
+    const declined = await render(<PaymentReceipt payment={payment({ status: "rejected" }) as never} footer={null} />);
     expect(screen.getByText("Payment declined")).toBeTruthy();
     expect(screen.getByText("Rejected")).toBeTruthy();
-    declined.unmount();
+    await declined.unmount();
 
-    render(<PaymentReceipt payment={payment({ status: "failed" }) as never} footer={null} />);
+    await render(<PaymentReceipt payment={payment({ status: "failed" }) as never} footer={null} />);
     expect(screen.getByText("Payment failed")).toBeTruthy();
   });
 
-  it("lists a move-in breakdown with its total, and shows dashes for a missing tenant or unit", () => {
-    render(
+  it("lists a move-in breakdown with its total, and shows dashes for a missing tenant or unit", async () => {
+    await render(
       <PaymentReceipt
         payment={payment({
           billing_kind: "move_in", amount: 18000, tenant_name: null, apartment_name: null,
@@ -102,24 +103,24 @@ describe("PaymentReceipt", () => {
     expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(2);
   });
 
-  it("renders the footer inside the paper and a transparent torn edge below it", () => {
-    render(<PaymentReceipt payment={payment() as never} footer={<></>} />);
+  it("renders the footer inside the paper and a transparent torn edge below it", async () => {
+    await render(<PaymentReceipt payment={payment() as never} footer={<></>} />);
     expect(mockZigzag.props).toMatchObject({ hanging: true, cutColor: "#FFFFFF" });
   });
 
-  it("separates the sections with dashed lines", () => {
-    render(<PaymentReceipt payment={payment() as never} footer={null} />);
+  it("separates the sections with dashed lines", async () => {
+    await render(<PaymentReceipt payment={payment() as never} footer={null} />);
     // Dividers measure themselves, so report a width to each.
-    for (const view of screen.UNSAFE_root.findAll((node) => typeof node.props.onLayout === "function")) {
-      fireEvent(view, "layout", { nativeEvent: { layout: { width: 200, height: 1 } } });
+    for (const view of findAllInTree(screen.root!, (node) => typeof node.props.onLayout === "function")) {
+      await fireEvent(view, "layout", { nativeEvent: { layout: { width: 200, height: 1 } } });
     }
     const dividers = screen.getAllByTestId("divider");
     expect(dividers.length).toBeGreaterThanOrEqual(2);
     expect(dividers.every((divider) => divider.props.accessibilityLabel === "4 4")).toBe(true);
   });
 
-  it("keeps the method and status values on the right", () => {
-    render(<PaymentReceipt payment={payment() as never} footer={null} />);
+  it("keeps the method and status values on the right", async () => {
+    await render(<PaymentReceipt payment={payment() as never} footer={null} />);
     const rightAligned = (label: string) => {
       let node = screen.getByText(label).parent;
       while (node && !String(node.props?.className ?? "").includes("justify-end")) node = node.parent;
@@ -130,8 +131,8 @@ describe("PaymentReceipt", () => {
   });
 
   it("copies the reference and confirms it", async () => {
-    render(<PaymentReceipt payment={payment() as never} footer={null} />);
-    await act(async () => { fireEvent.press(screen.getByLabelText("Copy reference")); });
+    await render(<PaymentReceipt payment={payment() as never} footer={null} />);
+    await act(async () => { await fireEvent.press(screen.getByLabelText("Copy reference")); });
     expect(mockSetString).toHaveBeenCalledWith("APT-L44ZOUGS");
     expect(screen.getByLabelText("Reference copied")).toBeTruthy();
   });
@@ -139,8 +140,8 @@ describe("PaymentReceipt", () => {
   it("does not claim a copy that the clipboard refused", async () => {
     mockSetString.mockRejectedValue(new Error("denied"));
     jest.spyOn(console, "error").mockImplementation(() => {});
-    render(<PaymentReceipt payment={payment() as never} footer={null} />);
-    await act(async () => { fireEvent.press(screen.getByLabelText("Copy reference")); });
+    await render(<PaymentReceipt payment={payment() as never} footer={null} />);
+    await act(async () => { await fireEvent.press(screen.getByLabelText("Copy reference")); });
     expect(screen.queryByLabelText("Reference copied")).toBeNull();
     expect(screen.getByLabelText("Copy reference")).toBeTruthy();
   });

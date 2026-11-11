@@ -62,14 +62,14 @@ describe("Add budget route", () => {
   });
   afterEach(() => jest.useRealTimers());
 
-  test("seeds the month, property and presets from analytics", () => {
+  test("seeds the month, property and presets from analytics", async () => {
     Object.assign(mockParams, {
       apartmentId: "villa",
       month: "2026-09",
       category: "insurance",
       kind: "reserve",
     });
-    render(<AddBudgetScreen />);
+    await render(<AddBudgetScreen />);
     expect(mockPage).toHaveBeenLastCalledWith(
       expect.objectContaining({
         apartmentId: "villa",
@@ -80,14 +80,14 @@ describe("Add budget route", () => {
     );
   });
 
-  test("unowned properties and invalid presets never seed the form", () => {
+  test("unowned properties and invalid presets never seed the form", async () => {
     Object.assign(mockParams, {
       apartmentId: "someone-elses",
       month: "2027-13",
       category: "unknown",
       kind: "savings",
     });
-    render(<AddBudgetScreen />);
+    await render(<AddBudgetScreen />);
     const props = mockPage.mock.calls.at(-1)![0];
     expect(props.apartmentId).toBeNull();
     expect(props.month).toBe("2026-10");
@@ -95,16 +95,16 @@ describe("Add budget route", () => {
     expect(props.presetKind).toBeUndefined();
   });
 
-  test("shows form-shaped placeholders while loading properties", () => {
+  test("shows form-shaped placeholders while loading properties", async () => {
     mockFinance.report.isLoading = true;
-    render(<AddBudgetScreen />);
+    await render(<AddBudgetScreen />);
     expect(mockEntryFormSkeleton).toHaveBeenCalledTimes(1);
     expect(mockEntryFormFooterSkeleton).toHaveBeenCalledTimes(1);
     expect(mockPage).not.toHaveBeenCalled();
   });
 
   test("saving uses the existing finance mutation and closing returns to analytics", async () => {
-    render(<AddBudgetScreen />);
+    await render(<AddBudgetScreen />);
     const props = mockPage.mock.calls.at(-1)![0];
     const budget = {
       apartment_id: "villa",
@@ -123,7 +123,7 @@ describe("Add budget route", () => {
       label: "Budget saved",
       variant: "success",
     });
-    act(() => props.onClose());
+    await act(() => props.onClose());
     expect(mockBack).toHaveBeenCalled();
   });
 });

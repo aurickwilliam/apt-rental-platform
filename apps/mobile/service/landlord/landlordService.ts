@@ -912,6 +912,7 @@ export type LandlordPaymentRecord = {
   period_start: string | null;
   period_end: string | null;
   due_date: string | null;
+  billing_kind: string | null;
   tenant_name: string | null;
 };
 
@@ -930,6 +931,7 @@ export async function fetchLandlordPayments(apartmentId: string): Promise<Landlo
         period_start,
         period_end,
         due_date,
+        billing_kind,
         tenant:users!payment_tenant_id_fkey (first_name, last_name)
       `
     )
@@ -952,6 +954,7 @@ export async function fetchLandlordPayments(apartmentId: string): Promise<Landlo
       period_start: string | null;
       period_end: string | null;
       due_date: string | null;
+      billing_kind: string | null;
       tenant: { first_name: string | null; last_name: string | null } | null;
     };
     const tenant = p.tenant;
@@ -966,6 +969,7 @@ export async function fetchLandlordPayments(apartmentId: string): Promise<Landlo
       period_start: p.period_start,
       period_end: p.period_end,
       due_date: p.due_date,
+      billing_kind: p.billing_kind,
       tenant_name:
         tenant?.first_name || tenant?.last_name
           ? `${tenant.first_name ?? ""} ${tenant.last_name ?? ""}`.trim()
@@ -1020,6 +1024,7 @@ export async function fetchAllLandlordPayments(landlordId: string): Promise<AllL
         period_start,
         period_end,
         due_date,
+        billing_kind,
         apartment_id,
         apartment:apartments (name),
         tenant:users!payment_tenant_id_fkey (first_name, last_name)
@@ -1044,6 +1049,7 @@ export async function fetchAllLandlordPayments(landlordId: string): Promise<AllL
       period_start: string | null;
       period_end: string | null;
       due_date: string | null;
+      billing_kind: string | null;
       apartment_id: string;
       apartment: { name: string | null } | null;
       tenant: { first_name: string | null; last_name: string | null } | null;
@@ -1060,6 +1066,7 @@ export async function fetchAllLandlordPayments(landlordId: string): Promise<AllL
       period_start: p.period_start,
       period_end: p.period_end,
       due_date: p.due_date,
+      billing_kind: p.billing_kind,
       apartment_id: p.apartment_id,
       apartment_name: p.apartment?.name ?? null,
       tenant_name:

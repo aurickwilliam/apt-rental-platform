@@ -22,26 +22,26 @@ describe("theme hooks", () => {
   });
 
   describe("useColors / useTheme", () => {
-    it("derives the palette from Uniwind's resolved theme", () => {
-      const { result, rerender } = renderHook(() => useColors());
+    it("derives the palette from Uniwind's resolved theme", async () => {
+      const { result, rerender } = await renderHook(() => useColors());
       expect(result.current).toEqual({ colors: MOBILE_COLORS.light, isDark: false });
 
       resolveTo("dark");
-      rerender({});
+      await rerender({});
       expect(result.current).toEqual({ colors: MOBILE_COLORS.dark, isDark: true });
     });
 
-    it("follows a device change while System is selected, ignoring the stored preference", () => {
+    it("follows a device change while System is selected, ignoring the stored preference", async () => {
       useThemeStore.getState().setThemeMode("system");
-      const { result, rerender } = renderHook(() => useTheme());
+      const { result, rerender } = await renderHook(() => useTheme());
 
       resolveTo("dark"); // OS switched to dark
-      rerender({});
+      await rerender({});
       expect(result.current.isDark).toBe(true);
     });
 
-    it("never writes to the native appearance, however many consumers mount", () => {
-      renderHook(() => {
+    it("never writes to the native appearance, however many consumers mount", async () => {
+      await renderHook(() => {
         useColors();
         useColors();
         useTheme();
@@ -52,11 +52,11 @@ describe("theme hooks", () => {
   });
 
   describe("useThemePreference", () => {
-    it("exposes the saved choice and updates it", () => {
-      const { result } = renderHook(() => useThemePreference());
+    it("exposes the saved choice and updates it", async () => {
+      const { result } = await renderHook(() => useThemePreference());
       expect(result.current.themeMode).toBe("system");
 
-      act(() => {
+      await act(() => {
         result.current.setThemeMode("dark");
       });
       expect(result.current.themeMode).toBe("dark");
@@ -64,22 +64,22 @@ describe("theme hooks", () => {
   });
 
   describe("useThemeSync", () => {
-    it("applies System by default so the device appearance is followed", () => {
-      const { result } = renderHook(() => useThemeSync());
+    it("applies System by default so the device appearance is followed", async () => {
+      const { result } = await renderHook(() => useThemeSync());
 
       expect(result.current).toBe(true);
       expect(setTheme).toHaveBeenCalledTimes(1);
       expect(setTheme).toHaveBeenCalledWith("system");
     });
 
-    it("waits for the saved choice before applying anything", () => {
+    it("waits for the saved choice before applying anything", async () => {
       useThemeHydrationStore.setState({ hydrated: false });
-      const { result } = renderHook(() => useThemeSync());
+      const { result } = await renderHook(() => useThemeSync());
 
       expect(result.current).toBe(false);
       expect(setTheme).not.toHaveBeenCalled();
 
-      act(() => {
+      await act(() => {
         useThemeStore.setState({ themeMode: "dark" });
         useThemeHydrationStore.setState({ hydrated: true });
       });
@@ -89,25 +89,25 @@ describe("theme hooks", () => {
       expect(setTheme).toHaveBeenLastCalledWith("dark");
     });
 
-    it("applies each change once, and returns to System from a forced mode", () => {
-      renderHook(() => useThemeSync());
+    it("applies each change once, and returns to System from a forced mode", async () => {
+      await renderHook(() => useThemeSync());
       setTheme.mockClear();
 
-      act(() => {
+      await act(() => {
         useThemeStore.getState().setThemeMode("light");
       });
-      act(() => {
+      await act(() => {
         useThemeStore.getState().setThemeMode("dark");
       });
-      act(() => {
+      await act(() => {
         useThemeStore.getState().setThemeMode("system");
       });
 
       expect(setTheme.mock.calls).toEqual([["light"], ["dark"], ["system"]]);
     });
 
-    it("is the only appearance write even with many color consumers mounted", () => {
-      renderHook(() => {
+    it("is the only appearance write even with many color consumers mounted", async () => {
+      await renderHook(() => {
         useThemeSync();
         useColors();
         useColors();

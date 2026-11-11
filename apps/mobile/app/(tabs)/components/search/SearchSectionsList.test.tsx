@@ -1,5 +1,6 @@
 import { FlatList } from "react-native";
 import { render } from "@testing-library/react-native";
+import { spyOnClassComponent } from "../../../../tests/support/classComponentProps";
 
 import SearchSectionsList from "./SearchSectionsList";
 
@@ -27,8 +28,8 @@ jest.mock("@/components/layout/CustomTabBar", () => ({
 
 const sections = [{ id: "verified", title: "Verified", apartments: [{ id: "a" } as never] }];
 
-const renderList = (isFetching: boolean) =>
-  render(
+const renderList = async (isFetching: boolean) =>
+  await render(
     <SearchSectionsList
       sections={sections}
       isLoading={false}
@@ -42,13 +43,17 @@ const renderList = (isFetching: boolean) =>
   );
 
 describe("SearchSectionsList", () => {
-  it("renders no list header at rest, so the list's gap never opens space above the first section", () => {
-    const { UNSAFE_getByType } = renderList(false);
-    expect(UNSAFE_getByType(FlatList).props.ListHeaderComponent).toBeNull();
+  let flatList: ReturnType<typeof spyOnClassComponent>;
+  beforeEach(() => { flatList = spyOnClassComponent(FlatList); });
+  afterEach(() => flatList.restore());
+
+  it("renders no list header at rest, so the list's gap never opens space above the first section", async () => {
+    await renderList(false);
+    expect(flatList.latestProps().ListHeaderComponent).toBeNull();
   });
 
-  it("shows the refresh indicator as the header while refreshing", () => {
-    const { UNSAFE_getByType } = renderList(true);
-    expect(UNSAFE_getByType(FlatList).props.ListHeaderComponent).not.toBeNull();
+  it("shows the refresh indicator as the header while refreshing", async () => {
+    await renderList(true);
+    expect(flatList.latestProps().ListHeaderComponent).not.toBeNull();
   });
 });

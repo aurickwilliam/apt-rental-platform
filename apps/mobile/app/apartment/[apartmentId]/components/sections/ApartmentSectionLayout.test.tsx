@@ -1,8 +1,7 @@
 import { render, screen } from '@testing-library/react-native';
-import { Text, View } from 'react-native';
 import ApartmentDetailsSection from './ApartmentDetailsSection';
 import ApartmentDescriptionSection from './ApartmentDescriptionSection';
-import SectionCard from '../SectionCard';
+import { queryAllWithClasses } from '../../../../../tests/support/testTraversal';
 
 jest.mock('hooks/useTheme', () => ({
   useColors: () => ({ colors: { textPrimary: '#333333', gray500: '#626B73' } }),
@@ -20,21 +19,27 @@ jest.mock('@/components/display/SectionHeader', () => {
   return { __esModule: true, default: ({ title }: { title: string }) => React.createElement(NativeText, null, title) };
 });
 
-it('gives each detail a separate card rather than one outer card', () => {
-  const result = render(<ApartmentDetailsSection apartment={null} />);
-  const cards = result.UNSAFE_getAllByType(View).filter(node =>
-    node.props.className?.includes('bg-surface rounded-2xl border border-border')
-  );
-  expect(cards).toHaveLength(4);
-  expect(result.UNSAFE_queryAllByType(SectionCard)).toHaveLength(0);
+it('gives each detail a separate card rather than one outer card', async () => {
+  await render(<ApartmentDetailsSection apartment={null} />);
+  // Four DetailBlocks, each carrying its own card treatment.
+  expect(
+    queryAllWithClasses(screen.root!, 'bg-surface rounded-2xl border border-border'),
+  ).toHaveLength(4);
 });
 
-it('keeps the description heading outside the description body card', () => {
-  const result = render(<ApartmentDescriptionSection description="A lovely home" />);
+it('keeps the description heading outside the description body card', async () => {
+  await render(<ApartmentDescriptionSection description="A lovely home" />);
   expect(screen.getByText('Everything About Your Apartment')).toBeTruthy();
-  const bodyCard = result.UNSAFE_getByType(SectionCard);
-  expect(bodyCard.props.appearance).toBe('card');
-  const bodyTexts = bodyCard.findAllByType(Text);
-  expect(bodyTexts.some(node => node.props.children === 'A lovely home')).toBe(true);
-  expect(bodyTexts.some(node => node.props.children === 'Everything About Your Apartment')).toBe(false);
+
+  // The card body (SectionCard appearance="card") carries the description and
+  // its hidden measurement copy…
+  const bodyCards = queryAllWithClasses(
+    screen.root!,
+    'bg-surface rounded-3xl border border-border p-5',
+  );
+  expect(bodyCards).toHaveLength(1);
+  const cardTexts = bodyCards[0].queryAll((node) => node.type === 'Text');
+  expect(cardTexts.some((node) => node.props.children === 'A lovely home')).toBe(true);
+  // …but the section heading and its icon stay outside the card.
+  expect(cardTexts.some((node) => node.props.children === 'Everything About Your Apartment')).toBe(false);
 });

@@ -47,20 +47,20 @@ beforeEach(() => {
 });
 
 it("shows the landlord's fee and confirms before waiving", async () => {
-  render(<LandlordMaintenanceDetails />);
+  await render(<LandlordMaintenanceDetails />);
   expect(screen.getByText(formatPesoDisplay(1250))).toBeTruthy();
   expect(screen.getByText("Added to next rent")).toBeTruthy();
-  fireEvent.press(screen.getByText("Waive fee"));
+  await fireEvent.press(screen.getByText("Waive fee"));
   expect(mockWaive).not.toHaveBeenCalled();
   expect(screen.getByText("Waive Maintenance Fee")).toBeTruthy();
-  fireEvent.press(screen.getAllByText("Waive fee").at(-1)!);
+  await fireEvent.press(screen.getAllByText("Waive fee").at(-1)!);
   await waitFor(() => expect(mockWaive).toHaveBeenCalledWith("request-1"));
   await waitFor(() => expect(screen.queryByText("Waive Maintenance Fee")).toBeNull());
 });
 
-it.each(["paid", "waived"])("does not offer the landlord a waiver for a %s fee", (status) => {
+it.each(["paid", "waived"])("does not offer the landlord a waiver for a %s fee", async (status) => {
   mockLandlord.mockReturnValue({ ...mockLandlord(), requests: [{ ...REQUEST, fee_status: status }] });
-  render(<LandlordMaintenanceDetails />);
+  await render(<LandlordMaintenanceDetails />);
   expect(screen.queryByText("Waive fee")).toBeNull();
   expect(screen.getByText(status === "paid" ? "Paid" : "Waived")).toBeTruthy();
 });
@@ -69,9 +69,9 @@ it.each([
   { status: "pending", label: "Added to next rent" },
   { status: "paid", label: "Paid" },
   { status: "waived", label: "Waived" },
-])("shows the tenant's $status fee without landlord controls", ({ status, label }) => {
+])("shows the tenant's $status fee without landlord controls", async ({ status, label }) => {
   mockTenant.mockReturnValue({ request: { ...REQUEST, fee_status: status }, loading: false, error: null });
-  render(<TenantMaintenanceDetails />);
+  await render(<TenantMaintenanceDetails />);
   expect(screen.getByText(formatPesoDisplay(1250))).toBeTruthy();
   expect(screen.getByText(label)).toBeTruthy();
   expect(screen.queryByText("Waive fee")).toBeNull();

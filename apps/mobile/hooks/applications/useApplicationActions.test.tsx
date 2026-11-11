@@ -64,7 +64,7 @@ describe("useApplicationActions", () => {
     const { client, QueryWrapper } = createWrapper();
     const invalidateSpy = jest.spyOn(client, "invalidateQueries");
 
-    const { result, unmount } = renderHook(
+    const { result, unmount } = await renderHook(
       () => useApplicationActions(APPLICATION_ID),
       { wrapper: QueryWrapper },
     );
@@ -82,7 +82,7 @@ describe("useApplicationActions", () => {
       }),
     );
 
-    unmount();
+    await unmount();
     client.clear();
   });
 
@@ -91,7 +91,7 @@ describe("useApplicationActions", () => {
     const { client, QueryWrapper } = createWrapper();
     const invalidateSpy = jest.spyOn(client, "invalidateQueries");
 
-    const { result, unmount } = renderHook(
+    const { result, unmount } = await renderHook(
       () => useApplicationActions(APPLICATION_ID),
       { wrapper: QueryWrapper },
     );
@@ -111,7 +111,7 @@ describe("useApplicationActions", () => {
       }),
     );
 
-    unmount();
+    await unmount();
     client.clear();
   });
 
@@ -121,7 +121,7 @@ describe("useApplicationActions", () => {
     const { client, QueryWrapper } = createWrapper();
     const invalidateSpy = jest.spyOn(client, "invalidateQueries");
 
-    const { result, unmount } = renderHook(
+    const { result, unmount } = await renderHook(
       () => useApplicationActions(APPLICATION_ID),
       { wrapper: QueryWrapper },
     );
@@ -132,7 +132,7 @@ describe("useApplicationActions", () => {
 
     expect(result.current.errorMessage).toBe("RLS blocked");
     expect(invalidateSpy).not.toHaveBeenCalled();
-    unmount();
+    await unmount();
     client.clear();
   });
 
@@ -140,7 +140,7 @@ describe("useApplicationActions", () => {
     const { client, QueryWrapper } = createWrapper();
     const invalidateSpy = jest.spyOn(client, "invalidateQueries");
 
-    const { result, unmount } = renderHook(
+    const { result, unmount } = await renderHook(
       () => useApplicationActions(APPLICATION_ID, APARTMENT_ID),
       { wrapper: QueryWrapper },
     );
@@ -162,7 +162,7 @@ describe("useApplicationActions", () => {
       }),
     );
 
-    unmount();
+    await unmount();
     client.clear();
   });
 
@@ -176,7 +176,7 @@ describe("useApplicationActions", () => {
     const { client, QueryWrapper } = createWrapper();
     const invalidateSpy = jest.spyOn(client, "invalidateQueries");
 
-    const { result, unmount } = renderHook(
+    const { result, unmount } = await renderHook(
       () => useApplicationActions(APPLICATION_ID, APARTMENT_ID),
       { wrapper: QueryWrapper },
     );
@@ -189,7 +189,7 @@ describe("useApplicationActions", () => {
       "This unit is already occupied and cannot accept another tenant. Vacate it first, then approve.",
     );
     expect(invalidateSpy).not.toHaveBeenCalled();
-    unmount();
+    await unmount();
     client.clear();
   });
 });

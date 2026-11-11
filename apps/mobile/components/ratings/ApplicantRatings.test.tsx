@@ -57,39 +57,39 @@ beforeEach(() => {
 });
 
 describe("ApplicantRatings", () => {
-  it("shows a spinner while loading", () => {
+  it("shows a spinner while loading", async () => {
     mockState.loading = true;
-    render(<ApplicantRatings tenantId="t1" tenantName="Ana Cruz" />);
+    await render(<ApplicantRatings tenantId="t1" tenantName="Ana Cruz" />);
     expect(screen.getByTestId("spinner")).toBeTruthy();
   });
 
-  it("shows 'No ratings yet' when the tenant has none", () => {
-    render(<ApplicantRatings tenantId="t1" tenantName="Ana Cruz" />);
+  it("shows 'No ratings yet' when the tenant has none", async () => {
+    await render(<ApplicantRatings tenantId="t1" tenantName="Ana Cruz" />);
     expect(screen.getByText(/^No ratings yet\|/)).toBeTruthy();
   });
 
-  it("degrades to an inline retry when the ratings fail to load", () => {
+  it("degrades to an inline retry when the ratings fail to load", async () => {
     mockState.isError = true;
-    render(<ApplicantRatings tenantId="t1" tenantName="Ana Cruz" />);
+    await render(<ApplicantRatings tenantId="t1" tenantName="Ana Cruz" />);
     expect(screen.getByText(/You can still review and decide/)).toBeTruthy();
-    fireEvent.press(screen.getByText("Try Again"));
+    await fireEvent.press(screen.getByText("Try Again"));
     expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
 
-  it("shows the summary, the five newest ratings and a link to the full profile", () => {
+  it("shows the summary, the five newest ratings and a link to the full profile", async () => {
     mockState = {
       ...mockState,
       reviews: ["a", "b", "c", "d", "e", "f"].map(review),
       average: 4,
       count: 6,
     };
-    render(<ApplicantRatings tenantId="t1" tenantName="Ana Cruz" />);
+    await render(<ApplicantRatings tenantId="t1" tenantName="Ana Cruz" />);
     expect(screen.getByText("4.0")).toBeTruthy();
     expect(screen.getByText("4.0 from 6 landlord ratings")).toBeTruthy();
     expect(screen.getByText("Landlord a: Comment a")).toBeTruthy();
     expect(screen.queryByText("Landlord f: Comment f")).toBeNull();
     expect(screen.getByText("Showing the 5 most recent of 6 ratings.")).toBeTruthy();
-    fireEvent.press(screen.getByText("View full profile"));
+    await fireEvent.press(screen.getByText("View full profile"));
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/profile/tenant/[tenantId]", params: { tenantId: "t1" } });
   });
 });

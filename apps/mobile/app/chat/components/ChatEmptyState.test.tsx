@@ -19,7 +19,9 @@ jest.mock('heroui-native', () => {
     ({ children }: MockProps) => React.createElement(View, null, children),
     {
       Image: () => null,
-      Fallback: ({ children }: MockProps) => React.createElement(View, null, children),
+      // Real Avatar.Fallback wraps its initials in a Text node — a raw string
+      // breaks RN's text-in-Text rule under the v14 test renderer.
+      Fallback: ({ children }: MockProps) => React.createElement(Text, null, children),
     }
   );
   const ButtonMock = Object.assign(
@@ -43,8 +45,8 @@ jest.mock('@tabler/icons-react-native', () => {
 });
 
 describe('ChatEmptyState', () => {
-  it('shows who the other person is, the verified badge and the safety note', () => {
-    render(
+  it('shows who the other person is, the verified badge and the safety note', async () => {
+    await render(
       <ChatEmptyState
         otherUserName="Case Oh"
         apartmentTitle="Parada 3BR"
@@ -59,10 +61,10 @@ describe('ChatEmptyState', () => {
     expect(screen.getByText('Keep payments inside APT, never through chat.')).toBeTruthy();
   });
 
-  it('opens the profile and the apartment from the quick buttons', () => {
+  it('opens the profile and the apartment from the quick buttons', async () => {
     const onViewProfile = jest.fn();
     const onViewApartment = jest.fn();
-    render(
+    await render(
       <ChatEmptyState
         otherUserName="Case Oh"
         onViewProfile={onViewProfile}
@@ -70,15 +72,15 @@ describe('ChatEmptyState', () => {
       />
     );
 
-    fireEvent.press(screen.getByText('View profile'));
-    fireEvent.press(screen.getByText('View apartment'));
+    await fireEvent.press(screen.getByText('View profile'));
+    await fireEvent.press(screen.getByText('View apartment'));
 
     expect(onViewProfile).toHaveBeenCalledTimes(1);
     expect(onViewApartment).toHaveBeenCalledTimes(1);
   });
 
-  it('hides the badge and buttons when not available', () => {
-    render(<ChatEmptyState otherUserName="Case Oh" apartmentTitle="Parada 3BR" />);
+  it('hides the badge and buttons when not available', async () => {
+    await render(<ChatEmptyState otherUserName="Case Oh" apartmentTitle="Parada 3BR" />);
 
     expect(screen.getByText('Parada 3BR')).toBeTruthy();
     expect(screen.queryByLabelText('Verified account')).toBeNull();

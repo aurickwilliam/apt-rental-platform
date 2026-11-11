@@ -40,33 +40,33 @@ beforeEach(() => {
 afterEach(() => { jest.restoreAllMocks(); });
 afterAll(() => { Object.assign(globalThis, { requestIdleCallback: originalIdle, cancelIdleCallback: originalCancelIdle }); });
 
-it("dismisses before navigating to the existing review list and blocks stale navigation", () => {
-  const screen = render(<ReviewUnlockGate authUserId="auth-a" tenantId="tenant-a" />);
-  fireEvent.press(screen.getByText("Write a Review"));
+it("dismisses before navigating to the existing review list and blocks stale navigation", async () => {
+  const screen = await render(<ReviewUnlockGate authUserId="auth-a" tenantId="tenant-a" />);
+  await fireEvent.press(screen.getByText("Write a Review"));
   expect(mockDismiss).toHaveBeenCalledWith(mockOffer);
   expect(mockPush).toHaveBeenCalledWith({ pathname: "/apartment/[apartmentId]/ratings", params: { apartmentId: "apartment-a" } });
   expect(mockDismiss.mock.invocationCallOrder[0]).toBeLessThan(mockPush.mock.invocationCallOrder[0]);
   mockPush.mockClear(); mockDismiss.mockReturnValue(false);
-  fireEvent.press(screen.getByText("Write a Review"));
+  await fireEvent.press(screen.getByText("Write a Review"));
   expect(mockPush).not.toHaveBeenCalled();
-  fireEvent.press(screen.getByText("Close or Maybe later"));
+  await fireEvent.press(screen.getByText("Close or Maybe later"));
   expect(mockDismiss).toHaveBeenCalledTimes(3);
 });
 
-it("never shows over other tabs, pushed review/payment routes, or the background", () => {
-  const screen = render(<ReviewUnlockGate authUserId="auth-a" tenantId="tenant-a" />);
+it("never shows over other tabs, pushed review/payment routes, or the background", async () => {
+  const screen = await render(<ReviewUnlockGate authUserId="auth-a" tenantId="tenant-a" />);
   for (const path of ["/search", "/apartment/apartment-a/ratings", "/tenant/payment"]) {
     mockPathname = path;
-    screen.rerender(<ReviewUnlockGate authUserId="auth-a" tenantId="tenant-a" />);
+    await await screen.rerender(<ReviewUnlockGate authUserId="auth-a" tenantId="tenant-a" />);
     expect(screen.queryByText("Write a Review")).toBeNull();
   }
   mockPathname = "/rentals";
-  screen.rerender(<ReviewUnlockGate authUserId="auth-a" tenantId="tenant-a" />);
+  await await screen.rerender(<ReviewUnlockGate authUserId="auth-a" tenantId="tenant-a" />);
   expect(screen.queryByText("Write a Review")).not.toBeNull();
   const subscribe = jest.spyOn(AppState, "addEventListener");
-  screen.unmount();
-  const second = render(<ReviewUnlockGate authUserId="auth-a" tenantId="tenant-a" />);
+  await await screen.unmount();
+  const second = await render(<ReviewUnlockGate authUserId="auth-a" tenantId="tenant-a" />);
   const listener = subscribe.mock.calls.at(-1)![1];
-  act(() => { Object.assign(AppState, { currentState: "background" }); listener("background"); });
+  await act(() => { Object.assign(AppState, { currentState: "background" }); listener("background"); });
   expect(second.queryByText("Write a Review")).toBeNull();
 });

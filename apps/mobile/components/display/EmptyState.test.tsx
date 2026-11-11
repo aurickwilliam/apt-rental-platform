@@ -12,8 +12,8 @@ function TestIcon({ size, color }: { size?: number; color?: string }) {
 }
 
 describe("EmptyState", () => {
-  it("renders the icon at the shared size and brand color, with title and description", () => {
-    render(
+  it("renders the icon at the shared size and brand color, with title and description", async () => {
+    await render(
       <EmptyState
         icon={TestIcon as never}
         title="No items yet"
@@ -26,15 +26,15 @@ describe("EmptyState", () => {
     expect(screen.getByText("Items will appear here.")).toBeTruthy();
   });
 
-  it("omits the description and action when not given", () => {
-    render(<EmptyState icon={TestIcon as never} title="Nothing here" />);
+  it("omits the description and action when not given", async () => {
+    await render(<EmptyState icon={TestIcon as never} title="Nothing here" />);
 
     expect(screen.getByText("Nothing here")).toBeTruthy();
     expect(screen.queryByText("Items will appear here.")).toBeNull();
   });
 
-  it("renders the optional action", () => {
-    render(
+  it("renders the optional action", async () => {
+    await render(
       <EmptyState
         icon={TestIcon as never}
         title="No items yet"
@@ -45,21 +45,21 @@ describe("EmptyState", () => {
     expect(screen.getByText("Add item")).toBeTruthy();
   });
 
-  it("uses the default vertical padding unless the caller sets its own", () => {
-    const rootClass = (className?: string) => {
-      render(<EmptyState icon={TestIcon as never} title="x" className={className} />);
+  it("uses the default vertical padding unless the caller sets its own", async () => {
+    const rootClass = async (className?: string) => {
+      await await render(<EmptyState icon={TestIcon as never} title="x" className={className} />);
       const root = screen.toJSON() as unknown as { props: { className: string } };
       return root.props.className;
     };
 
-    expect(rootClass()).toContain("py-10");
-    expect(rootClass("py-4")).not.toContain("py-10");
-    expect(rootClass("pt-16 pb-0")).not.toContain("py-10");
-    expect(rootClass("flex-1")).toContain("py-10");
+    expect(await rootClass()).toContain("py-10");
+    expect(await rootClass("py-4")).not.toContain("py-10");
+    expect(await rootClass("pt-16 pb-0")).not.toContain("py-10");
+    expect(await rootClass("flex-1")).toContain("py-10");
   });
 
-  it("lets a caller override the icon color", () => {
-    render(<EmptyState icon={TestIcon as never} title="Paid" iconColor="#22C55E" />);
+  it("lets a caller override the icon color", async () => {
+    await render(<EmptyState icon={TestIcon as never} title="Paid" iconColor="#22C55E" />);
 
     expect(screen.getByText("icon 32 #22C55E")).toBeTruthy();
   });

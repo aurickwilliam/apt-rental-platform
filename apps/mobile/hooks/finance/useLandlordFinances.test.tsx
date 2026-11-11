@@ -20,7 +20,7 @@ jest.mock("@/service/finance/financeService", () => ({
   saveExpense: (...args: unknown[]) => mockSaveExpense(...args),
 }));
 
-function setup() {
+async function setup() {
   const client = new QueryClient({ defaultOptions: {
     queries: { retry: false, gcTime: 0 },
     mutations: { gcTime: 0 },
@@ -28,10 +28,10 @@ function setup() {
   const wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={client}>{children}</QueryClientProvider>
   );
-  return renderHook(() => useLandlordFinances({ month: "2026-10", apartmentId: null }), { wrapper });
+  return await renderHook(() => useLandlordFinances({ month: "2026-10", apartmentId: null }), { wrapper });
 }
 
-function setupIncomeMonths(apartmentId: string | null = null, isOpen = true) {
+async function setupIncomeMonths(apartmentId: string | null = null, isOpen = true) {
   const client = new QueryClient({ defaultOptions: {
     queries: { retry: false, gcTime: 0 },
     mutations: { gcTime: 0 },
@@ -39,7 +39,7 @@ function setupIncomeMonths(apartmentId: string | null = null, isOpen = true) {
   const wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={client}>{children}</QueryClientProvider>
   );
-  return renderHook(() => useFinanceIncomeMonths("2026-10", apartmentId, isOpen), { wrapper });
+  return await renderHook(() => useFinanceIncomeMonths("2026-10", apartmentId, isOpen), { wrapper });
 }
 
 describe("landlord finance portal access", () => {
@@ -49,10 +49,10 @@ describe("landlord finance portal access", () => {
     mockFetchFinances.mockResolvedValue({ properties: [] });
     usePortalStore.setState({ authUserId: "account", portal: "landlord", loading: false });
   });
-  afterEach(() => act(() => usePortalStore.getState().reset()));
+  afterEach(async () => await act(() => usePortalStore.getState().reset()));
 
   it("loads finances for a mixed-role landlord in the landlord portal", async () => {
-    const { result } = setup();
+    const { result } = await setup();
     await waitFor(() => expect(mockFetchFinances).toHaveBeenCalledTimes(1));
     expect(result.current.enabled).toBe(true);
     expect(result.current.ownerId).toBe("owner");
@@ -60,38 +60,38 @@ describe("landlord finance portal access", () => {
 
   it("still supports a landlord-only profile", async () => {
     mockRoles = ["landlord"];
-    const { result } = setup();
+    const { result } = await setup();
     await waitFor(() => expect(mockFetchFinances).toHaveBeenCalledTimes(1));
     expect(result.current.enabled).toBe(true);
   });
 
-  it.each([{ roles: ["admin"] }, { roles: ["tenant"] }, { roles: ["admin", "tenant"] }])("denies $roles without landlord membership", ({ roles }) => {
+  it.each([{ roles: ["admin"] }, { roles: ["tenant"] }, { roles: ["admin", "tenant"] }])("denies $roles without landlord membership", async ({ roles }) => {
     mockRoles = roles;
-    const { result } = setup();
+    const { result } = await setup();
     expect(result.current.enabled).toBe(false);
     expect(result.current.ownerId).toBeNull();
     expect(mockFetchFinances).not.toHaveBeenCalled();
   });
 
-  it("does not fetch or retry from the tenant portal", () => {
+  it("does not fetch or retry from the tenant portal", async () => {
     usePortalStore.setState({ portal: "tenant" });
-    const { result } = setup();
+    const { result } = await setup();
     result.current.retry();
     expect(result.current.enabled).toBe(false);
     expect(mockFetchFinances).not.toHaveBeenCalled();
   });
 
-  it("rejects a stale portal belonging to a different account", () => {
+  it("rejects a stale portal belonging to a different account", async () => {
     usePortalStore.setState({ authUserId: "another-account" });
-    const { result } = setup();
+    const { result } = await setup();
     expect(result.current.enabled).toBe(false);
     expect(mockFetchFinances).not.toHaveBeenCalled();
   });
 
   it("stops finance mutations after switching to the tenant portal", async () => {
-    const { result } = setup();
+    const { result } = await setup();
     await waitFor(() => expect(result.current.enabled).toBe(true));
-    act(() => usePortalStore.setState({ portal: "tenant" }));
+    await act(() => usePortalStore.setState({ portal: "tenant" }));
     await act(async () => {
       await expect(result.current.removeExpense.mutateAsync("expense")).rejects.toThrow("Switch to your landlord portal");
     });
@@ -106,7 +106,7 @@ describe("finance month picker indicators", () => {
     mockRoles = ["tenant", "admin", "landlord"];
     usePortalStore.setState({ authUserId: "account", portal: "landlord", loading: false });
   });
-  afterEach(() => act(() => usePortalStore.getState().reset()));
+  afterEach(async () => await act(() => usePortalStore.getState().reset()));
 
   it("uses the RPC month summary when the deployment provides one", async () => {
     mockFetchFinances.mockResolvedValue({
@@ -114,7 +114,7 @@ describe("finance month picker indicators", () => {
       months: [],
       incomeMonths: [{ month: "2026-10", collected: 12000 }],
     });
-    const { result } = setupIncomeMonths();
+    const { result } = await setupIncomeMonths();
     await waitFor(() =>
       expect(result.current.data).toEqual([{ month: "2026-10", collected: 12000 }]),
     );
@@ -136,7 +136,7 @@ describe("finance month picker indicators", () => {
         ],
       }),
     );
-    const { result } = setupIncomeMonths("villa");
+    const { result } = await setupIncomeMonths("villa");
     await waitFor(() => expect(result.current.data).toHaveLength(2));
     expect(mockFetchFinances).toHaveBeenCalledWith({ month: "2026-10", apartmentId: "villa" });
     expect(mockFetchFinances).toHaveBeenCalledWith({ month: "2025-10", apartmentId: "villa" });
@@ -148,12 +148,12 @@ describe("finance month picker indicators", () => {
 
   it("stays idle until the sheet opens for a landlord", async () => {
     mockFetchFinances.mockResolvedValue({ properties: [], months: [] });
-    const closed = setupIncomeMonths(null, false);
+    const closed = await setupIncomeMonths(null, false);
     await act(async () => {});
     expect(mockFetchFinances).not.toHaveBeenCalled();
-    closed.unmount();
+    await closed.unmount();
     mockRoles = ["tenant"];
-    const withoutRole = setupIncomeMonths();
+    const withoutRole = await setupIncomeMonths();
     await act(async () => {});
     expect(withoutRole.result.current.data).toBeUndefined();
     expect(mockFetchFinances).not.toHaveBeenCalled();

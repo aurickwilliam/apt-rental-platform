@@ -26,16 +26,16 @@ describe("expense entry draft lifecycle", () => {
   });
   afterEach(() => jest.useRealTimers());
 
-  test("a report refresh does not overwrite an open draft", () => {
+  test("a report refresh does not overwrite an open draft", async () => {
     const props = options();
-    const { result, rerender } = renderHook(useExpenseEntryForm, {
+    const { result, rerender } = await renderHook(useExpenseEntryForm, {
       initialProps: props,
     });
-    act(() => {
+    await act(() => {
       result.current.setAmount("1250.25");
       result.current.setDescription("Sink repair");
     });
-    rerender({
+    await rerender({
       ...props,
       properties: [{ id: "apt", name: "Renamed villa" }],
       month: "2026-09",
@@ -54,10 +54,10 @@ describe("expense entry draft lifecycle", () => {
       .mockResolvedValueOnce(undefined);
     const log = jest.spyOn(console, "error").mockImplementation(() => {});
     try {
-      const { result } = renderHook(() =>
+      const { result } = await renderHook(() =>
         useExpenseEntryForm({ ...props, onSave }),
       );
-      act(() => {
+      await act(() => {
         result.current.setAmount("1250.25");
         result.current.setDescription("  Sink repair  ");
       });
@@ -88,22 +88,22 @@ describe("expense entry draft lifecycle", () => {
       .mockReturnValueOnce("first-id")
       .mockReturnValueOnce("next-id");
     const props = options();
-    const { result, rerender } = renderHook(useExpenseEntryForm, {
+    const { result, rerender } = await renderHook(useExpenseEntryForm, {
       initialProps: props,
     });
-    act(() => {
+    await act(() => {
       result.current.setConfirmDelete(true);
     });
     await act(async () => {
       await result.current.handleSave();
     });
     expect(result.current.submitted).toBe(true);
-    rerender({ ...props, isOpen: false });
-    rerender({ ...props, month: "2026-09" });
+    await rerender({ ...props, isOpen: false });
+    await rerender({ ...props, month: "2026-09" });
     expect(result.current.submitted).toBe(false);
     expect(result.current.confirmDelete).toBe(false);
     expect(result.current.date).toBe("2026-09-01");
-    act(() => {
+    await act(() => {
       result.current.setAmount("500");
       result.current.setDescription("Repair");
     });

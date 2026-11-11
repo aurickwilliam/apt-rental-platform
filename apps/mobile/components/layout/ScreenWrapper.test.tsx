@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react-native";
-import { Text, View, type ScrollViewProps } from "react-native";
+import { Text, type ScrollViewProps } from "react-native";
 
 import ScreenWrapper, { renderKeyboardAwareListScrollView } from "./ScreenWrapper";
 
@@ -36,9 +36,9 @@ jest.mock("heroui-native", () => {
   };
 });
 
-it("uses the native gesture without either native indicator, showing only HeroUI while refreshing", () => {
+it("uses the native gesture without either native indicator, showing only HeroUI while refreshing", async () => {
   const onRefresh = jest.fn();
-  const { rerender } = render(
+  const { rerender } = await render(
     <ScreenWrapper scrollable refreshing onRefresh={onRefresh}>
       <Text>Documents</Text>
     </ScreenWrapper>,
@@ -48,7 +48,7 @@ it("uses the native gesture without either native indicator, showing only HeroUI
   expect(refreshControl().props).toMatchObject({ onRefresh, refreshing: true });
   expect(screen.getByLabelText("Refreshing")).toBeTruthy();
 
-  rerender(
+  await rerender(
     <ScreenWrapper scrollable refreshing={false} onRefresh={onRefresh}>
       <Text>Documents</Text>
     </ScreenWrapper>,
@@ -57,19 +57,19 @@ it("uses the native gesture without either native indicator, showing only HeroUI
   expect(screen.queryByLabelText("Refreshing")).toBeNull();
 });
 
-it("defaults to the screen background, allows grouping, and preserves explicit overrides", () => {
-  const { rerender, UNSAFE_getAllByType } = render(
+it("defaults to the screen background, allows grouping, and preserves explicit overrides", async () => {
+  const { rerender } = await render(
     <ScreenWrapper><Text>Content</Text></ScreenWrapper>,
   );
-  const container = () => UNSAFE_getAllByType(View)[0];
+  const container = () => screen.root!;
   expect(container().props.className).toBe("bg-background");
 
-  rerender(
+  await rerender(
     <ScreenWrapper background="grouped"><Text>Content</Text></ScreenWrapper>,
   );
   expect(container().props.className).toBe("bg-grouped-background");
 
-  rerender(
+  await rerender(
     <ScreenWrapper background="grouped" backgroundColor="#376BF5">
       <Text>Receipt</Text>
     </ScreenWrapper>,

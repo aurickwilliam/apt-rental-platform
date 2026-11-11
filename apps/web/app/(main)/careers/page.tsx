@@ -9,7 +9,7 @@ import {
   Alert,
 } from "@heroui/react";
 import { IconBriefcase as Briefcase, IconBolt as Zap, IconUsers as Users, IconTrendingUp as TrendingUp, IconTarget as Target } from "@tabler/icons-react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },

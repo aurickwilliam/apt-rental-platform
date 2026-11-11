@@ -54,9 +54,9 @@ const baseData: HoldMenuData = {
   canUnsend: true,
 };
 
-function renderMenu(overrides: Partial<HoldMenuData> = {}, handlers = {}) {
+async function renderMenu(overrides: Partial<HoldMenuData> = {}, handlers = {}) {
   const noop = jest.fn();
-  return render(
+  return await render(
     <HoldMenu
       data={{ ...baseData, ...overrides }}
       onReply={noop}
@@ -68,8 +68,8 @@ function renderMenu(overrides: Partial<HoldMenuData> = {}, handlers = {}) {
 }
 
 describe('HoldMenu', () => {
-  it('renders the timestamp and all actions, without reactions or the message', () => {
-    renderMenu();
+  it('renders the timestamp and all actions, without reactions or the message', async () => {
+    await renderMenu();
 
     // Reactions live in their own pill above the message (HoldStack).
     expect(screen.queryByLabelText('React with ❤️')).toBeNull();
@@ -79,35 +79,35 @@ describe('HoldMenu', () => {
     expect(screen.getByText('Unsend')).toBeTruthy();
   });
 
-  it('fires reply, copy, and unsend', () => {
+  it('fires reply, copy, and unsend', async () => {
     const onReply = jest.fn();
     const onCopy = jest.fn();
     const onUnsend = jest.fn();
-    renderMenu({}, { onReply, onCopy, onUnsend });
+    await renderMenu({}, { onReply, onCopy, onUnsend });
 
-    fireEvent.press(screen.getByText('Reply'));
-    fireEvent.press(screen.getByText('Copy'));
-    fireEvent.press(screen.getByText('Unsend'));
+    await fireEvent.press(screen.getByText('Reply'));
+    await fireEvent.press(screen.getByText('Copy'));
+    await fireEvent.press(screen.getByText('Unsend'));
 
     expect(onReply).toHaveBeenCalledTimes(1);
     expect(onCopy).toHaveBeenCalledTimes(1);
     expect(onUnsend).toHaveBeenCalledTimes(1);
   });
 
-  it('disables copy for non-text messages', () => {
+  it('disables copy for non-text messages', async () => {
     const onCopy = jest.fn();
-    renderMenu({ canCopy: false }, { onCopy });
+    await renderMenu({ canCopy: false }, { onCopy });
 
-    fireEvent.press(screen.getByText('Copy'));
+    await fireEvent.press(screen.getByText('Copy'));
 
     expect(onCopy).not.toHaveBeenCalled();
   });
 
-  it('dims unsend when the message cannot be unsent', () => {
+  it('dims unsend when the message cannot be unsent', async () => {
     const onUnsend = jest.fn();
-    renderMenu({ canUnsend: false }, { onUnsend });
+    await renderMenu({ canUnsend: false }, { onUnsend });
 
-    fireEvent.press(screen.getByText('Unsend'));
+    await fireEvent.press(screen.getByText('Unsend'));
 
     expect(onUnsend).not.toHaveBeenCalled();
   });

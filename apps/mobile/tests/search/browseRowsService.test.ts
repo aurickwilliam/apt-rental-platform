@@ -19,7 +19,7 @@ function setup(answer: Parameters<typeof createSupabaseRecorder>[0]["answer"]) {
 
 describe("fetchBrowseRowCards", () => {
   it("applies every criterion, the public visibility rules and one cover image per card", async () => {
-    const r = setup(() => [cardRow("a")]);
+    const r = await setup(() => [cardRow("a")]);
     await fetchBrowseRowCards({
       sort: "rating",
       criteria: {
@@ -56,7 +56,7 @@ describe("fetchBrowseRowCards", () => {
   });
 
   it("keeps an open price max open and skips unset criteria", async () => {
-    const r = setup(() => []);
+    const r = await setup(() => []);
     await fetchBrowseRowCards({ sort: "newest", criteria: { priceMin: 30000 } });
     const [call] = r.calls;
     expect(r.has(call, "gte", "monthly_rent", 30000)).toBe(true);
@@ -65,7 +65,7 @@ describe("fetchBrowseRowCards", () => {
   });
 
   it("pages by offset, capped at 15 by default, and orders with an id tiebreak", async () => {
-    const r = setup(() => []);
+    const r = await setup(() => []);
     await fetchBrowseRowCards({ sort: "rating", criteria: {} });
     await fetchBrowseRowCards({ sort: "price_asc", criteria: {} }, { limit: 10, offset: 20 });
     expect(r.has(r.calls[0], "range", 0, 14)).toBe(true);
@@ -76,11 +76,11 @@ describe("fetchBrowseRowCards", () => {
   });
 
   it("maps rows to cards and throws when the query fails", async () => {
-    setup(() => [cardRow("a", { monthly_rent: 12000 })]);
+    await setup(() => [cardRow("a", { monthly_rent: 12000 })]);
     const cards = await fetchBrowseRowCards({ sort: "rating", criteria: {} });
     expect(cards).toHaveLength(1);
     expect(cards[0]).toEqual(expect.objectContaining({ id: "a", monthlyRent: 12000 }));
-    setup(() => FAIL);
+    await setup(() => FAIL);
     await expect(fetchBrowseRowCards({ sort: "rating", criteria: {} })).rejects.toThrow("boom");
   });
 });
@@ -104,7 +104,7 @@ describe("fetchRecommendedCards", () => {
       poolRow("best", { is_verified: true, average_rating: 5 }),
       poolRow("mid", { is_verified: false, average_rating: 3 }),
     ];
-    const r = setup((call) => {
+    const r = await setup((call) => {
       if (call.select === POOL_SELECT) return pool;
       return ["mid", "best", "low"].map((id) => cardRow(id)); // wrong order on purpose
     });
@@ -120,7 +120,7 @@ describe("fetchRecommendedCards", () => {
   });
 
   it("returns nothing, without a second read, when no listing scores", async () => {
-    const r = setup(() => [poolRow("far", { city: "Malabon" })]);
+    const r = await setup(() => [poolRow("far", { city: "Malabon" })]);
     expect(await fetchRecommendedCards(prefs)).toEqual([]);
     expect(r.calls).toHaveLength(1);
   });
@@ -130,18 +130,18 @@ describe("fetchRecommendedCards", () => {
       poolRow("plain", { average_rating: 5 }),
       poolRow("ramp", { amenities: ["wheelchair"], average_rating: 1 }),
     ];
-    setup((call) => (call.select === POOL_SELECT ? pool : ["ramp", "plain"].map((id) => cardRow(id))));
+    await setup((call) => (call.select === POOL_SELECT ? pool : ["ramp", "plain"].map((id) => cardRow(id))));
     const cards = await fetchRecommendedCards({ ...prefs, selectedCities: [], hasDisability: true });
     expect(cards.map((card) => card.id)).toEqual(["ramp", "plain"]);
   });
 
   it("caps the winners at the requested limit and throws when a read fails", async () => {
     const pool = Array.from({ length: 30 }, (_, i) => poolRow(`p${String(i).padStart(2, "0")}`));
-    const r = setup((call) => (call.select === POOL_SELECT ? pool : []));
+    const r = await setup((call) => (call.select === POOL_SELECT ? pool : []));
     await fetchRecommendedCards(prefs, 5);
     const winners = r.calls.find((call) => call.select !== POOL_SELECT)!;
     expect((winners.ops.find((op) => op[0] === "in" && op[1] === "id")![2] as string[]).length).toBe(5);
-    setup(() => FAIL);
+    await setup(() => FAIL);
     await expect(fetchRecommendedCards(prefs)).rejects.toThrow("boom");
   });
 });

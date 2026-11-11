@@ -18,8 +18,8 @@ jest.mock("heroui-native", () => {
 const CITIES = ["CAMANAVA", "Caloocan", "Malabon", "Navotas", "Valenzuela"];
 
 describe("CityChips", () => {
-  it("shows All cities for CAMANAVA, then each city, with the current one filled", () => {
-    render(<CityChips cities={CITIES} selectedCity="Malabon" onSelectCity={jest.fn()} />);
+  it("shows All cities for CAMANAVA, then each city, with the current one filled", async () => {
+    await render(<CityChips cities={CITIES} selectedCity="Malabon" onSelectCity={jest.fn()} />);
     for (const label of ["All cities", "Caloocan", "Malabon", "Navotas", "Valenzuela"]) {
       expect(screen.getByText(label)).toBeTruthy();
     }
@@ -28,20 +28,20 @@ describe("CityChips", () => {
     expect(screen.getAllByTestId("chip-secondary")).toHaveLength(4);
   });
 
-  it("switches to a tapped city", () => {
+  it("switches to a tapped city", async () => {
     const onSelectCity = jest.fn();
-    render(<CityChips cities={CITIES} selectedCity="CAMANAVA" onSelectCity={onSelectCity} />);
-    fireEvent.press(screen.getByText("Navotas"));
+    await render(<CityChips cities={CITIES} selectedCity="CAMANAVA" onSelectCity={onSelectCity} />);
+    await fireEvent.press(screen.getByText("Navotas"));
     expect(onSelectCity).toHaveBeenCalledWith("Navotas");
   });
 
-  it("returns to all cities when the current city is tapped again, and All cities stays put", () => {
+  it("returns to all cities when the current city is tapped again, and All cities stays put", async () => {
     const onSelectCity = jest.fn();
-    const { rerender } = render(<CityChips cities={CITIES} selectedCity="Navotas" onSelectCity={onSelectCity} />);
-    fireEvent.press(screen.getByText("Navotas"));
+    const { rerender } = await render(<CityChips cities={CITIES} selectedCity="Navotas" onSelectCity={onSelectCity} />);
+    await fireEvent.press(screen.getByText("Navotas"));
     expect(onSelectCity).toHaveBeenLastCalledWith("CAMANAVA");
-    rerender(<CityChips cities={CITIES} selectedCity="CAMANAVA" onSelectCity={onSelectCity} />);
-    fireEvent.press(screen.getByText("All cities"));
+    await rerender(<CityChips cities={CITIES} selectedCity="CAMANAVA" onSelectCity={onSelectCity} />);
+    await fireEvent.press(screen.getByText("All cities"));
     expect(onSelectCity).toHaveBeenLastCalledWith("CAMANAVA");
   });
 });

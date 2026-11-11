@@ -58,60 +58,60 @@ describe("Settings › Change Password row", () => {
     mockEmailEligibility = undefined;
   });
 
-  it("opens Change Password for accounts with a password", () => {
+  it("opens Change Password for accounts with a password", async () => {
     mockPasswordStatus = "has_password";
-    render(<Settings />);
+    await render(<Settings />);
 
     expect(changePasswordRow().props.accessibilityState.disabled).toBe(false);
-    fireEvent.press(changePasswordRow());
+    await fireEvent.press(changePasswordRow());
     expect(mockRouter.push).toHaveBeenCalledWith("/settings/change-password");
   });
 
-  it("explains that Google-only accounts have no password to change", () => {
+  it("explains that Google-only accounts have no password to change", async () => {
     mockPasswordStatus = "no_password";
-    render(<Settings />);
+    await render(<Settings />);
 
     expect(screen.getByText("Signed in with Google")).toBeTruthy();
     expect(changePasswordRow().props.accessibilityState.disabled).toBe(true);
-    fireEvent.press(changePasswordRow());
+    await fireEvent.press(changePasswordRow());
     expect(mockRouter.push).not.toHaveBeenCalled();
   });
 
-  it("stays disabled while the account type is loading or unavailable", () => {
-    render(<Settings />);
+  it("stays disabled while the account type is loading or unavailable", async () => {
+    await render(<Settings />);
 
     expect(changePasswordRow().props.accessibilityState.disabled).toBe(true);
     expect(screen.queryByText("Signed in with Google")).toBeNull();
-    fireEvent.press(changePasswordRow());
+    await fireEvent.press(changePasswordRow());
     expect(mockRouter.push).not.toHaveBeenCalled();
   });
 
-  it("opens Change Email for email/password accounts without Google", () => {
+  it("opens Change Email for email/password accounts without Google", async () => {
     mockPasswordStatus = "has_password";
     mockEmailEligibility = "eligible";
-    render(<Settings />);
+    await render(<Settings />);
 
     const changeEmailRow = rowFor("Change Email");
     expect(changeEmailRow.props.accessibilityState.disabled).toBe(false);
-    fireEvent.press(changeEmailRow);
+    await fireEvent.press(changeEmailRow);
     expect(mockRouter.push).toHaveBeenCalledWith("/settings/change-email");
   });
 
-  it("explains that Google sign-in accounts cannot change email here", () => {
+  it("explains that Google sign-in accounts cannot change email here", async () => {
     mockPasswordStatus = "has_password";
     mockEmailEligibility = "google";
-    render(<Settings />);
+    await render(<Settings />);
 
     const changeEmailRow = rowFor("Change Email");
     expect(within(changeEmailRow).getByText("Signed in with Google")).toBeTruthy();
     expect(changeEmailRow.props.accessibilityState.disabled).toBe(true);
-    fireEvent.press(changeEmailRow);
+    await fireEvent.press(changeEmailRow);
     expect(mockRouter.push).not.toHaveBeenCalledWith("/settings/change-email");
   });
 
-  it("keeps Change Email disabled while eligibility is loading", () => {
+  it("keeps Change Email disabled while eligibility is loading", async () => {
     mockPasswordStatus = "has_password";
-    render(<Settings />);
+    await render(<Settings />);
 
     const changeEmailRow = rowFor("Change Email");
     expect(changeEmailRow.props.accessibilityState.disabled).toBe(true);

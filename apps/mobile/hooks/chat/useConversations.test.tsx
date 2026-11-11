@@ -166,7 +166,7 @@ describe("useConversations", () => {
   it("fetches conversations with the keyed query", async () => {
     const { QueryWrapper } = createWrapper();
 
-    const { result, unmount } = renderHook(
+    const { result, unmount } = await renderHook(
       () => useConversations("tenant"),
       { wrapper: QueryWrapper },
     );
@@ -175,7 +175,7 @@ describe("useConversations", () => {
     expect(mockFetchConversations).toHaveBeenCalledWith(MY_ID, "tenant");
     expect(result.current.conversations).toHaveLength(2);
 
-    unmount();
+    await unmount();
   });
 
   /** Validates: m7 — realtime INSERT merges into the cached list (front) */
@@ -183,7 +183,7 @@ describe("useConversations", () => {
     const { client, QueryWrapper } = createWrapper();
     client.setQueryData(getConversationsQueryKey(MY_ID, "tenant"), seedConversations);
 
-    const { result, unmount } = renderHook(
+    const { result, unmount } = await renderHook(
       () => useConversations("tenant"),
       { wrapper: QueryWrapper },
     );
@@ -209,7 +209,7 @@ describe("useConversations", () => {
     );
     expect(result.current.conversations[1].other_user_id).toBe("other-2");
 
-    unmount();
+    await unmount();
   });
 
   /** Validates: m7 — own-message INSERT does not bump unread count */
@@ -217,7 +217,7 @@ describe("useConversations", () => {
     const { client, QueryWrapper } = createWrapper();
     client.setQueryData(getConversationsQueryKey(MY_ID, "tenant"), seedConversations);
 
-    const { result, unmount } = renderHook(
+    const { result, unmount } = await renderHook(
       () => useConversations("tenant"),
       { wrapper: QueryWrapper },
     );
@@ -242,7 +242,7 @@ describe("useConversations", () => {
       }),
     );
 
-    unmount();
+    await unmount();
   });
 
   it("does not bump unread_count for the conversation on screen", async () => {
@@ -250,7 +250,7 @@ describe("useConversations", () => {
     client.setQueryData(getConversationsQueryKey(MY_ID, "tenant"), seedConversations);
     const endViewing = beginViewingConversation("other-1:apt-1");
 
-    const { result, unmount } = renderHook(
+    const { result, unmount } = await renderHook(
       () => useConversations("tenant"),
       { wrapper: QueryWrapper },
     );
@@ -275,7 +275,7 @@ describe("useConversations", () => {
     );
 
     endViewing();
-    unmount();
+    await unmount();
   });
 
   /** Validates: m7 — unknown conversation triggers a refetch, not a corrupt merge */
@@ -284,7 +284,7 @@ describe("useConversations", () => {
     const invalidateSpy = jest.spyOn(client, "invalidateQueries");
     client.setQueryData(getConversationsQueryKey(MY_ID, "tenant"), seedConversations);
 
-    const { unmount } = renderHook(
+    const { unmount } = await renderHook(
       () => useConversations("tenant"),
       { wrapper: QueryWrapper },
     );
@@ -307,7 +307,7 @@ describe("useConversations", () => {
       }),
     );
 
-    unmount();
+    await unmount();
   });
 
   /** Validates: m7 — markConversationRead zeroes only the targeted conversation */
@@ -315,7 +315,7 @@ describe("useConversations", () => {
     const { client, QueryWrapper } = createWrapper();
     client.setQueryData(getConversationsQueryKey(MY_ID, "tenant"), seedConversations);
 
-    const { result, unmount } = renderHook(
+    const { result, unmount } = await renderHook(
       () => useConversations("tenant"),
       { wrapper: QueryWrapper },
     );
@@ -335,7 +335,7 @@ describe("useConversations", () => {
     );
     expect(mockMarkMessagesAsRead).toHaveBeenCalledWith({ otherUserId: "other-2", apartmentId: "apt-2" });
 
-    unmount();
+    await unmount();
   });
 
   it("puts the unread badge back when saving the read state fails", async () => {
@@ -344,7 +344,7 @@ describe("useConversations", () => {
     const { client, QueryWrapper } = createWrapper();
     client.setQueryData(getConversationsQueryKey(MY_ID, "tenant"), seedConversations);
 
-    const { result, unmount } = renderHook(
+    const { result, unmount } = await renderHook(
       () => useConversations("tenant"),
       { wrapper: QueryWrapper },
     );
@@ -363,7 +363,7 @@ describe("useConversations", () => {
     expect(consoleSpy).toHaveBeenCalled();
 
     consoleSpy.mockRestore();
-    unmount();
+    await unmount();
   });
 
   it("shows a friendly message and logs the raw error when loading fails", async () => {
@@ -372,7 +372,7 @@ describe("useConversations", () => {
     mockFetchConversations.mockRejectedValue(rawError);
     const { QueryWrapper } = createWrapper();
 
-    const { result, unmount } = renderHook(
+    const { result, unmount } = await renderHook(
       () => useConversations("tenant"),
       { wrapper: QueryWrapper },
     );
@@ -387,14 +387,14 @@ describe("useConversations", () => {
     );
 
     consoleSpy.mockRestore();
-    unmount();
+    await unmount();
   });
 
   it("archives optimistically and saves the change", async () => {
     const { client, QueryWrapper } = createWrapper();
     client.setQueryData(getConversationsQueryKey(MY_ID, "tenant"), seedConversations);
 
-    const { result, unmount } = renderHook(
+    const { result, unmount } = await renderHook(
       () => useConversations("tenant"),
       { wrapper: QueryWrapper },
     );
@@ -413,7 +413,7 @@ describe("useConversations", () => {
       { archived: true },
     );
 
-    unmount();
+    await unmount();
   });
 
   it("puts the preference back and rethrows when saving fails", async () => {
@@ -421,7 +421,7 @@ describe("useConversations", () => {
     const { client, QueryWrapper } = createWrapper();
     client.setQueryData(getConversationsQueryKey(MY_ID, "tenant"), seedConversations);
 
-    const { result, unmount } = renderHook(
+    const { result, unmount } = await renderHook(
       () => useConversations("tenant"),
       { wrapper: QueryWrapper },
     );
@@ -437,7 +437,7 @@ describe("useConversations", () => {
       expect(result.current.conversations[0]).toMatchObject({ is_pinned: false, pinned_at: null }),
     );
 
-    unmount();
+    await unmount();
   });
 
   it("brings an archived conversation back when a new message arrives", async () => {
@@ -447,7 +447,7 @@ describe("useConversations", () => {
       seedConversations[1],
     ]);
 
-    const { result, unmount } = renderHook(
+    const { result, unmount } = await renderHook(
       () => useConversations("tenant"),
       { wrapper: QueryWrapper },
     );
@@ -469,34 +469,34 @@ describe("useConversations", () => {
       }),
     );
 
-    unmount();
+    await unmount();
   });
 
   it("does not open a realtime channel when subscribe is false", async () => {
     const { QueryWrapper } = createWrapper();
 
-    const { unmount } = renderHook(
+    const { unmount } = await renderHook(
       () => useConversations("tenant", { subscribe: false }),
       { wrapper: QueryWrapper },
     );
     await act(async () => {});
 
     expect(mockChannelFn).not.toHaveBeenCalled();
-    unmount();
+    await unmount();
   });
 
   /** Validates: m7 — cleanup unsubscribes the realtime channel */
   it("removes the realtime channel on unmount", async () => {
     const { QueryWrapper } = createWrapper();
 
-    const { unmount } = renderHook(
+    const { unmount } = await renderHook(
       () => useConversations("tenant"),
       { wrapper: QueryWrapper },
     );
 
     await waitFor(() => expect(chatInsertCallback).toBeDefined());
 
-    unmount();
+    await unmount();
     expect(mockRemoveChannel).toHaveBeenCalled();
   });
 
@@ -506,21 +506,21 @@ describe("useConversations", () => {
   it("subscribes only once across re-renders", async () => {
     const { QueryWrapper } = createWrapper();
 
-    const { rerender, unmount } = renderHook(
+    const { rerender, unmount } = await renderHook(
       () => useConversations("tenant"),
       { wrapper: QueryWrapper },
     );
 
     await waitFor(() => expect(chatInsertCallback).toBeDefined());
 
-    rerender({});
-    rerender({});
-    rerender({});
+    await rerender({});
+    await rerender({});
+    await rerender({});
 
     expect(mockChannelFn).toHaveBeenCalledTimes(1);
     expect(mockRemoveChannel).not.toHaveBeenCalled();
 
-    unmount();
+    await unmount();
     expect(mockRemoveChannel).toHaveBeenCalledWith(
       expect.objectContaining({ topic: `realtime:chat-list:${MY_ID}:tenant` }),
     );
@@ -538,7 +538,7 @@ describe("useConversations", () => {
 
     const { QueryWrapper } = createWrapper();
 
-    const { unmount } = renderHook(
+    const { unmount } = await renderHook(
       () => useConversations("tenant"),
       { wrapper: QueryWrapper },
     );
@@ -548,7 +548,7 @@ describe("useConversations", () => {
     expect(mockChannelFn).not.toHaveBeenCalled();
     expect(existingChannel.on).not.toHaveBeenCalled();
 
-    unmount();
+    await unmount();
     expect(mockRemoveChannel).toHaveBeenCalledWith(existingChannel);
   });
 });

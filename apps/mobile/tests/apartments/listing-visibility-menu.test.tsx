@@ -28,22 +28,22 @@ jest.mock("heroui-native", () => {
   return { Button, Menu, Card, PressableFeedback };
 });
 
-it.each([false, true])("exposes the matching visibility action (hidden=%s)", hidden => {
+it.each([false, true])("exposes the matching visibility action (hidden=%s)", async hidden => {
   const action = jest.fn();
-  const screen = render(<PropertyActionMenu onVacate={jest.fn()} onRemove={jest.fn()} isOccupied={false}
+  const screen = await render(<PropertyActionMenu onVacate={jest.fn()} onRemove={jest.fn()} isOccupied={false}
     visibilityLabel={hidden ? "Show Listing" : "Hide Listing"} isListingHidden={hidden} onVisibilityPress={action} />);
-  fireEvent.press(screen.getByText(hidden ? "Show Listing" : "Hide Listing"));
+  await fireEvent.press(screen.getByText(hidden ? "Show Listing" : "Hide Listing"));
   expect(action).toHaveBeenCalledTimes(1);
 });
 
-it("does not render hide/show for an occupied property", () => {
-  const screen = render(<PropertyActionMenu onVacate={jest.fn()} onRemove={jest.fn()} isOccupied />);
+it("does not render hide/show for an occupied property", async () => {
+  const screen = await render(<PropertyActionMenu onVacate={jest.fn()} onRemove={jest.fn()} isOccupied />);
   expect(screen.queryByText("Hide Listing")).toBeNull();
   expect(screen.queryByText("Show Listing")).toBeNull();
 });
 
-it("shows maintenance hiding and administrator hiding as separate states on the unit card", () => {
-  const screen = render(<PropertyCard apartmentName="Test unit" barangay="Barangay 1" city="Navotas" status="under_maintenance"
+it("shows maintenance hiding and administrator hiding as separate states on the unit card", async () => {
+  const screen = await render(<PropertyCard apartmentName="Test unit" barangay="Barangay 1" city="Navotas" status="under_maintenance"
     isVerified isHiddenByAdmin thumbnailUrl={undefined} onPress={jest.fn()} monthlyRent={10000} />);
   expect(screen.getByText("Hidden · Under maintenance")).toBeTruthy();
   expect(screen.getByText("Hidden", { exact: true })).toBeTruthy();

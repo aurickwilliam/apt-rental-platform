@@ -31,12 +31,12 @@ jest.mock("heroui-native", () => {
 
 const handlers = () => ({ onReject: jest.fn(), onApprove: jest.fn() });
 
-it("calls the matching handler for Reject and Approve", () => {
+it("calls the matching handler for Reject and Approve", async () => {
   const { onReject, onApprove } = handlers();
-  render(<ApplicationDecisionBar isUnitOccupied={false} isLoading={false} onReject={onReject} onApprove={onApprove} />);
+  await render(<ApplicationDecisionBar isUnitOccupied={false} isLoading={false} onReject={onReject} onApprove={onApprove} />);
 
-  fireEvent.press(screen.getByText("Reject"));
-  fireEvent.press(screen.getByText("Approve"));
+  await fireEvent.press(screen.getByText("Reject"));
+  await fireEvent.press(screen.getByText("Approve"));
   expect(onReject).toHaveBeenCalledTimes(1);
   expect(onApprove).toHaveBeenCalledTimes(1);
 });
@@ -44,18 +44,18 @@ it("calls the matching handler for Reject and Approve", () => {
 const isDisabled = (label: string) =>
   !!screen.getByRole("button", { name: label }).props.accessibilityState?.disabled;
 
-it("disables approval and explains why when the unit is occupied", () => {
+it("disables approval and explains why when the unit is occupied", async () => {
   const { onReject, onApprove } = handlers();
-  render(<ApplicationDecisionBar isUnitOccupied isLoading={false} onReject={onReject} onApprove={onApprove} />);
+  await render(<ApplicationDecisionBar isUnitOccupied isLoading={false} onReject={onReject} onApprove={onApprove} />);
 
   expect(screen.getByText(/already occupied/)).toBeTruthy();
   expect(isDisabled("Approve")).toBe(true);
   expect(isDisabled("Reject")).toBe(false);
 });
 
-it("disables both actions while a decision is in flight", () => {
+it("disables both actions while a decision is in flight", async () => {
   const { onReject, onApprove } = handlers();
-  render(<ApplicationDecisionBar isUnitOccupied={false} isLoading onReject={onReject} onApprove={onApprove} />);
+  await render(<ApplicationDecisionBar isUnitOccupied={false} isLoading onReject={onReject} onApprove={onApprove} />);
 
   expect(isDisabled("Approve")).toBe(true);
   expect(isDisabled("Reject")).toBe(true);

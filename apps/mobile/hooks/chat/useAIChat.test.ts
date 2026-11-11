@@ -65,7 +65,7 @@ describe("useAIChat", () => {
     }));
     mockFetchAvaListings.mockResolvedValue([FOUND]);
 
-    const { result } = renderHook(() => useAIChat());
+    const { result } = await renderHook(() => useAIChat());
     await act(() => result.current.sendMessage("studio sa Malabon"));
 
     expect(mockAskAva).toHaveBeenCalledWith([expect.objectContaining({ role: "user", text: "studio sa Malabon" })]);
@@ -84,7 +84,7 @@ describe("useAIChat", () => {
   it("sends the earlier conversation with the new message", async () => {
     mockAskAva.mockResolvedValue(answer({ source: "gemini", reply: "Saan po?", quickReplies: [], filters: EMPTY_AI_SEARCH_FILTERS }));
 
-    const { result } = renderHook(() => useAIChat());
+    const { result } = await renderHook(() => useAIChat());
     await act(() => result.current.sendMessage("I need a place to rent"));
     await act(() => result.current.sendMessage("Malabon"));
 
@@ -98,7 +98,7 @@ describe("useAIChat", () => {
   it("asks for details and offers cities when nothing searchable was understood", async () => {
     mockAskAva.mockResolvedValue(answer({ source: "fallback", reply: null, quickReplies: [], filters: EMPTY_AI_SEARCH_FILTERS }));
 
-    const { result } = renderHook(() => useAIChat());
+    const { result } = await renderHook(() => useAIChat());
     await act(() => result.current.sendMessage("Hello"));
 
     expect(mockFetchAvaListings).not.toHaveBeenCalled();
@@ -110,7 +110,7 @@ describe("useAIChat", () => {
     mockAskAva.mockResolvedValue(answer({ source: "limit", reply: null, quickReplies: [], filters: MALABON }));
     mockFetchAvaListings.mockResolvedValue([FOUND]);
 
-    const { result } = renderHook(() => useAIChat());
+    const { result } = await renderHook(() => useAIChat());
     await act(() => result.current.sendMessage("Malabon"));
 
     expect(result.current.messages[1].text).toMatch(/^I've answered a lot today/);
@@ -127,7 +127,7 @@ describe("useAIChat", () => {
     }));
     mockFetchAvaListings.mockResolvedValue([]);
 
-    const { result } = renderHook(() => useAIChat());
+    const { result } = await renderHook(() => useAIChat());
     await act(() => result.current.sendMessage("murang studio na pet friendly"));
 
     expect(result.current.messages[1]).toMatchObject({
@@ -140,7 +140,7 @@ describe("useAIChat", () => {
     mockAskAva.mockResolvedValue(answer({ source: "fallback", reply: null, quickReplies: [], filters: MALABON }));
     mockFetchAvaListings.mockResolvedValue([]);
 
-    const { result } = renderHook(() => useAIChat());
+    const { result } = await renderHook(() => useAIChat());
     await act(() => result.current.sendMessage("Malabon"));
 
     expect(result.current.messages[1].text).toMatch(/couldn't find a match yet/);
@@ -152,7 +152,7 @@ describe("useAIChat", () => {
     mockAskAva.mockResolvedValue(answer({ source: "gemini", reply: "OK", quickReplies: [], filters: MALABON }));
     mockFetchAvaListings.mockRejectedValue(new Error("network"));
 
-    const { result } = renderHook(() => useAIChat());
+    const { result } = await renderHook(() => useAIChat());
     await act(() => result.current.sendMessage("Malabon"));
 
     expect(result.current.messages[1].text).toMatch(/couldn't load listings/);
@@ -163,10 +163,10 @@ describe("useAIChat", () => {
     let resolveAnswer: (value: unknown) => void = () => {};
     mockAskAva.mockReturnValue(new Promise((resolve) => { resolveAnswer = resolve; }));
 
-    const { result } = renderHook(() => useAIChat());
+    const { result } = await renderHook(() => useAIChat());
     let pending: Promise<void> = Promise.resolve();
-    act(() => { pending = result.current.sendMessage("Malabon"); });
-    act(() => result.current.resetChat());
+    await act(() => { pending = result.current.sendMessage("Malabon"); });
+    await act(() => result.current.resetChat());
 
     await act(async () => {
       resolveAnswer(answer({ reply: "Late reply", filters: EMPTY_AI_SEARCH_FILTERS }));
@@ -181,7 +181,7 @@ describe("useAIChat", () => {
     mockAskAva.mockResolvedValue(answer({ reply: "Here you go.", filters: MALABON }));
     mockFetchAvaListings.mockResolvedValue([FOUND]);
 
-    const { result } = renderHook(() => useAIChat());
+    const { result } = await renderHook(() => useAIChat());
     await act(() => result.current.sendMessage("apartments in Malabon"));
     expect(result.current.messages[1].shownIds).toEqual(["apt-1"]);
 
@@ -194,7 +194,7 @@ describe("useAIChat", () => {
   });
 
   it("ignores blank messages", async () => {
-    const { result } = renderHook(() => useAIChat());
+    const { result } = await renderHook(() => useAIChat());
     await act(() => result.current.sendMessage("   "));
 
     expect(mockAskAva).not.toHaveBeenCalled();
@@ -206,7 +206,7 @@ describe("useAIChat", () => {
       mockAskAva.mockResolvedValue(answer({ reply: "Here you go.", filters: MALABON }));
       mockFetchAvaListings.mockResolvedValue([FOUND]);
 
-      const { result } = renderHook(() => useAIChat("auth-1"));
+      const { result } = await renderHook(() => useAIChat("auth-1"));
       await act(async () => {});
       await act(() => result.current.sendMessage("apartments in Malabon"));
 
@@ -216,7 +216,7 @@ describe("useAIChat", () => {
       expect(mockSaveChats).toHaveBeenLastCalledWith("auth-1", result.current.chats);
 
       const chatId = result.current.chats[0].id;
-      act(() => result.current.resetChat());
+      await act(() => result.current.resetChat());
       expect(result.current.messages).toEqual([]);
 
       mockFetchByIds.mockResolvedValue(new Map([["apt-1", { id: "apt-1", name: "Fresh Name" }]]));
@@ -228,17 +228,17 @@ describe("useAIChat", () => {
       mockAskAva.mockResolvedValue(answer({ reply: "Here you go.", filters: MALABON }));
       mockFetchAvaListings.mockResolvedValue([FOUND]);
 
-      const { result } = renderHook(() => useAIChat("auth-1"));
+      const { result } = await renderHook(() => useAIChat("auth-1"));
       await act(async () => {});
       await act(() => result.current.sendMessage("apartments in Malabon"));
       const chatId = result.current.chats[0].id;
-      act(() => result.current.resetChat());
+      await act(() => result.current.resetChat());
 
       mockFetchByIds.mockResolvedValue(new Map());
       await act(() => result.current.openChat(chatId));
       expect(result.current.messages[1].listings).toEqual([]);
 
-      act(() => result.current.deleteChat(chatId));
+      await act(() => result.current.deleteChat(chatId));
       expect(result.current.chats).toEqual([]);
       expect(result.current.messages).toEqual([]);
     });
@@ -250,7 +250,7 @@ describe("useAIChat", () => {
       mockFetchAvaListings.mockResolvedValue([FOUND]);
       const older = { id: "old-chat", title: "Older", updatedAt: 1, messages: [{ id: "m", role: "user", text: "hi" }] };
 
-      const { result } = renderHook(() => useAIChat("auth-1"));
+      const { result } = await renderHook(() => useAIChat("auth-1"));
       await act(() => result.current.sendMessage("apartments in Malabon"));
       expect(mockSaveChats).not.toHaveBeenCalled();
 
@@ -264,7 +264,7 @@ describe("useAIChat", () => {
       mockAskAva.mockResolvedValue(answer({ reply: "Here you go.", filters: MALABON }));
       mockFetchAvaListings.mockResolvedValue([FOUND]);
 
-      const { result } = renderHook(() => useAIChat());
+      const { result } = await renderHook(() => useAIChat());
       await act(() => result.current.sendMessage("apartments in Malabon"));
 
       expect(mockSaveChats).not.toHaveBeenCalled();

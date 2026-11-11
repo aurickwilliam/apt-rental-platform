@@ -12,8 +12,8 @@ it.each([
   [45000, null, "Security Deposit"],
   [45000, 50000, "Security Deposit"],
   [0, 90000, "Security Deposit"],
-] as const)("labels a %s rent and %s deposit as %s", (monthlyRent, securityDeposit, label) => {
-  render(
+] as const)("labels a %s rent and %s deposit as %s", async (monthlyRent, securityDeposit, label) => {
+  await render(
     <MoveInCostBreakdown
       monthlyRent={monthlyRent}
       securityDeposit={securityDeposit}
