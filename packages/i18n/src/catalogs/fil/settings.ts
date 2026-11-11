@@ -28,14 +28,11 @@ export const settings: Record<keyof typeof enSettings, string> = {
   "settings.help": "Tulong at Suporta",
   "settings.rentalPreferences": "Mga Preperensya sa Renta",
   "settings.general.description": "Mga setting ng wika at itsura para sa browser na ito.",
-  "settings.languageRegion.heading": "Wika at rehiyon",
+  "settings.languageRegion.heading": "Wika",
   "settings.appearance.heading": "Itsura",
   "settings.language.title": "Wika",
   "settings.language.description": "Piliin ang wika para sa browser na ito.",
   "settings.language.label": "Wika",
-  "settings.region.title": "Rehiyon",
-  "settings.region.description": "Wala pang mga preperensya sa rehiyon.",
-  "settings.region.label": "Rehiyon",
   "settings.theme.title": "Tema",
   "settings.theme.description": "Pumili ng light, dark, o sundan ang device mo.",
   "settings.theme.label": "Tema",
@@ -47,7 +44,6 @@ export const settings: Record<keyof typeof enSettings, string> = {
   "settings.reduceMotion.label": "Bawasan ang galaw",
   "settings.languageSwitch.toFilipino": "Lumipat sa Filipino",
   "settings.languageSwitch.toEnglish": "Lumipat sa English",
-  "settings.mobile.languageRegion": "Wika at Rehiyon",
   "settings.mobile.selectLanguage": "Piliin ang Wika",
 
   // Unsaved-changes guard

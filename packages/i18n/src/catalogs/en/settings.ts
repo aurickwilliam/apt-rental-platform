@@ -27,14 +27,11 @@ export const settings = {
   "settings.help": "Help & Support",
   "settings.rentalPreferences": "Rental Preferences",
   "settings.general.description": "Language and appearance settings for this browser.",
-  "settings.languageRegion.heading": "Language & region",
+  "settings.languageRegion.heading": "Language",
   "settings.appearance.heading": "Appearance",
   "settings.language.title": "Language",
   "settings.language.description": "Choose the language for this browser.",
   "settings.language.label": "Language",
-  "settings.region.title": "Region",
-  "settings.region.description": "Region preferences are not available yet.",
-  "settings.region.label": "Region",
   "settings.theme.title": "Theme",
   "settings.theme.description": "Choose light, dark, or follow your device.",
   "settings.theme.label": "Theme",
@@ -46,7 +43,6 @@ export const settings = {
   "settings.reduceMotion.label": "Reduce motion",
   "settings.languageSwitch.toFilipino": "Switch to Filipino",
   "settings.languageSwitch.toEnglish": "Switch to English",
-  "settings.mobile.languageRegion": "Language & Region",
   "settings.mobile.selectLanguage": "Select Language",
 
   // Unsaved-changes guard

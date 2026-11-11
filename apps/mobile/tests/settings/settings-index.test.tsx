@@ -34,6 +34,11 @@ jest.mock("@/app/settings/components/AppearanceSheet", () => ({
   getThemeModeLabel: () => "System",
 }));
 
+jest.mock("@/app/settings/components/LanguageSheet", () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock("@/components/layout/ScreenWrapper", () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => children,

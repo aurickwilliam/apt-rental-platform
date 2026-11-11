@@ -19,10 +19,11 @@ import { usePortalStore } from '@/stores/usePortalStore'
 import { useTutorialStore } from '@/stores/useTutorialStore'
 import { portalHome } from '@/service/auth/portalPreference'
 
-import { ALLOW_FILIPINO } from '@repo/i18n'
+import { ALLOW_FILIPINO, APP_LANGUAGES } from '@repo/i18n'
 import { useTranslation } from '@/hooks/i18n/useTranslation'
 
 import AppearanceSheet, { getThemeModeLabel } from './components/AppearanceSheet'
+import LanguageSheet from './components/LanguageSheet'
 
 type SettingItem = {
   icon: Icon
@@ -48,10 +49,14 @@ function StatusChip({ label }: { label: string }) {
 
 export default function Index() {
   const router = useRouter()
-  const { language, t } = useTranslation()
+  const { language, setLanguage, t } = useTranslation()
   const { colors } = useColors();
   const { themeMode, setThemeMode } = useThemePreference();
   const [appearanceSheetOpen, setAppearanceSheetOpen] = useState(false);
+  const [languageSheetOpen, setLanguageSheetOpen] = useState(false);
+
+  const currentLanguageLabel =
+    APP_LANGUAGES.find(({ code }) => code === language)?.label ?? APP_LANGUAGES[0].label
 
   const { preferences: notifPrefs } = useNotificationPreferences();
   const { preferences: rentalPrefs, hasPrefs } = useUserPreferences();
@@ -120,6 +125,42 @@ export default function Index() {
 
   const sections: SettingSection[] = [
     {
+      title: t('settings.general'),
+      items: [
+        {
+          icon: IconGlobe,
+          title: t('settings.language.title'),
+          // The switch stays gated until the core surfaces are translated.
+          // Flip the flag to enable this row and the switchers together.
+          disabled: !ALLOW_FILIPINO,
+          onPress: ALLOW_FILIPINO ? () => setLanguageSheetOpen(true) : undefined,
+          suffix: ALLOW_FILIPINO ? (
+            <View className="flex-row items-center gap-1">
+              <Text className='text-muted text-sm font-inter'>
+                {currentLanguageLabel}
+              </Text>
+              <IconChevronRight size={16} color={colors.gray500} />
+            </View>
+          ) : (
+            <ComingSoonChip />
+          ),
+        },
+        {
+          icon: IconMoonStars,
+          title: t('settings.mobile.appearance'),
+          onPress: () => setAppearanceSheetOpen(true),
+          suffix: (
+            <View className="flex-row items-center gap-1">
+              <Text className='text-muted text-sm font-inter'>
+                {getThemeModeLabel(themeMode, language)}
+              </Text>
+              <IconChevronRight size={16} color={colors.gray500} />
+            </View>
+          ),
+        },
+      ],
+    },
+    {
       title: t('settings.mobile.security'),
       items: [
         changePasswordItem(),
@@ -142,20 +183,6 @@ export default function Index() {
             </View>
           ),
         },
-        {
-          icon: IconGlobe,
-          title: t('settings.mobile.languageRegion'),
-          // The screen exists and is store-backed; the switch itself stays
-          // gated until the core surfaces are translated. Flip the flag to
-          // enable this row and the switchers together.
-          disabled: !ALLOW_FILIPINO,
-          onPress: ALLOW_FILIPINO ? () => router.push('/settings/language-region') : undefined,
-          suffix: ALLOW_FILIPINO ? (
-            <IconChevronRight size={16} color={colors.gray500} />
-          ) : (
-            <ComingSoonChip />
-          ),
-        },
         ...(isLandlordPortal ? [{
           icon: IconCreditCard,
           title: 'Payment Methods',
@@ -170,19 +197,6 @@ export default function Index() {
             <View className="flex-row items-center gap-1">
               <Text className='text-muted text-sm font-inter'>
                 {notificationSummary}
-              </Text>
-              <IconChevronRight size={16} color={colors.gray500} />
-            </View>
-          ),
-        },
-        {
-          icon: IconMoonStars,
-          title: t('settings.mobile.appearance'),
-          onPress: () => setAppearanceSheetOpen(true),
-          suffix: (
-            <View className="flex-row items-center gap-1">
-              <Text className='text-muted text-sm font-inter'>
-                {getThemeModeLabel(themeMode, language)}
               </Text>
               <IconChevronRight size={16} color={colors.gray500} />
             </View>
@@ -279,6 +293,12 @@ export default function Index() {
           </ListGroup>
         </View>
       ))}
+      <LanguageSheet
+        isOpen={languageSheetOpen}
+        onOpenChange={setLanguageSheetOpen}
+        language={language}
+        onSelect={setLanguage}
+      />
       <AppearanceSheet
         isOpen={appearanceSheetOpen}
         onOpenChange={setAppearanceSheetOpen}

@@ -615,9 +615,9 @@ Sidebar unread activity uses a solid 8px dot, never a numbered section badge: `b
 
 ### Settings → General (web) ✅
 
-Language and appearance share one scrollable tab, split into two category groups separated by an uppercase 12px Nunito semibold heading in `text-muted-foreground` (`px-4`, `mt-5`, cards `mt-2 divide-y divide-border`). **Language & region** holds the working Language `SettingsSelect` (English / Filipino, no flags, `IconLanguage`) and a disabled Region row ending in `ComingSoonChip` — an intentional stub owned by a future feature, never a dead-looking select. **Appearance** keeps Theme (sun/desktop/moon icon follows the active choice) and Reduce motion unchanged. While `ALLOW_FILIPINO` is false the whole language group is not rendered, so nothing suggests an unavailable choice. The standalone Language & Region tab is gone; the admin `UserSettingsModal` is unaffected.
+Language and appearance share one scrollable tab, split into two category groups separated by an uppercase 12px Nunito semibold heading in `text-muted-foreground` (`px-4`, `mt-5`, cards `mt-2 divide-y divide-border`). **Language** holds the working Language `SettingsSelect` (English / Filipino, no flags, `IconLanguage`). **Appearance** keeps Theme (sun/desktop/moon icon follows the active choice) and Reduce motion unchanged. While `ALLOW_FILIPINO` is false the whole language group is not rendered, so nothing suggests an unavailable choice. The standalone Language & Region tab is gone; the admin `UserSettingsModal` is unaffected.
 
-Mobile keeps its own Language & Region screen: one Language row that opens the language sheet (active option tinted `bg-accent/10`), then the same disabled Region row with `ComingSoonChip` and no region sheet. There is no restart note — switching applies immediately.
+Mobile keeps Language and Appearance together in a General section mirroring web: one Language row that opens the language sheet (active option tinted `bg-accent/10`) and one Appearance row that opens the appearance sheet. There is no restart note — switching applies immediately. There is no Region row on either platform.
 
 ---
 
