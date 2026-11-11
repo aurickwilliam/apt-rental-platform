@@ -5,8 +5,9 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   // The shared-input regression tests exercise the installed HeroUI patch rather
   // than a stub. Keep Expo's exclusions, allowing this ESM package through Babel.
+  // decode-uri-component@0.5.1 (the security-patched release) is ESM-only.
   transformIgnorePatterns: require('jest-expo/jest-preset').transformIgnorePatterns.map(
-    (pattern) => pattern.replace('/node_modules/(?!', '/node_modules/(?!heroui-native/|'),
+    (pattern) => pattern.replace('/node_modules/(?!', '/node_modules/(?!heroui-native/|decode-uri-component/|'),
   ),
   // Shared pure logic is tested here because CI only runs the mobile suite.
   roots: [
