@@ -1,36 +1,55 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
 
-const componentSource = name => readFileSync(new URL(`../app/tenant/my-rental/${name}`, import.meta.url), "utf8");
-const nodes = element => !element || typeof element !== "object" ? [] :
-  [element, ...[typeof element.type === "function" && element.type.name === "RentalApplications"
-    ? element.type(element.props) : element.props?.children].flat(Infinity).flatMap(nodes)];
+const ROOT = new URL("../app/tenant/my-rental/", import.meta.url);
+const componentSource = name => readFileSync(new URL(name, ROOT), "utf8");
+const transpile = file => ts.transpileModule(componentSource(file), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
+}).outputText;
 
-function renderRental({ paid = false, bill = null, payments = [], effects = [], maintenance = { requests: [], loading: false, error: null }, noTenancy = false, applicationsLoading = false, financeLoading = false, financeError = null, paymentError = null } = {}) {
+// Local modules compiled for real; every other local module is a string stand-in
+// named by its path, so the tree keeps showing where it would render.
+const REAL_MODULES = new Set([
+  "components/PaymentSummaryCard", "components/RentalQuickActions", "components/RentalLandlordCard",
+  "components/RentalMaintenanceCard", "components/PaymentHistoryCard", "components/RentalApplications",
+  "components/LeaseOverviewCard", "rental-summary", "utils", "maintenance-preview", "lease-progress",
+]);
+
+const children = element => [element.props?.children].flat(Infinity);
+/** Fully expanded: function components are called, so their markup is searchable. */
+const nodes = element => !element || typeof element !== "object" ? [] :
+  [element, ...[typeof element.type === "function" ? element.type(element.props) : null].filter(Boolean).flatMap(nodes),
+    ...children(element).flatMap(nodes)];
+/** As written in the page: function components stay as nodes. */
+const rawNodes = element => !element || typeof element !== "object" ? [] : [element, ...children(element).flatMap(rawNodes)];
+const typeName = node => typeof node?.type === "function" ? node.type.name : node?.type;
+
+function renderRentalRoot({ paid = false, bill = null, payments = [], effects = [], maintenance = { requests: [], loading: false, error: null }, noTenancy = false, noLandlord = false, applicationsLoading = false, financeLoading = false, financeError = null, paymentError = null } = {}) {
   const jsx = (type, props) => ({ type, props });
   const noOp = () => {};
   const tenancy = {
     bill,
-    id: "tenancy", lease_start: "2026-10-20", lease_end: "2027-10-20", rent_due_day: 5,
+    id: "tenancy", lease_start: "2026-10-20", lease_end: "2027-10-20", rent_due_day: 5, monthly_rent: 15000,
     signed_lease_path: null,
     apartment: { id: "apartment", name: "Cozy Cove", apartment_images: [] },
-    landlord: { first_name: "Test", last_name: "Owner" },
+    landlord: noLandlord ? null : { id: "landlord", first_name: "Test", last_name: "Owner" },
   };
   const Table = Object.assign(noOp, Object.fromEntries(
     ["ScrollContainer", "Content", "Header", "Column", "Body", "Row", "Cell"].map(name => [name, `Table.${name}`]),
   ));
   const modules = {
-    react: { useState: initial => [initial, noOp], useMemo: fn => fn(), useEffect: callback => effects.push(callback), useRef: value => ({ current: value }) },
+    react: { useState: initial => [initial, noOp], useMemo: fn => fn(), useEffect: callback => effects.push(callback), useRef: value => ({ current: value }), Suspense: "Suspense" },
     "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
     "@heroui/react": {
-      Button: "Button", Link: "Link", Spinner: "Spinner", Table,
+      Button: "Button", Link: "Link", Spinner: "Spinner", Table, buttonVariants: () => "button",
       Modal: Object.fromEntries(["Backdrop", "Container", "Dialog", "Header", "Heading", "Body"].map(name => [name, `Modal.${name}`])),
       useOverlayState: () => ({ isOpen: false, setOpen: noOp }), toast: { info: noOp },
     },
     "@tabler/icons-react": new Proxy({}, { get: (_, key) => key }),
+    "@repo/constants": { MAINTENANCE_URGENCY: [{ value: "low", label: "Low" }, { value: "high", label: "High" }] },
     "@repo/utils": {
       formatPesoDisplay: amount => `₱ ${amount}`,
       getCurrentRentStatus: () => bill
@@ -46,23 +65,36 @@ function renderRental({ paid = false, bill = null, payments = [], effects = [], 
     "@/hooks/use-tenant-applications": { useTenantApplications: () => ({ applications: [], loading: applicationsLoading, error: null }) },
     "@/hooks/use-maintenance-request-history": { useMaintenanceRequestHistory: () => maintenance },
     "@/hooks/use-signed-lease-viewer": { useSignedLeaseViewer: () => ({ viewSignedLease: noOp, viewing: false }) },
-    "../maintenance/data/maintenance-data": { CATEGORIES: [] },
-    "./ApplicationsList": { default: "./components/ApplicationsList" },
-    "./TenancyEmptyState": { default: "./components/TenancyEmptyState" },
+    "@/lib/conversation-contacts": { getContactConversationKey: (peer, apartment) => `${peer}:${apartment ?? "none"}` },
+    "@/lib/public-profile": { landlordProfileHref: (portal, id, apartment) => `/${portal}/landlords/${id}?apartmentId=${apartment}` },
+    "../maintenance/data/maintenance-data": { CATEGORIES: [{ id: "structural", label: "Structural" }] },
+    "../../maintenance/data/maintenance-data": { CATEGORIES: [{ id: "structural", label: "Structural" }] },
   };
-  const applicationContext = { exports: {}, require: name => modules[name] ?? { default: name } };
-  vm.runInNewContext(ts.transpileModule(componentSource("components/RentalApplications.tsx"), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
-  }).outputText, applicationContext);
-  modules["./components/RentalApplications"] = applicationContext.exports;
-  const compiled = ts.transpileModule(componentSource("MyRentalClient.tsx"), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
-  }).outputText;
-  const context = { exports: {}, require: name => modules[name] ?? { default: name } };
-  vm.runInNewContext(compiled, context);
-  const tree = context.exports.default({ initialContext: { authUserId: "auth-a", tenancy, error: null } });
-  return nodes(tree.type(tree.props));
+  const cache = new Map();
+  const load = (file, dir) => {
+    if (cache.has(file)) return cache.get(file).exports;
+    const context = { exports: {}, require: name => resolve(name, dir) };
+    cache.set(file, context);
+    vm.runInNewContext(transpile(file), context);
+    return context.exports;
+  };
+  const resolve = (name, dir) => {
+    if (modules[name]) return modules[name];
+    if (!name.startsWith(".")) return { default: name };
+    const path = new URL(name, new URL(`${dir}/`, "file:///")).pathname.slice(1);
+    const normalized = path.replace(/^\/+/, "");
+    if (REAL_MODULES.has(normalized)) {
+      const file = existsSync(new URL(`${normalized}.tsx`, ROOT)) ? `${normalized}.tsx` : `${normalized}.ts`;
+      return load(file, normalized.includes("/") ? normalized.slice(0, normalized.lastIndexOf("/")) : "");
+    }
+    return { default: normalized.startsWith("..") ? name : `./${normalized}` };
+  };
+  const client = load("MyRentalClient.tsx", "");
+  const tree = client.default({ initialContext: { authUserId: "auth-a", tenancy, error: null, renderedAt: "2026-11-12T04:00:00.000Z" } });
+  return tree.type(tree.props);
 }
+
+const renderRental = options => nodes(renderRentalRoot(options));
 
 const content = all => all.flatMap(node => [node.props?.children].flat(Infinity)).filter(value => typeof value === "string").join(" ").replace(/\s+/g, " ");
 const moveInBill = {
@@ -84,7 +116,6 @@ test("My Rental uses the checkout move-in total and includes each charge exactly
     assert.ok(!text.includes(removed), `removed from the card: ${removed}`);
   }
   assert.equal(effects[0](), undefined, "server bills do not start a separate maintenance-fee lookup");
-  assert.equal(all.find(node => node.type === "./components/MiniCalendar").props.highlightLabel, "Move-in payment due");
 });
 
 test("unresolved finance keeps the rental shell and hides payment actions; failures never masquerade as empty history", () => {
@@ -101,6 +132,7 @@ test("unresolved finance keeps the rental shell and hides payment actions; failu
     assert.ok(!content(failed).includes("No payments recorded yet."));
     assert.ok(content(failed).includes("Payment history could not load"));
     assert.ok(failed.some(node => node.type === "./components/RentalHero"));
+    assert.ok(failed.some(node => node.type === "./components/RentFinanceError"));
   }
 });
 
@@ -135,7 +167,6 @@ test("My Rental shows the following payable month after a prepaid month", () => 
   assert.ok(text.includes("Due Dec 5, 2026"));
   assert.ok(text.includes("₱ 15000"));
   assert.ok(!text.includes("Pay now"));
-  assert.equal(all.find(node => node.type === "./components/MiniCalendar").props.highlightDate, null);
 });
 
 test("My Rental shows the next payment after a settled month and skips the advance-covered month", () => {
@@ -157,7 +188,6 @@ test("My Rental shows the next payment after a settled month and skips the advan
   assert.ok(text.includes("₱ 15000"));
   assert.ok(!text.includes("Current bill"));
   assert.ok(!text.includes("No further payment is due for this period."));
-  assert.equal(all.find(node => node.type === "./components/MiniCalendar").props.highlightDate, null);
 });
 
 test("prepaid rent does not hide separate maintenance, and later months bill only monthly rent", () => {
@@ -177,68 +207,128 @@ test("My Rental identifies move-in payments correctly in its history", () => {
   assert.ok(!content(all).includes("October 2026 - Monthly rent"));
 });
 
-test("quick action links and button fill the same equal-height grid cells", () => {
+test("quick actions are mobile-style neutral tiles with a hint: links for pages, a button for the signed lease", () => {
   const all = renderRental();
   const grid = all.find(node => node.props.className?.includes("rental-quick-actions"));
-  assert.match(grid.props.className, /auto-rows-fr/);
-  assert.match(grid.props.className, /@min-\[28rem\]\/dashboard:grid-cols-2/);
-  assert.match(grid.props.className, /@min-\[44rem\]\/dashboard:grid-cols-4/);
+  assert.match(grid.props.className, /grid-cols-3/);
+  assert.match(grid.props.className, /@min-\[44rem\]\/rental:auto-cols-fr/);
   const tiles = grid.props.children;
-  assert.equal(tiles.length, 4);
-  assert.equal(tiles[1].type, "Button", "signed lease remains an action rather than navigation");
-  assert.equal(typeof tiles[1].props.onClick, "function");
-  assert.equal(tiles[0].props.href, "/tenant/browse/apartment");
-  assert.equal(tiles[2].props.href, "/tenant/payment/history");
-  assert.equal(tiles[3].props.href, "/tenant/maintenance");
+  assert.deepEqual([...tiles.map(tile => tile.props.children.props.label)], ["Receipts", "Repairs", "Message landlord", "Signed lease", "My rental"]);
+  assert.ok(tiles.every(tile => tile.props.children.props.hint.length > 0), "every tile explains itself");
+  assert.equal(tiles[3].type, "Button", "signed lease remains an action rather than navigation");
+  assert.equal(typeof tiles[3].props.onPress, "function");
+  assert.equal(tiles[0].props.href, "/tenant/payment/history");
+  assert.equal(tiles[1].props.href, "/tenant/maintenance");
+  assert.equal(tiles[2].props.href, "/tenant/messages?conversation=landlord%3Aapartment");
+  assert.equal(tiles[4].props.href, "/tenant/browse/apartment");
   for (const tile of tiles) {
-    assert.match(tile.props.className, /h-full min-h-20 w-full min-w-0/);
+    assert.match(tile.props.className, /cursor-pointer/);
     assert.match(tile.props.className, /focus-visible:outline-2/);
-    assert.equal(tile.props.children.type, "Fragment", "content is directly inside each tile, not a shrink-wrapped inner box");
+    assert.match(tile.props.className, /@min-\[56rem\]\/rental:flex-row/, "icon beside label and hint once there is room");
   }
+  const tileIcons = nodes(grid).filter(node => node.props.className?.includes("size-12"));
+  assert.equal(tileIcons.length, 5);
+  assert.ok(tileIcons.every(node => node.props.className.includes("bg-muted")), "neutral tiles, not per-action tints");
+  const hints = nodes(grid).filter(node => node.props.className?.includes("@min-[56rem]/rental:line-clamp-2"));
+  assert.equal(hints.length, 5);
+  assert.ok(hints.every(node => node.props.className.includes("hidden")), "hints stay off the phone tiles");
+  const noLandlord = nodes(renderRentalRoot({ noLandlord: true })).find(node => node.props.className?.includes("rental-quick-actions"));
+  assert.equal(noLandlord.props.children.length, 4, "Message landlord needs a landlord");
 });
 
-test("paid and unpaid layouts respond to content width and contain table scrolling", () => {
-  for (const paid of [false, true]) {
-    const all = renderRental({ paid });
-    assert.ok(all.some(node => node.props.className?.includes("@container/rental")));
-    assert.equal(all.filter(node => node.props.className?.includes("@min-[64rem]/rental:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)]")).length, 3);
-    assert.ok(all.some(node => node.props.className?.includes("@container/rent")));
-    const scroll = all.find(node => node.type === "Table.ScrollContainer");
-    assert.match(scroll.props.className, /max-w-full overflow-x-auto/);
-    assert.match(all.find(node => node.type === "Table.Content").props.className, /min-w-\[32rem\]/);
-    assert.ok(all.some(node => node.props.className?.includes(paid ? "@min-[32rem]/rent:grid-cols-2" : "@min-[36rem]/rent:grid-cols-3")));
-  }
+test("landlord card opens the profile and messages the rental conversation, and is skipped without a landlord", () => {
+  const all = renderRental();
+  const links = all.filter(node => node.type === "next/link");
+  assert.ok(links.some(node => node.props.href === "/tenant/landlords/landlord?apartmentId=apartment"));
+  const message = links.find(node => node.props["aria-label"] === "Message Test Owner");
+  assert.equal(message.props.href, "/tenant/messages?conversation=landlord%3Aapartment");
+  assert.ok(content(all).includes("Landlord"));
+  assert.ok(!renderRental({ noLandlord: true }).some(node => typeName(node) === "RentalLandlordCard" || node.props?.["aria-label"] === "Message Test Owner"));
 });
 
-test("Maintenance and Signed lease share the Quick actions/Landlord tracks while Payment history and Lease renewal share the second row", () => {
+test("photo and payment share the first row; sections follow mobile's order with supporting cards on the right", () => {
+  const tracks = /@min-\[56rem\]\/rental:grid-cols-\[minmax\(0,1\.7fr\)_minmax\(20rem,1fr\)\]/;
   for (const paid of [false, true]) {
-    const all = renderRental({ paid });
-    const shell = all.find(node => node.props.className?.includes("@container/rental"));
-    const children = shell.props.children;
-    const rows = children.filter(node => node?.props?.className?.includes("@min-[64rem]/rental:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)]"));
-    const [actionsRow, supportingRow] = rows.slice(1);
-    assert.equal(actionsRow.props.className, supportingRow.props.className, "column widths, gap, breakpoint and stretching match exactly");
-    assert.ok(!supportingRow.props.className.includes("grid-cols-2 "), "two columns only apply at the content-width breakpoint");
-    const [maintenance, lease, renewalPlacement, history] = supportingRow.props.children;
-    assert.equal(maintenance.type, "./components/DashboardCard");
-    assert.ok(content(nodes(maintenance)).includes("Maintenance"));
-    assert.ok(nodes(maintenance).some(node => node.type === "Link" && node.props.href === "/tenant/maintenance"));
-    assert.equal(lease.type, "./components/SignedLeaseCard", "lease follows Maintenance in desktop and stacked reading order");
+    const shell = rawNodes(renderRentalRoot({ paid })).find(node => node.props.className?.includes("@container/rental"));
+    const [top, applicationsRegion, quickActions, columns] = children(shell);
+    assert.match(top.props.className, tracks);
+    assert.deepEqual([...children(top).map(typeName)], ["./components/RentalHero", "PaymentSummaryCard"]);
+    assert.equal(typeName(applicationsRegion), "Suspense");
+    const [applications] = children(applicationsRegion);
+    assert.equal(typeName(applications), "RentalApplications");
+    assert.equal(applications.props.activeLease, true);
+    assert.equal(typeName(quickActions), "RentalQuickActions");
+    assert.match(columns.props.className, tracks, "the lower sections reuse the first row's tracks");
+    assert.match(columns.props.className, /@min-\[56rem\]\/rental:items-start/);
+    const [main, side] = children(columns);
+    const names = column => [...children(column).filter(Boolean).map(typeName)];
+    assert.deepEqual(names(main), ["RentalMaintenanceCard", "PaymentHistoryCard"]);
+    assert.deepEqual(names(side), ["RentalLandlordCard", "LeaseOverviewCard", "@/app/components/renewals/LeaseRenewalEntry"]);
+    const leaseCard = children(side)[1];
+    const [lease] = children(leaseCard);
+    assert.equal(lease.type, "./components/SignedLeaseCard", "the signed contract lives inside the lease card");
+    assert.equal(lease.props.embedded, true);
     assert.equal(lease.props.tenancyId, "tenancy");
     assert.equal(typeof lease.props.onView, "function");
     assert.equal(typeof lease.props.onAcknowledged, "function");
-    assert.match(renewalPlacement.props.className, /@min-\[64rem\]\/rental:col-start-2/);
-    assert.match(renewalPlacement.props.className, /@min-\[64rem\]\/rental:row-start-2/);
-    assert.ok(nodes(renewalPlacement).some(node => node.type === "@/app/components/renewals/LeaseRenewalEntry" && node.props.tenancyId === "tenancy" && node.props.portal === "tenant"));
-    assert.equal(history.type, "./components/DashboardCard");
-    assert.match(history.props.className, /@min-\[64rem\]\/rental:col-start-1/);
-    assert.match(history.props.className, /@min-\[64rem\]\/rental:row-start-2/);
-    assert.ok(nodes(history).some(node => node.type === "Table.Content" && node.props["aria-label"] === "Payment history"));
+    const renewal = children(side)[2];
+    assert.equal(renewal.props.tenancyId, "tenancy");
+    assert.equal(renewal.props.portal, "tenant");
+    assert.ok(!rawNodes(shell).some(node => /Calendar/.test(String(typeName(node)))), "the rent calendar is gone; the due date sits in the payment card");
   }
 });
 
-test("relocated Maintenance retains its loading, error, empty and request states", () => {
-  const requests = [{ id: "repair", title: "Broken tiles", category: "structural", created_at: "2026-10-20", status: "Resolved" }];
+test("the payment card stays compact and stretches beside the photo; lease facts live in the lease card", () => {
+  for (const paid of [false, true]) {
+    const root = renderRentalRoot({ paid });
+    const payment = nodes(rawNodes(root).find(node => typeName(node) === "PaymentSummaryCard"));
+    assert.match(payment.find(node => node.type === "section").props.className, /flex h-full min-w-0 flex-col/);
+    const paymentText = content(payment);
+    for (const moved of ["Lease start", "Lease end"]) assert.ok(!paymentText.includes(moved), `${moved} left the payment card`);
+    assert.ok(paymentText.includes(paid ? "Payment history" : "Pay now"));
+    const lease = nodes(rawNodes(root).find(node => typeName(node) === "LeaseOverviewCard"));
+    const leaseText = content(lease);
+    for (const label of ["Your lease", "11 months left", "Started Oct 20, 2026", "Ends Oct 20, 2027", "Monthly rent", "₱ 15000", "Due every", "5th of the month"]) {
+      assert.ok(leaseText.includes(label), label);
+    }
+    const bar = lease.find(node => node.props.role === "progressbar");
+    assert.equal(bar.props["aria-valuenow"], 6);
+  }
+});
+
+test("recent payments is a short list, newest three, never a sideways-scrolling table", () => {
+  const payments = ["2026-10", "2026-09", "2026-08", "2026-07"].map((month, index) => (
+    { id: `p${index}`, billing_kind: "monthly", amount: 15000, status: "paid", date: `${month}-15`, period_start: `${month}-01` }
+  ));
+  const all = renderRental({ payments });
+  const list = all.find(node => node.type === "ul" && node.props["aria-label"] === "Recent payments");
+  assert.equal(list.props.children.length, 3);
+  assert.ok(content(all).includes("Recent payments"));
+  assert.ok(content(all).includes("October 2026 - Monthly rent"));
+  assert.ok(!content(all).includes("July 2026 - Monthly rent"));
+  assert.ok(!all.some(node => String(node.type).startsWith("Table")));
+  assert.ok(content(renderRental()).includes("No payments recorded yet."));
+});
+
+test("lease progress reports the share elapsed and a plain time-left label", () => {
+  const exports = {};
+  vm.runInNewContext(transpile("lease-progress.ts"), { exports, Intl, Date, Math, Number });
+  const { describeLeaseProgress, formatRentDueDay } = exports;
+  const at = iso => new Date(`${iso}T04:00:00Z`);
+  const plain = value => JSON.parse(JSON.stringify(value));
+  assert.deepEqual(plain(describeLeaseProgress("2026-10-20", "2027-10-20", at("2026-11-12"))), { percent: 6, remainingLabel: "11 months left", ended: false });
+  assert.deepEqual(plain(describeLeaseProgress("2026-10-20", "2027-10-20", at("2027-09-20"))), { percent: 92, remainingLabel: "1 month left", ended: false });
+  assert.equal(describeLeaseProgress("2026-10-20", "2027-10-20", at("2027-10-08")).remainingLabel, "12 days left");
+  assert.equal(describeLeaseProgress("2026-10-20", "2027-10-20", at("2027-10-19")).remainingLabel, "1 day left");
+  assert.deepEqual(plain(describeLeaseProgress("2026-10-20", "2027-10-20", at("2027-11-01"))), { percent: 100, remainingLabel: "Lease ended", ended: true });
+  assert.deepEqual(plain(describeLeaseProgress("2026-10-20", null, at("2026-11-12"))), { percent: null, remainingLabel: "Ongoing", ended: false });
+  assert.equal(describeLeaseProgress("2026-10-20", "2027-10-20", at("2026-09-01")).percent, 0, "never negative before move-in");
+  assert.deepEqual(["1", "2", "3", "4", "11", "12", "13", "21", "22", "23", "31"].map(day => formatRentDueDay(Number(day))),
+    ["1st", "2nd", "3rd", "4th", "11th", "12th", "13th", "21st", "22nd", "23rd", "31st"].map(day => `${day} of the month`));
+});
+
+test("Maintenance keeps its loading, error, empty and request states", () => {
+  const requests = [{ id: "repair", title: "Broken tiles", category: "structural", urgency: "low", created_at: "2026-10-20", resolved_at: "2026-10-22", status: "Resolved" }];
   for (const maintenance of [
     { requests: [], loading: true, error: null },
     { requests: [], loading: false, error: "Could not load maintenance" },
@@ -246,58 +336,78 @@ test("relocated Maintenance retains its loading, error, empty and request states
     { requests, loading: false, error: null },
   ]) {
     const all = renderRental({ maintenance });
-    const row = all.find(node => node.props.children?.some?.(child => child?.type === "./components/SignedLeaseCard"));
-    const card = row.props.children[0];
-    const contents = nodes(card);
-    const text = content(contents);
-    if (maintenance.loading) assert.ok(contents.some(node => node.type === "Spinner"));
+    const card = nodes(rawNodes(renderRentalRoot({ maintenance })).find(node => typeName(node) === "RentalMaintenanceCard"));
+    const text = content(card);
+    assert.ok(text.includes("Maintenance"));
+    assert.ok(text.includes("Request Maintenance"), "requesting stays available in every state");
+    assert.ok(all.length > 0);
+    if (maintenance.loading) assert.ok(card.some(node => node.type === "Spinner"));
     else if (maintenance.error) assert.ok(text.includes(maintenance.error));
-    else if (!maintenance.requests.length) assert.ok(text.includes("No maintenance requests yet."));
+    else if (!maintenance.requests.length) assert.ok(card.some(node => node.props.title === "No active maintenance requests"));
     else {
       assert.ok(text.includes("Broken tiles"));
-      assert.ok(text.includes("Done"));
-      assert.ok(contents.some(node => node.props.tone === "warning" && node.props.children?.[0] === 0 && node.props.children?.[1] === " open"));
+      assert.ok(text.includes("Category: Structural"));
+      assert.ok(text.includes("Low Urgency"));
+      assert.ok(text.includes("View all"));
+      assert.ok(card.some(node => node.props.children?.[0] === 0 && node.props.children?.[1] === " Active"));
+      assert.ok(card.some(node => node.type === "@/app/components/display/StatusChip" && node.props.tone === "success" && node.props.children === "Resolved"));
     }
   }
 });
 
-test("loading states mirror container-based card and quick action layouts", () => {
+test("the maintenance preview keeps active repairs in view and falls back to one resolved request", async () => {
+  const exports = {};
+  vm.runInNewContext(transpile("maintenance-preview.ts"), { exports, require: () => ({}) });
+  const { selectMaintenancePreview, MAINTENANCE_PREVIEW_LIMIT } = exports;
+  const make = (id, status, created, resolved = null) => ({ id, status, created_at: created, resolved_at: resolved });
+  const many = [make("a", "Pending", "2026-10-05"), make("b", "In Progress", "2026-10-04"), make("c", "Pending", "2026-10-03"),
+    make("d", "Pending", "2026-10-02"), make("e", "Resolved", "2026-09-01", "2026-09-02")];
+  const active = selectMaintenancePreview(many);
+  assert.equal(MAINTENANCE_PREVIEW_LIMIT, 3);
+  assert.deepEqual(active.visible.map(request => request.id), ["a", "b", "c"]);
+  assert.equal(active.activeCount, 4, "the badge counts every active request, not just the visible ones");
+  const closed = selectMaintenancePreview([make("old", "Resolved", "2026-08-01", "2026-08-02"), make("new", "Resolved", "2026-07-01", "2026-09-09"),
+    make("gone", "Cancelled", "2026-10-30")]);
+  assert.deepEqual(closed.visible.map(request => request.id), ["new"]);
+  assert.equal(closed.activeCount, 0);
+  assert.deepEqual(selectMaintenancePreview([make("gone", "Cancelled", "2026-10-30")]).visible, []);
+});
+
+test("loading states mirror the two-track rows and quick action layouts", () => {
   const skeleton = componentSource("components/MyRentalSkeleton.tsx");
   assert.ok(skeleton.includes("@container/rental"));
-  for (const rule of ["@min-[64rem]/rental:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)]", "@min-[28rem]/dashboard:grid-cols-2", "@min-[44rem]/dashboard:grid-cols-4"]) {
+  for (const rule of ["@min-[56rem]/rental:grid-cols-[minmax(0,1.7fr)_minmax(20rem,1fr)]", "@min-[44rem]/rental:grid-cols-5"]) {
     assert.ok(skeleton.includes(rule), `skeleton retains ${rule}`);
   }
   assert.match(componentSource("components/DashboardCard.tsx"), /@container\/dashboard min-w-0/);
-  assert.match(componentSource("components/MiniCalendar.tsx"), /mx-auto w-full max-w-sm/);
-  assert.match(componentSource("components/MiniCalendar.tsx"), /aspect-square w-full max-w-10/);
+  assert.match(componentSource("components/DashboardCard.tsx"), /rounded-3xl/);
 });
 
-test("loading includes aligned Maintenance/lease cards followed by full-width Payment history", () => {
+test("loading shows the photo beside a payment card, quick actions, then the two columns", () => {
   const jsx = (type, props) => typeof type === "function" ? type(props) : { type, props };
-  const compiled = ts.transpileModule(componentSource("components/MyRentalSkeleton.tsx"), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
-  }).outputText;
+  const runtime = { jsx, jsxs: jsx, Fragment: "Fragment" };
+  const compiled = transpile("components/MyRentalSkeleton.tsx");
   const context = { exports: {}, require: name => {
     if (name === "@heroui/react") return { Skeleton: "Skeleton" };
-    if (name === "./RentFinanceSkeleton" || name === "./PaymentHistorySkeleton") {
-      const child = { exports: {}, require: dependency => dependency === "@heroui/react" ? { Skeleton: "Skeleton" } : { jsx, jsxs: jsx, Fragment: "Fragment" } };
-      vm.runInNewContext(ts.transpileModule(componentSource(`components/${name.slice(2)}.tsx`), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText, child);
+    if (/^\.\/(Rent|Payment)/.test(name)) {
+      const child = { exports: {}, require: dependency => dependency === "@heroui/react" ? { Skeleton: "Skeleton" } : runtime };
+      vm.runInNewContext(transpile(`components/${name.slice(2)}.tsx`), child);
       return child.exports;
     }
-    return { jsx, jsxs: jsx, Fragment: "Fragment" };
+    return runtime;
   } };
   vm.runInNewContext(compiled, context);
   const all = nodes(context.exports.default({}));
-  const rows = all.filter(node => node.props.className?.includes("@min-[64rem]/rental:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)]"));
-  assert.equal(rows.length, 3);
-  const row = rows[2];
-  assert.match(row.props.className, /items-stretch/);
-  assert.equal(row.props.children.length, 2);
-  const [maintenance, lease] = row.props.children;
-  assert.ok(nodes(maintenance).some(node => node.props.className?.includes("size-7")), "maintenance row icons are in the left card");
-  assert.ok(nodes(lease).some(node => node.props.className?.includes("size-10")), "lease document icon is in the right card");
-  const section = all.find(node => node.type === "Fragment");
-  const history = section.props.children[section.props.children.indexOf(row) + 1];
-  assert.match(history.props.className, /border border-border bg-card/);
-  assert.equal(nodes(history).filter(node => node.type === "Skeleton" && node.props.className.includes("h-10 w-full")).length, 3);
+  const [top, quickActions, columns] = all.find(node => node.type === "Fragment").props.children;
+  const [hero, payment] = top.props.children;
+  assert.match(hero.props.className, /h-60 w-full rounded-3xl/);
+  assert.equal(payment.props["aria-label"], "Loading rent details");
+  assert.match(payment.props.className, /h-full/);
+  assert.equal(nodes(quickActions).filter(node => node.type === "Skeleton" && node.props.className.includes("size-12")).length, 5, "five quick action tiles");
+  assert.match(columns.props.className, /@min-\[56rem\]\/rental:items-start/);
+  const [main, side] = columns.props.children;
+  assert.equal(nodes(main).filter(node => node.type === "Skeleton" && node.props.className.includes("h-10 w-full")).length, 3, "recent payment rows close the main column");
+  assert.ok(nodes(side).some(node => node.type === "Skeleton" && node.props.className.includes("size-14")), "landlord avatar");
+  assert.ok(nodes(side).some(node => node.type === "Skeleton" && node.props.className.includes("h-2 w-full")), "lease progress bar");
+  assert.ok(!all.some(node => node.props?.["aria-label"] === "Loading rent calendar"));
 });
