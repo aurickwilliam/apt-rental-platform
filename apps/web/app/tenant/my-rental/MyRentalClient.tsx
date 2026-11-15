@@ -219,10 +219,6 @@ function RentalContent({ initialContext }: { initialContext?: InitialRentalConte
           )}
         </div>
 
-        <Suspense fallback={null}>
-          <RentalApplications activeLease tenantId={initialContext?.tenantId} initial={initialContext?.applications} />
-        </Suspense>
-
         <RentalQuickActions
           apartmentId={apartment.id}
           messageHref={messageHref}
@@ -273,6 +269,11 @@ function RentalContent({ initialContext }: { initialContext?: InitialRentalConte
             </LeaseOverviewCard>
 
             <LeaseRenewalEntry key={`renewal:${tenancy.id}`} tenancyId={tenancy.id} portal="tenant" />
+
+            {/* Rarely needed once a lease is active, so it closes the lease column. */}
+            <Suspense fallback={null}>
+              <RentalApplications activeLease tenantId={initialContext?.tenantId} initial={initialContext?.applications} />
+            </Suspense>
           </div>
         </div>
       </div>

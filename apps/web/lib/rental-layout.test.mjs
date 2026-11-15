@@ -250,20 +250,19 @@ test("photo and payment share the first row; sections follow mobile's order with
   const tracks = /@min-\[56rem\]\/rental:grid-cols-\[minmax\(0,1\.7fr\)_minmax\(20rem,1fr\)\]/;
   for (const paid of [false, true]) {
     const shell = rawNodes(renderRentalRoot({ paid })).find(node => node.props.className?.includes("@container/rental"));
-    const [top, applicationsRegion, quickActions, columns] = children(shell);
+    const [top, quickActions, columns] = children(shell);
     assert.match(top.props.className, tracks);
     assert.deepEqual([...children(top).map(typeName)], ["./components/RentalHero", "PaymentSummaryCard"]);
-    assert.equal(typeName(applicationsRegion), "Suspense");
-    const [applications] = children(applicationsRegion);
-    assert.equal(typeName(applications), "RentalApplications");
-    assert.equal(applications.props.activeLease, true);
     assert.equal(typeName(quickActions), "RentalQuickActions");
     assert.match(columns.props.className, tracks, "the lower sections reuse the first row's tracks");
     assert.match(columns.props.className, /@min-\[56rem\]\/rental:items-start/);
     const [main, side] = children(columns);
     const names = column => [...children(column).filter(Boolean).map(typeName)];
     assert.deepEqual(names(main), ["RentalMaintenanceCard", "PaymentHistoryCard"]);
-    assert.deepEqual(names(side), ["RentalLandlordCard", "LeaseOverviewCard", "@/app/components/renewals/LeaseRenewalEntry"]);
+    assert.deepEqual(names(side), ["RentalLandlordCard", "LeaseOverviewCard", "@/app/components/renewals/LeaseRenewalEntry", "Suspense"]);
+    const [applications] = children(children(side)[3]);
+    assert.equal(typeName(applications), "RentalApplications", "application history closes the lease column");
+    assert.equal(applications.props.activeLease, true);
     const leaseCard = children(side)[1];
     const [lease] = children(leaseCard);
     assert.equal(lease.type, "./components/SignedLeaseCard", "the signed contract lives inside the lease card");
