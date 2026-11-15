@@ -18,6 +18,14 @@ export interface PendingFee {
   amount: number;
 }
 
+/** The newest confirmed payment, for the card's "Last payment" line. */
+export interface LastPaidPayment {
+  /** Month the payment covered (ISO date), when it was tied to one. */
+  periodStart: string | null;
+  /** When it was paid (ISO date or timestamp). */
+  date: string;
+}
+
 export interface RentalPeriod {
   periodStart: string;
   dueDate: string;
@@ -49,6 +57,8 @@ export interface RentalSummary {
   nextPaymentTotal: number;
   /** Where Pay now / View payment goes: checkout or the pending receipt. */
   paymentHref: string;
+  /** Null until a payment has been confirmed. */
+  lastPaidPayment: LastPaidPayment | null;
 }
 
 interface BuildRentalSummaryInput {
@@ -64,6 +74,15 @@ function pendingPaymentHref(pending: NonNullable<TenancyBill["pendingPayment"]>)
   return pending.method === "cash"
     ? `/tenant/payment/success?referenceId=${reference}`
     : `/tenant/payment/verify?sessionId=${reference}`;
+}
+
+function findLastPaidPayment(payments: TenancyPayment[]): LastPaidPayment | null {
+  const latest = payments.reduce<TenancyPayment | null>(
+    (newest, payment) =>
+      payment.status === "paid" && payment.date && (!newest || payment.date > newest.date) ? payment : newest,
+    null,
+  );
+  return latest ? { periodStart: latest.period_start, date: latest.date } : null;
 }
 
 function describeDue(dueDate: Date, today: Date): string {
@@ -131,5 +150,6 @@ export function buildRentalSummary({
     totalDue: bill?.totalDue ?? monthlyRent + pendingFeesTotal,
     nextPaymentTotal: monthlyRent + pendingFeesTotal,
     paymentHref: pendingPayment?.referenceId ? pendingPaymentHref(pendingPayment) : "/tenant/payment",
+    lastPaidPayment: findLastPaidPayment(payments),
   };
 }

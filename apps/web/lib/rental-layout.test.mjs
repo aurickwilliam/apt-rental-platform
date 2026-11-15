@@ -201,6 +201,27 @@ test("prepaid rent does not hide separate maintenance, and later months bill onl
   assert.ok(!content(monthly).includes("Security deposit"));
 });
 
+test("the payment card lists the charges behind its total, the last confirmed payment and the following month", () => {
+  const paymentText = options => content(nodes(rawNodes(renderRentalRoot(options)).find(node => typeName(node) === "PaymentSummaryCard")));
+  const moveIn = paymentText({ bill: moveInBill });
+  for (const label of ["October 2026 rent", "Security deposit", "November 2026 advance rent", "Maintenance fee — Plumbing problem", "Total due", "Last payment", "None yet", "Next after this", "December 2026 · Due Dec 5, 2026"]) {
+    assert.ok(moveIn.includes(label), label);
+  }
+  const monthly = paymentText({
+    bill: { ...moveInBill, kind: "monthly", periodStart: "2026-11-01", dueDate: "2026-11-05", totalDue: 15000, securityDeposit: 0, advanceRent: 0, fees: [] },
+    payments: [
+      { id: "older", amount: 15000, status: "paid", date: "2026-09-04", period_start: "2026-09-01" },
+      { id: "newest", amount: 15000, status: "paid", date: "2026-10-03", period_start: "2026-10-01" },
+      { id: "unconfirmed", amount: 15000, status: "pending", date: "2026-10-30", period_start: "2026-11-01" },
+    ],
+  });
+  for (const label of ["November 2026 rent", "Maintenance fees", "None", "Total due", "October 2026 · Paid Oct 3, 2026", "December 2026 · Due Dec 5, 2026"]) {
+    assert.ok(monthly.includes(label), label);
+  }
+  assert.ok(!monthly.includes("Security deposit"));
+  assert.ok(!monthly.includes("Paid Oct 30"), "an unconfirmed payment is never the last payment");
+});
+
 test("My Rental identifies move-in payments correctly in its history", () => {
   const all = renderRental({ bill: moveInBill, payments: [{ id: "move-in", billing_kind: "move_in", amount: 45500, status: "pending", date: "2026-10-21", period_start: "2026-10-01" }] });
   assert.ok(content(all).includes("October 2026 - Move-in payment"));
