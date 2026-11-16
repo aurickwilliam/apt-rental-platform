@@ -389,7 +389,14 @@ test("Maintenance keeps its loading, error, empty and request states", () => {
     const card = nodes(rawNodes(renderRentalRoot({ maintenance })).find(node => typeName(node) === "RentalMaintenanceCard"));
     const text = content(card);
     assert.ok(text.includes("Maintenance"));
-    assert.ok(text.includes("Request Maintenance"), "requesting stays available in every state");
+    const request = card.find(node => node.props?.["aria-label"] === "Request maintenance");
+    assert.equal(request.props.href, "/tenant/maintenance", "requesting stays available in every state");
+    const headerActions = card.find(node => node.type === "div" && content(nodes(node)).includes(" Active") && nodes(node).includes(request) && !nodes(node).some(child => child.type === "h2"));
+    assert.ok(headerActions, "Request sits in the header beside the active count");
+    assert.ok(!text.includes("View all"), "the title's chevron link replaces View all");
+    const title = card.find(node => node.props?.["aria-label"] === "Maintenance, view all requests");
+    assert.equal(title.props.href, "/tenant/maintenance");
+    assert.ok(nodes(title).some(node => node.props?.["aria-hidden"] === "true"), "a chevron follows the title");
     assert.ok(all.length > 0);
     if (maintenance.loading) assert.ok(card.some(node => node.type === "Spinner"));
     else if (maintenance.error) assert.ok(text.includes(maintenance.error));
@@ -398,7 +405,6 @@ test("Maintenance keeps its loading, error, empty and request states", () => {
       assert.ok(text.includes("Broken tiles"));
       assert.ok(text.includes("Category: Structural"));
       assert.ok(text.includes("Low Urgency"));
-      assert.ok(text.includes("View all"));
       assert.ok(card.some(node => node.props.children?.[0] === 0 && node.props.children?.[1] === " Active"));
       assert.ok(card.some(node => node.type === "@/app/components/display/StatusChip" && node.props.tone === "success" && node.props.children === "Resolved"));
     }

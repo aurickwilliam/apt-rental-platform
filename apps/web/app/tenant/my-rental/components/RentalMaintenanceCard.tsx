@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Spinner, buttonVariants } from "@heroui/react";
-import { IconPlus, IconTool } from "@tabler/icons-react";
+import { IconChevronRight, IconPlus, IconTool } from "@tabler/icons-react";
 import { MAINTENANCE_URGENCY } from "@repo/constants";
 
 import EmptyState from "@/app/components/display/EmptyState";
@@ -35,7 +35,7 @@ interface RentalMaintenanceCardProps {
   error: string | null;
 }
 
-/** Mobile's Maintenance section: active repairs as cards, then View all and Request Maintenance. */
+/** Maintenance preview: a title that links to every request, with the active count and Request beside it, then the request cards. */
 export default function RentalMaintenanceCard({ requests, loading, error }: RentalMaintenanceCardProps) {
   const { visible, activeCount } = selectMaintenancePreview(requests);
 
@@ -43,10 +43,29 @@ export default function RentalMaintenanceCard({ requests, loading, error }: Rent
     <DashboardCard>
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-nunito text-lg font-semibold text-card-foreground">Maintenance</h2>
-          <span className="rounded-full bg-muted px-3 py-1 font-nunito text-sm font-semibold text-card-foreground">
-            {activeCount} Active
-          </span>
+          <h2 className="font-nunito text-lg font-semibold text-card-foreground">
+            <Link
+              href={MAINTENANCE_HREF}
+              aria-label="Maintenance, view all requests"
+              className="group flex cursor-pointer items-center gap-1 text-card-foreground no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            >
+              Maintenance
+              <IconChevronRight size={18} className="text-muted-foreground transition-colors group-hover:text-primary" aria-hidden="true" />
+            </Link>
+          </h2>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <span className="rounded-full bg-muted px-3 py-1 font-nunito text-sm font-semibold text-card-foreground">
+              {activeCount} Active
+            </span>
+            <Link
+              href={MAINTENANCE_HREF}
+              aria-label="Request maintenance"
+              className={`${buttonVariants({ size: "sm" })} cursor-pointer no-underline`}
+            >
+              <IconPlus size={18} aria-hidden="true" />
+              Request
+            </Link>
+          </div>
         </div>
 
         {loading ? (
@@ -86,16 +105,6 @@ export default function RentalMaintenanceCard({ requests, loading, error }: Rent
             ))}
           </ul>
         )}
-
-        {requests.length > 0 && (
-          <Link href={MAINTENANCE_HREF} className="cursor-pointer self-end font-inter text-sm font-medium text-primary no-underline hover:underline">
-            View all
-          </Link>
-        )}
-        <Link href={MAINTENANCE_HREF} className={`${buttonVariants({ size: "sm", fullWidth: true })} cursor-pointer justify-center no-underline`}>
-          <IconPlus size={18} aria-hidden="true" />
-          Request Maintenance
-        </Link>
       </div>
     </DashboardCard>
   );

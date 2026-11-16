@@ -37,7 +37,10 @@ function TenancySkeleton() {
           <div className={`${CARD} space-y-4`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <Sk className="h-5 w-28 rounded-lg" />
-              <Sk className="h-7 w-20 rounded-full" />
+              <div className="flex items-center gap-3">
+                <Sk className="h-7 w-20 rounded-full" />
+                <Sk className="h-8 w-24 rounded-full" />
+              </div>
             </div>
             {Array.from({ length: 2 }).map((_, index) => (
               <div key={index} className="space-y-2 rounded-2xl border border-border p-3">
@@ -49,7 +52,6 @@ function TenancySkeleton() {
                 <Sk className="h-3 w-48 max-w-full rounded-lg" />
               </div>
             ))}
-            <Sk className="h-9 w-full rounded-full" />
           </div>
 
           <div className={`${CARD} space-y-3`}>
