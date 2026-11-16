@@ -138,7 +138,7 @@ function RentalContent({ initialContext }: { initialContext?: InitialRentalConte
   if (!tenancy) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="px-4 py-6 sm:py-8 space-y-4">
+        <div className="px-4 pt-4 pb-6 sm:pb-8 space-y-4">
           <Suspense fallback={<ApplicationsList applications={[]} loading error={null} />}>
             <RentalApplications tenantId={initialContext?.tenantId} initial={initialContext?.applications} />
           </Suspense>
@@ -191,7 +191,7 @@ function RentalContent({ initialContext }: { initialContext?: InitialRentalConte
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="@container/rental min-w-0 space-y-3 px-4 py-6 sm:py-8">
+      <div className="@container/rental min-w-0 space-y-3 px-4 pt-4 pb-6 sm:pb-8">
         <div className={twoColumns}>
           <RentalHero
             name={apartment.name}
@@ -199,8 +199,8 @@ function RentalContent({ initialContext }: { initialContext?: InitialRentalConte
             imageUrl={cover}
             descriptionHref={descriptionHref}
             topRight={
-              <StatusChip className="font-nunito text-[11px] font-semibold" tone="success">
-                <span className="flex items-center gap-1"><IconCircleCheck size={14} aria-hidden="true" />Active lease</span>
+              <StatusChip size="md" className="font-nunito font-semibold" tone="success">
+                <span className="flex items-center gap-1.5"><IconCircleCheck size={18} aria-hidden="true" />Active lease</span>
               </StatusChip>
             }
           />

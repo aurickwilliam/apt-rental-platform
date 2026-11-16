@@ -16,7 +16,7 @@ import type { LastPaidPayment, RentalSummary } from "../rental-summary";
 import { formatMonthYear, formatShortDate } from "../utils";
 
 const HISTORY_HREF = "/tenant/payment/history";
-const CHIP_CLASS = "font-nunito text-[11px] font-semibold";
+const CHIP_CLASS = "font-nunito font-semibold";
 const CARD_CLASS =
   "flex h-full min-w-0 flex-col rounded-3xl border border-white/10 bg-primary p-5 text-white";
 
@@ -91,8 +91,8 @@ export default function PaymentSummaryCard({ summary }: { summary: RentalSummary
       <section aria-label="Payment summary" className={CARD_CLASS}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="font-nunito text-lg font-bold">{summary.billTitle}</p>
-          <StatusChip className={CHIP_CLASS} tone="success">
-            <span className="flex items-center gap-1"><CircleCheck size={14} aria-hidden="true" />Paid</span>
+          <StatusChip size="md" className={CHIP_CLASS} tone="success">
+            <span className="flex items-center gap-1.5"><CircleCheck size={18} aria-hidden="true" />Paid</span>
           </StatusChip>
         </div>
         <p className="mt-2 font-nunito text-3xl font-bold">{paymentPeriod}</p>
@@ -142,12 +142,12 @@ export default function PaymentSummaryCard({ summary }: { summary: RentalSummary
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="font-nunito text-lg font-bold">{summary.billTitle}</p>
         {!bill && summary.paymentStatus === "paid" ? (
-          <StatusChip className={CHIP_CLASS} tone="success">
-            <span className="flex items-center gap-1"><CircleCheck size={14} aria-hidden="true" />Paid</span>
+          <StatusChip size="md" className={CHIP_CLASS} tone="success">
+            <span className="flex items-center gap-1.5"><CircleCheck size={18} aria-hidden="true" />Paid</span>
           </StatusChip>
         ) : (
-          <StatusChip className={CHIP_CLASS} tone={isLate ? "danger" : "warning"}>
-            <span className="flex items-center gap-1"><Clock size={14} aria-hidden="true" />{pendingPayment ? "Awaiting confirmation" : summary.dueLabel}</span>
+          <StatusChip size="md" className={CHIP_CLASS} tone={isLate ? "danger" : "warning"}>
+            <span className="flex items-center gap-1.5"><Clock size={18} aria-hidden="true" />{pendingPayment ? "Awaiting confirmation" : summary.dueLabel}</span>
           </StatusChip>
         )}
       </div>

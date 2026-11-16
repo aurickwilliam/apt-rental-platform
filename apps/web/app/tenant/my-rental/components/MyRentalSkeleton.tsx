@@ -98,7 +98,7 @@ function TenancySkeleton() {
 export default function MyRentalSkeleton() {
   return (
     <div className="min-h-screen bg-background" aria-busy="true" aria-label="Loading my rental">
-      <div className="@container/rental min-w-0 space-y-3 px-4 py-6 sm:py-8">
+      <div className="@container/rental min-w-0 space-y-3 px-4 pt-4 pb-6 sm:pb-8">
         <TenancySkeleton />
       </div>
     </div>
