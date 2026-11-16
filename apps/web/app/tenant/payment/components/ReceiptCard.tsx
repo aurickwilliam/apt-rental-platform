@@ -27,6 +27,7 @@ interface ReceiptCardProps {
   referenceNumber: string;
   status?: PaymentStatus;
   periodLabel?: string;
+  /** Color behind the paper; "transparent" hangs white teeth below it instead of cutting notches. */
   backgroundColor?: string;
   onSave?: () => void;
   onShare?: () => void;
@@ -62,10 +63,11 @@ export default function ReceiptCard({
 }: ReceiptCardProps) {
   const meta = STATUS_META[status] ?? STATUS_META.Paid;
   const Icon = meta.icon;
+  const floating = backgroundColor === "transparent";
 
   return (
     <div className="w-full max-w-[560px] mx-auto">
-      <Card className="relative rounded-t-2xl rounded-b-none border border-b-0 border-zinc-200/80 bg-white shadow-sm overflow-hidden">
+      <Card className={`relative rounded-t-2xl rounded-b-none border border-b-0 border-zinc-200/80 bg-white overflow-hidden ${floating ? "shadow-none" : "shadow-sm"}`}>
         <Card.Header className="flex flex-col items-center justify-center px-6 pt-8 pb-2">
           <Icon size={48} className={meta.color} />
           <h3 className={`mt-3 text-xl font-nunito font-bold ${meta.color}`}>{meta.title}</h3>
@@ -105,10 +107,14 @@ export default function ReceiptCard({
         </Card.Footer>
 
         {/* Mobile parity: edge overlays the card bottom (covers HeroUI bottom padding) */}
-        <div className="pointer-events-none absolute bottom-0 left-0 right-0" aria-hidden>
-          <ZigzagEdge cutColor={backgroundColor} depth={13} toothWidth={20} />
-        </div>
+        {!floating && (
+          <div className="pointer-events-none absolute bottom-0 left-0 right-0" aria-hidden>
+            <ZigzagEdge cutColor={backgroundColor} depth={13} toothWidth={20} />
+          </div>
+        )}
       </Card>
+      {/* Over a transparent dialog there is no color to cut with, so paper-colored teeth hang below. */}
+      {floating && <ZigzagEdge hanging cutColor="#ffffff" depth={13} toothWidth={20} className="-mt-px" />}
     </div>
   );
 }

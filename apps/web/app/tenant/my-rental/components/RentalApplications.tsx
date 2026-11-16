@@ -1,10 +1,15 @@
 "use client";
 
 import { use } from "react";
-import { Button, Modal, useOverlayState } from "@heroui/react";
-import { IconHistory as History, IconHome as House, IconX as X } from "@tabler/icons-react";
+import { useOverlayState } from "@heroui/react";
+import {
+  IconChevronRight as ChevronRight,
+  IconClipboardText as ClipboardText,
+  IconHome as House,
+} from "@tabler/icons-react";
 import { useTenantApplications } from "@/hooks/use-tenant-applications";
 import type { InitialRentalContext } from "@/service/tenancy-context";
+import ApplicationHistoryDrawer from "./ApplicationHistoryDrawer";
 import ApplicationsList from "./ApplicationsList";
 import TenancyEmptyState from "./TenancyEmptyState";
 
@@ -34,28 +39,29 @@ export default function RentalApplications({ tenantId, initial, activeLease = fa
   }
 
   if (!hasApplications) return null;
+  const pendingCount = applications.filter((application) => application.status === "pending").length;
+  const title = pendingCount > 0
+    ? `${pendingCount} pending application${pendingCount === 1 ? "" : "s"}`
+    : "Application history";
+  const subtitle = pendingCount > 0 ? "Waiting for the landlord’s review" : "Review your past applications";
   return (
     <>
-      <Button variant="outline" size="sm" onPress={() => historyDialog.setOpen(true)}>
-        <History size={16} /> Application History
-      </Button>
-      <Modal isOpen={historyDialog.isOpen} onOpenChange={historyDialog.setOpen}>
-        <Modal.Backdrop>
-          <Modal.Container size="lg" scroll="inside">
-            <Modal.Dialog>
-              <Modal.Header className="flex flex-row items-center justify-between">
-                <Modal.Heading>Application History</Modal.Heading>
-                <Button isIconOnly variant="ghost" size="sm" onPress={() => historyDialog.setOpen(false)} aria-label="Close application history" className="text-muted-foreground">
-                  <X size={18} />
-                </Button>
-              </Modal.Header>
-              <Modal.Body>
-                <ApplicationsList showHeader={false} applications={applications} loading={loading} error={error} />
-              </Modal.Body>
-            </Modal.Dialog>
-          </Modal.Container>
-        </Modal.Backdrop>
-      </Modal>
+      <button
+        type="button"
+        onClick={() => historyDialog.setOpen(true)}
+        aria-label={`${title}. View applications`}
+        className="flex w-full min-w-0 cursor-pointer items-center gap-3 rounded-3xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      >
+        <span className={`flex size-10 shrink-0 items-center justify-center rounded-full ${pendingCount > 0 ? "bg-warning/15 text-warning" : "bg-muted text-muted-foreground"}`}>
+          <ClipboardText size={20} aria-hidden="true" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-nunito text-base font-semibold text-card-foreground">{title}</span>
+          <span className="block truncate font-inter text-xs text-muted-foreground">{subtitle}</span>
+        </span>
+        <ChevronRight size={16} className="shrink-0 text-muted-foreground" aria-hidden="true" />
+      </button>
+      <ApplicationHistoryDrawer isOpen={historyDialog.isOpen} onOpenChange={historyDialog.setOpen} applications={applications} />
     </>
   );
 }

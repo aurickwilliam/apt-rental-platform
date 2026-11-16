@@ -14,7 +14,7 @@ import { paymentBreakdown } from "@repo/utils";
 
 // Shared receipt body for the success + per-row history routes
 // (mobile parity: both render the same ReceiptCard).
-export default function ReceiptView({ payment }: { payment: PaymentRecord }) {
+export default function ReceiptView({ payment, transparent = false }: { payment: PaymentRecord; transparent?: boolean }) {
   const dateLabel = formatDateFull(payment.date);
   const timeLabel = formatTimeShort(payment.created_at);
   const periodLabel = payment.period_start
@@ -39,7 +39,7 @@ export default function ReceiptView({ payment }: { payment: PaymentRecord }) {
         breakdown={paymentBreakdown(payment)}
         paymentLabel={payment.billing_kind === "lease_renewal" ? "Lease Renewal" : payment.billing_kind === "move_in" ? "Move-in payment" : undefined}
         periodLabel={periodLabel}
-        backgroundColor="#376BF5"
+        backgroundColor={transparent ? "transparent" : "#376BF5"}
       />
 
       {isCashPending && (
