@@ -69,7 +69,7 @@ function TenancySkeleton() {
                 <Sk className="h-4 w-28 rounded-lg" />
                 <Sk className="h-3 w-16 rounded-lg" />
               </div>
-              <Sk className="size-9 shrink-0 rounded-xl" />
+              <Sk className="size-12 shrink-0 rounded-xl" />
             </div>
           </div>
 

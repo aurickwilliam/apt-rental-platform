@@ -43,9 +43,10 @@ export default function RentalLandlordCard({ landlord, profileHref, messageHref 
         <Link
           href={messageHref}
           aria-label={`Message ${name}`}
-          className={`${buttonVariants({ variant: "secondary", isIconOnly: true })} cursor-pointer no-underline`}
+          className={`${buttonVariants({ variant: "secondary", size: "lg", isIconOnly: true })} size-12 shrink-0 cursor-pointer no-underline`}
         >
-          <IconMessageCircle size={22} aria-hidden="true" />
+          {/* HeroUI pins button icons to 16-20px, so the size needs an important class. */}
+          <IconMessageCircle className="size-6!" aria-hidden="true" />
         </Link>
       </div>
     </DashboardCard>
