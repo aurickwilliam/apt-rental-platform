@@ -4,9 +4,11 @@ const MANILA = "Asia/Manila";
 
 export function normalizePaymentStatus(status?: string | null): PaymentStatus {
   const value = status?.toLowerCase() ?? "";
-  if (value === "paid" || value === "completed") return "paid";
+  if (value === "paid" || value === "completed" || value === "succeeded") return "paid";
   if (value === "late" || value === "overdue") return "late";
   if (value === "rejected" || value === "declined") return "rejected";
+  // An attempt that ended without money moving is never shown as still pending.
+  if (value === "failed" || value === "expired" || value === "cancelled" || value === "canceled") return "failed";
   return "pending";
 }
 

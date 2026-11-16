@@ -1,4 +1,4 @@
-export type PaymentStatus = "paid" | "pending" | "late" | "rejected";
+export type PaymentStatus = "paid" | "pending" | "late" | "rejected" | "failed";
 
 export interface PaymentHistoryItem {
   id: string;

@@ -31,6 +31,7 @@ const STATUS_CHIP: Record<PaymentStatus, { tone: "success" | "warning" | "danger
   paid: { tone: "success", label: "Paid", icon: IconCircleCheck },
   late: { tone: "danger", label: "Late", icon: IconAlertCircle },
   rejected: { tone: "danger", label: "Rejected", icon: IconCircleX },
+  failed: { tone: "danger", label: "Failed", icon: IconCircleX },
   pending: { tone: "warning", label: "Pending", icon: IconClock },
 };
 
@@ -121,7 +122,7 @@ export default function PaymentHistoryCard({ rows, loading, failed, onRetry }: P
         </p>
       )}
       {receiptPayment && (
-        <ReceiptModal payment={receiptPayment} state={receiptState} ctaLabel="Done" onCtaPress={closeReceipt} />
+        <ReceiptModal payment={receiptPayment} state={receiptState} transparent />
       )}
     </DashboardCard>
   );

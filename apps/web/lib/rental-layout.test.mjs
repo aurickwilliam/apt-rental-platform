@@ -369,6 +369,15 @@ test("recent payments is a short list, newest three, never a sideways-scrolling 
   assert.ok(content(renderRental()).includes("No payments recorded yet."));
 });
 
+test("a failed or expired payment shows a Failed chip, never Pending", () => {
+  const payments = ["failed", "expired", "pending"].map((status, index) => (
+    { id: `p${index}`, billing_kind: "monthly", amount: 15000, status, date: `2026-10-1${index}`, period_start: "2026-10-01" }
+  ));
+  const list = renderRental({ payments }).find(node => node.type === "ul" && node.props["aria-label"] === "Recent payments");
+  const labels = nodes(list).filter(node => node.type === "Button").map(row => row.props["aria-label"].split(", ").pop());
+  assert.deepEqual([...labels], ["Failed", "Failed", "Pending"]);
+});
+
 test("lease progress reports the share elapsed and a plain time-left label", () => {
   const exports = {};
   vm.runInNewContext(transpile("lease-progress.ts"), { exports, Intl, Date, Math, Number });
