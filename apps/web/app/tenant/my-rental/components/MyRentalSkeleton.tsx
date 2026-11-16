@@ -17,20 +17,23 @@ function TenancySkeleton() {
         <RentFinanceSkeleton />
       </div>
 
-      <div>
-        <Sk className="h-5 w-32 rounded-lg" />
-        <div className="mt-3 grid grid-cols-3 gap-2 @min-[44rem]/rental:grid-cols-5 @min-[56rem]/rental:gap-3">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <div key={index} className="flex flex-col items-center gap-2 @min-[56rem]/rental:flex-row @min-[56rem]/rental:gap-3 @min-[56rem]/rental:rounded-2xl @min-[56rem]/rental:border @min-[56rem]/rental:border-border @min-[56rem]/rental:bg-card @min-[56rem]/rental:p-3">
-              <Sk className="size-12 shrink-0 rounded-xl" />
-              <Sk className="h-3 w-14 rounded-lg @min-[56rem]/rental:w-20" />
-            </div>
-          ))}
-        </div>
-      </div>
-
       <div className={`${TWO_COLUMNS} @min-[56rem]/rental:items-start`}>
         <div className="flex min-w-0 flex-col gap-3">
+          <div className={CARD}>
+            <div className="flex items-center justify-between gap-3">
+              <Sk className="h-5 w-32 rounded-lg" />
+              <Sk className="size-8 rounded-lg" />
+            </div>
+            <div className="mt-3 grid grid-cols-5 gap-1">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div key={index} className="flex flex-col items-center gap-2">
+                  <Sk className="size-12 shrink-0 rounded-xl" />
+                  <Sk className="h-3 w-12 max-w-full rounded-lg" />
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className={`${CARD} space-y-4`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <Sk className="h-5 w-28 rounded-lg" />

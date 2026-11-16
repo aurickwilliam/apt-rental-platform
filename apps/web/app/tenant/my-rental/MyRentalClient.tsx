@@ -37,10 +37,10 @@ export default function MyRentalClient({ initialContext }: { initialContext: Ini
   const identity = useAuthIdentity(initialContext.authUserId);
   const seed = identity.authUserId === initialContext.authUserId && identity.generation === 0 ? initialContext : undefined;
   // Retire *all* account-owned sections and pending callbacks, not just finance.
-  return <RentalContent key={`${identity.authUserId ?? "none"}:${identity.generation}:${seed?.renderedAt ?? "browser"}`} initialContext={seed} />;
+  return <RentalContent key={`${identity.authUserId ?? "none"}:${identity.generation}:${seed?.renderedAt ?? "browser"}`} initialContext={seed} authUserId={identity.authUserId} />;
 }
 
-function RentalContent({ initialContext }: { initialContext?: InitialRentalContext }) {
+function RentalContent({ initialContext, authUserId }: { initialContext?: InitialRentalContext; authUserId: string | null | undefined }) {
   const {
     tenancy,
     payments,
@@ -219,14 +219,15 @@ function RentalContent({ initialContext }: { initialContext?: InitialRentalConte
           )}
         </div>
 
-        <RentalQuickActions
-          apartmentId={apartment.id}
-          messageHref={messageHref}
-          onViewSignedLease={() => void handleViewSignedLease()}
-        />
-
         <div className={`${twoColumns} @min-[56rem]/rental:items-start`}>
           <div className="flex min-w-0 flex-col gap-3">
+            <RentalQuickActions
+              authUserId={authUserId}
+              apartmentId={apartment.id}
+              messageHref={messageHref}
+              onViewSignedLease={() => void handleViewSignedLease()}
+            />
+
             <RentalMaintenanceCard requests={maintenanceRequests} loading={maintenanceLoading} error={maintenanceError} />
 
             <PaymentHistoryCard

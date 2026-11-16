@@ -27,7 +27,7 @@ const nodes = element => !element || typeof element !== "object" ? [] :
 const rawNodes = element => !element || typeof element !== "object" ? [] : [element, ...children(element).flatMap(rawNodes)];
 const typeName = node => typeof node?.type === "function" ? node.type.name : node?.type;
 
-function renderRentalRoot({ paid = false, bill = null, payments = [], effects = [], maintenance = { requests: [], loading: false, error: null }, noTenancy = false, noLandlord = false, applicationsLoading = false, financeLoading = false, financeError = null, paymentError = null } = {}) {
+function renderRentalRoot({ paid = false, bill = null, payments = [], effects = [], maintenance = { requests: [], loading: false, error: null }, noTenancy = false, noLandlord = false, quickActionIds = ["receipts", "repairs", "message-landlord", "signed-lease", "my-rental"], applicationsLoading = false, financeLoading = false, financeError = null, paymentError = null } = {}) {
   const jsx = (type, props) => ({ type, props });
   const noOp = () => {};
   const tenancy = {
@@ -63,6 +63,7 @@ function renderRentalRoot({ paid = false, bill = null, payments = [], effects = 
     "@/hooks/use-tenancy": { useTenancy: () => ({ tenancy: noTenancy ? null : tenancy, payments, loading: false, error: null, financeLoading, financeError, paymentError, refetch: noOp, revalidate: noOp, retryFinance: noOp }) },
     "@/hooks/use-auth-identity": { useAuthIdentity: () => ({ authUserId: "auth-a", generation: 0 }) },
     "@/hooks/use-tenant-applications": { useTenantApplications: () => ({ applications: [], loading: applicationsLoading, error: null }) },
+    "@/hooks/use-rental-quick-actions": { useRentalQuickActions: () => ({ ids: quickActionIds, save: () => true }) },
     "@/hooks/use-maintenance-request-history": { useMaintenanceRequestHistory: () => maintenance },
     "@/hooks/use-signed-lease-viewer": { useSignedLeaseViewer: () => ({ viewSignedLease: noOp, viewing: false }) },
     "@/lib/conversation-contacts": { getContactConversationKey: (peer, apartment) => `${peer}:${apartment ?? "none"}` },
@@ -228,14 +229,13 @@ test("My Rental identifies move-in payments correctly in its history", () => {
   assert.ok(!content(all).includes("October 2026 - Monthly rent"));
 });
 
-test("quick actions are mobile-style neutral tiles with a hint: links for pages, a button for the signed lease", () => {
+test("quick actions are a compact mobile-style row the tenant can customize", () => {
   const all = renderRental();
   const grid = all.find(node => node.props.className?.includes("rental-quick-actions"));
-  assert.match(grid.props.className, /grid-cols-3/);
-  assert.match(grid.props.className, /@min-\[44rem\]\/rental:auto-cols-fr/);
+  assert.match(grid.props.className, /grid-cols-5/, "five across at every width, like mobile");
+  assert.doesNotMatch(grid.props.className, /@min-/, "no wide row-tile variant");
   const tiles = grid.props.children;
   assert.deepEqual([...tiles.map(tile => tile.props.children.props.label)], ["Receipts", "Repairs", "Message landlord", "Signed lease", "My rental"]);
-  assert.ok(tiles.every(tile => tile.props.children.props.hint.length > 0), "every tile explains itself");
   assert.equal(tiles[3].type, "Button", "signed lease remains an action rather than navigation");
   assert.equal(typeof tiles[3].props.onPress, "function");
   assert.equal(tiles[0].props.href, "/tenant/payment/history");
@@ -245,16 +245,25 @@ test("quick actions are mobile-style neutral tiles with a hint: links for pages,
   for (const tile of tiles) {
     assert.match(tile.props.className, /cursor-pointer/);
     assert.match(tile.props.className, /focus-visible:outline-2/);
-    assert.match(tile.props.className, /@min-\[56rem\]\/rental:flex-row/, "icon beside label and hint once there is room");
+    assert.match(tile.props.className, /flex-col items-center/, "icon over caption");
   }
   const tileIcons = nodes(grid).filter(node => node.props.className?.includes("size-12"));
   assert.equal(tileIcons.length, 5);
   assert.ok(tileIcons.every(node => node.props.className.includes("bg-muted")), "neutral tiles, not per-action tints");
-  const hints = nodes(grid).filter(node => node.props.className?.includes("@min-[56rem]/rental:line-clamp-2"));
-  assert.equal(hints.length, 5);
-  assert.ok(hints.every(node => node.props.className.includes("hidden")), "hints stay off the phone tiles");
+  const edit = all.find(node => node.props?.["aria-label"] === "Customize quick actions");
+  assert.equal(edit.type, "Button");
+  assert.equal(edit.props.isIconOnly, true);
+  assert.ok(!all.some(node => node.type === "./components/RentalQuickActionsEditor"), "the editor mounts only while open");
+
   const noLandlord = nodes(renderRentalRoot({ noLandlord: true })).find(node => node.props.className?.includes("rental-quick-actions"));
   assert.equal(noLandlord.props.children.length, 4, "Message landlord needs a landlord");
+
+  const custom = renderRental({ quickActionIds: ["profile", "favorites", "browse"] });
+  const customGrid = custom.find(node => node.props.className?.includes("rental-quick-actions"));
+  assert.deepEqual([...customGrid.props.children.map(tile => tile.props.href)], ["/tenant/profile", "/tenant/favorites", "/tenant/browse"], "the saved choice and its order are shown");
+  const empty = renderRental({ quickActionIds: [] });
+  assert.ok(!empty.some(node => node.props?.className?.includes("rental-quick-actions")));
+  assert.ok(content(empty).includes("No quick actions chosen"));
 });
 
 test("landlord card opens the profile and messages the rental conversation, and is skipped without a landlord", () => {
@@ -271,15 +280,14 @@ test("photo and payment share the first row; sections follow mobile's order with
   const tracks = /@min-\[56rem\]\/rental:grid-cols-\[minmax\(0,1\.7fr\)_minmax\(20rem,1fr\)\]/;
   for (const paid of [false, true]) {
     const shell = rawNodes(renderRentalRoot({ paid })).find(node => node.props.className?.includes("@container/rental"));
-    const [top, quickActions, columns] = children(shell);
+    const [top, columns] = children(shell);
     assert.match(top.props.className, tracks);
     assert.deepEqual([...children(top).map(typeName)], ["./components/RentalHero", "PaymentSummaryCard"]);
-    assert.equal(typeName(quickActions), "RentalQuickActions");
     assert.match(columns.props.className, tracks, "the lower sections reuse the first row's tracks");
     assert.match(columns.props.className, /@min-\[56rem\]\/rental:items-start/);
     const [main, side] = children(columns);
     const names = column => [...children(column).filter(Boolean).map(typeName)];
-    assert.deepEqual(names(main), ["RentalMaintenanceCard", "PaymentHistoryCard"]);
+    assert.deepEqual(names(main), ["RentalQuickActions", "RentalMaintenanceCard", "PaymentHistoryCard"], "quick actions open the left column");
     assert.deepEqual(names(side), ["RentalLandlordCard", "LeaseOverviewCard", "@/app/components/renewals/LeaseRenewalEntry", "Suspense"]);
     const [applications] = children(children(side)[3]);
     assert.equal(typeName(applications), "RentalApplications", "application history closes the lease column");
@@ -418,14 +426,14 @@ test("the maintenance preview keeps active repairs in view and falls back to one
 test("loading states mirror the two-track rows and quick action layouts", () => {
   const skeleton = componentSource("components/MyRentalSkeleton.tsx");
   assert.ok(skeleton.includes("@container/rental"));
-  for (const rule of ["@min-[56rem]/rental:grid-cols-[minmax(0,1.7fr)_minmax(20rem,1fr)]", "@min-[44rem]/rental:grid-cols-5"]) {
+  for (const rule of ["@min-[56rem]/rental:grid-cols-[minmax(0,1.7fr)_minmax(20rem,1fr)]", "grid grid-cols-5 gap-1"]) {
     assert.ok(skeleton.includes(rule), `skeleton retains ${rule}`);
   }
   assert.match(componentSource("components/DashboardCard.tsx"), /@container\/dashboard min-w-0/);
   assert.match(componentSource("components/DashboardCard.tsx"), /rounded-3xl/);
 });
 
-test("loading shows the photo beside a payment card, quick actions, then the two columns", () => {
+test("loading shows the photo beside a payment card, then the two columns with quick actions first", () => {
   const jsx = (type, props) => typeof type === "function" ? type(props) : { type, props };
   const runtime = { jsx, jsxs: jsx, Fragment: "Fragment" };
   const compiled = transpile("components/MyRentalSkeleton.tsx");
@@ -440,14 +448,14 @@ test("loading shows the photo beside a payment card, quick actions, then the two
   } };
   vm.runInNewContext(compiled, context);
   const all = nodes(context.exports.default({}));
-  const [top, quickActions, columns] = all.find(node => node.type === "Fragment").props.children;
+  const [top, columns] = all.find(node => node.type === "Fragment").props.children;
   const [hero, payment] = top.props.children;
   assert.match(hero.props.className, /h-60 w-full rounded-3xl/);
   assert.equal(payment.props["aria-label"], "Loading rent details");
   assert.match(payment.props.className, /h-full/);
-  assert.equal(nodes(quickActions).filter(node => node.type === "Skeleton" && node.props.className.includes("size-12")).length, 5, "five quick action tiles");
   assert.match(columns.props.className, /@min-\[56rem\]\/rental:items-start/);
   const [main, side] = columns.props.children;
+  assert.equal(nodes(main.props.children[0]).filter(node => node.type === "Skeleton" && node.props.className.includes("size-12")).length, 5, "five quick action tiles open the main column");
   assert.equal(nodes(main).filter(node => node.type === "Skeleton" && node.props.className.includes("h-10 w-full")).length, 3, "recent payment rows close the main column");
   assert.ok(nodes(side).some(node => node.type === "Skeleton" && node.props.className.includes("size-14")), "landlord avatar");
   assert.ok(nodes(side).some(node => node.type === "Skeleton" && node.props.className.includes("h-2 w-full")), "lease progress bar");
