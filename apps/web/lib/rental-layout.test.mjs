@@ -298,6 +298,28 @@ test("photo and payment share the first row; sections follow mobile's order with
   }
 });
 
+test("application history opens a right-hand drawer of compact rows with filter and sort in a popover", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const read = name => readFile(new URL(`../app/tenant/my-rental/components/${name}.tsx`, import.meta.url), "utf8");
+  const [entry, drawer, row, list] = await Promise.all(["RentalApplications", "ApplicationHistoryDrawer", "ApplicationHistoryRow", "ApplicationsList"].map(read));
+  assert.match(entry, /<ApplicationHistoryDrawer isOpen=\{historyDialog\.isOpen\}/);
+  assert.doesNotMatch(entry, /Modal/, "the history is no longer a centred modal");
+  assert.match(drawer, /<Drawer\.Content placement="right">/);
+  assert.match(drawer, /filterApplicationList\(applications, filters\)/, "the drawer filters and sorts with the shared list rule");
+  assert.match(drawer, /aria-label="Filter by status"/);
+  assert.match(drawer, /aria-label="Sort applications"/);
+  assert.match(drawer, /<Popover isOpen=\{filterOpen\}/, "filter and sort sit behind one icon button");
+  assert.match(drawer, /<Button isIconOnly variant="tertiary" aria-label=\{filterLabel\}/);
+  assert.ok(drawer.indexOf("aria-label={filterLabel}") < drawer.indexOf('aria-label="Close application history"'), "filter comes before Close in the header row");
+  assert.doesNotMatch(drawer, /Drawer\.CloseTrigger/, "Close sits in the header's flow, so it cannot overlap the filter button");
+  assert.match(drawer, /rounded-l-3xl/, "the drawer's left corners are rounded");
+  assert.doesNotMatch(drawer, /replaceState|useSearchParams/, "drawer filters never touch the page URL");
+  assert.match(row, /size-16/, "rows use a small square photo");
+  assert.match(row, /applicationDetailHref\(/);
+  assert.doesNotMatch(row, /View application</, "the whole row is the link, with no separate button");
+  assert.doesNotMatch(list, /showHeader/, "the full list no longer has a modal mode");
+});
+
 test("the payment card stays compact and stretches beside the photo; lease facts live in the lease card", () => {
   for (const paid of [false, true]) {
     const root = renderRentalRoot({ paid });

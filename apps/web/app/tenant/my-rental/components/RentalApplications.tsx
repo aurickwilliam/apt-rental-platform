@@ -1,15 +1,15 @@
 "use client";
 
 import { use } from "react";
-import { Button, Modal, useOverlayState } from "@heroui/react";
+import { useOverlayState } from "@heroui/react";
 import {
   IconChevronRight as ChevronRight,
   IconClipboardText as ClipboardText,
   IconHome as House,
-  IconX as X,
 } from "@tabler/icons-react";
 import { useTenantApplications } from "@/hooks/use-tenant-applications";
 import type { InitialRentalContext } from "@/service/tenancy-context";
+import ApplicationHistoryDrawer from "./ApplicationHistoryDrawer";
 import ApplicationsList from "./ApplicationsList";
 import TenancyEmptyState from "./TenancyEmptyState";
 
@@ -61,23 +61,7 @@ export default function RentalApplications({ tenantId, initial, activeLease = fa
         </span>
         <ChevronRight size={16} className="shrink-0 text-muted-foreground" aria-hidden="true" />
       </button>
-      <Modal isOpen={historyDialog.isOpen} onOpenChange={historyDialog.setOpen}>
-        <Modal.Backdrop>
-          <Modal.Container size="lg" scroll="inside">
-            <Modal.Dialog>
-              <Modal.Header className="flex flex-row items-center justify-between">
-                <Modal.Heading>Application History</Modal.Heading>
-                <Button isIconOnly variant="ghost" size="sm" onPress={() => historyDialog.setOpen(false)} aria-label="Close application history" className="text-muted-foreground">
-                  <X size={18} />
-                </Button>
-              </Modal.Header>
-              <Modal.Body>
-                <ApplicationsList showHeader={false} applications={applications} loading={loading} error={error} />
-              </Modal.Body>
-            </Modal.Dialog>
-          </Modal.Container>
-        </Modal.Backdrop>
-      </Modal>
+      <ApplicationHistoryDrawer isOpen={historyDialog.isOpen} onOpenChange={historyDialog.setOpen} applications={applications} />
     </>
   );
 }
