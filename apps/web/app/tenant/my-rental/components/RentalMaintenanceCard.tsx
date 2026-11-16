@@ -2,7 +2,17 @@
 
 import Link from "next/link";
 import { Spinner, buttonVariants } from "@heroui/react";
-import { IconChevronRight, IconPlus, IconTool } from "@tabler/icons-react";
+import {
+  IconChevronRight,
+  IconCircleCheck,
+  IconCircleX,
+  IconClock,
+  IconFlag,
+  IconPlus,
+  IconProgress,
+  IconTool,
+  type Icon,
+} from "@tabler/icons-react";
 import { MAINTENANCE_URGENCY } from "@repo/constants";
 
 import EmptyState from "@/app/components/display/EmptyState";
@@ -25,6 +35,14 @@ function statusTone(status: MaintenanceRequest["status"]): StatusTone {
   if (status === "Cancelled") return "danger";
   return "warning";
 }
+
+function statusIcon(status: MaintenanceRequest["status"]): Icon {
+  if (status === "Resolved") return IconCircleCheck;
+  if (status === "Cancelled") return IconCircleX;
+  return status === "In Progress" ? IconProgress : IconClock;
+}
+
+const CHIP_CONTENT_CLASS = "flex items-center gap-1";
 
 const categoryLabel = (value: string) => CATEGORIES.find((category) => category.id === value)?.label ?? value;
 const urgencyLabel = (value: string) => MAINTENANCE_URGENCY.find((urgency) => urgency.value === value)?.label ?? value;
@@ -81,28 +99,33 @@ export default function RentalMaintenanceCard({ requests, loading, error }: Rent
           />
         ) : (
           <ul className="flex flex-col gap-3">
-            {visible.map((request) => (
-              <li key={request.id}>
-                <Link
-                  href={MAINTENANCE_HREF}
-                  className="block cursor-pointer rounded-2xl border border-border bg-background p-3 no-underline transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                >
-                  <span className="flex items-start justify-between gap-3">
-                    <span className="min-w-0 break-words font-nunito text-base font-semibold text-card-foreground">{request.title}</span>
-                    <StatusChip className={`shrink-0 ${CHIP_CLASS}`} tone={statusTone(request.status)}>{request.status}</StatusChip>
-                  </span>
-                  <span className="mt-1 block font-inter text-sm text-muted-foreground">
-                    Category: {categoryLabel(request.category)}
-                  </span>
-                  <span className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                    <span className="font-inter text-xs text-muted-foreground">Reported {formatShortDate(request.created_at)}</span>
-                    <StatusChip className={CHIP_CLASS} tone={URGENCY_TONE[request.urgency] ?? "warning"}>
-                      {urgencyLabel(request.urgency)} Urgency
-                    </StatusChip>
-                  </span>
-                </Link>
-              </li>
-            ))}
+            {visible.map((request) => {
+              const StatusIcon = statusIcon(request.status);
+              return (
+                <li key={request.id}>
+                  <Link
+                    href={MAINTENANCE_HREF}
+                    className="block cursor-pointer rounded-2xl border border-border bg-background p-3 no-underline transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  >
+                    <span className="flex items-start justify-between gap-3">
+                      <span className="min-w-0 break-words font-nunito text-base font-semibold text-card-foreground">{request.title}</span>
+                      <StatusChip className={`shrink-0 ${CHIP_CLASS}`} tone={statusTone(request.status)}>
+                        <span className={CHIP_CONTENT_CLASS}><StatusIcon size={14} aria-hidden="true" />{request.status}</span>
+                      </StatusChip>
+                    </span>
+                    <span className="mt-1 block font-inter text-sm text-muted-foreground">
+                      Category: {categoryLabel(request.category)}
+                    </span>
+                    <span className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-inter text-xs text-muted-foreground">Reported {formatShortDate(request.created_at)}</span>
+                      <StatusChip className={CHIP_CLASS} tone={URGENCY_TONE[request.urgency] ?? "warning"}>
+                        <span className={CHIP_CONTENT_CLASS}><IconFlag size={14} aria-hidden="true" />{urgencyLabel(request.urgency)} Urgency</span>
+                      </StatusChip>
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

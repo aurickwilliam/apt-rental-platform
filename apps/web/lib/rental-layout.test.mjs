@@ -64,6 +64,7 @@ function renderRentalRoot({ paid = false, bill = null, payments = [], effects = 
     "@/hooks/use-auth-identity": { useAuthIdentity: () => ({ authUserId: "auth-a", generation: 0 }) },
     "@/hooks/use-tenant-applications": { useTenantApplications: () => ({ applications: [], loading: applicationsLoading, error: null }) },
     "@/hooks/use-rental-quick-actions": { useRentalQuickActions: () => ({ ids: quickActionIds, save: () => true }) },
+    "@/hooks/use-payments": { usePayment: () => ({ data: null, loading: false, error: null }) },
     "@/hooks/use-maintenance-request-history": { useMaintenanceRequestHistory: () => maintenance },
     "@/hooks/use-signed-lease-viewer": { useSignedLeaseViewer: () => ({ viewSignedLease: noOp, viewing: false }) },
     "@/lib/conversation-contacts": { getContactConversationKey: (peer, apartment) => `${peer}:${apartment ?? "none"}` },
@@ -353,6 +354,14 @@ test("recent payments is a short list, newest three, never a sideways-scrolling 
   const all = renderRental({ payments });
   const list = all.find(node => node.type === "ul" && node.props["aria-label"] === "Recent payments");
   assert.equal(list.props.children.length, 3);
+  const rows = nodes(list).filter(node => node.type === "Button");
+  assert.equal(rows.length, 3, "each row is one button that opens its receipt");
+  assert.equal(rows[0].props["aria-label"], "View receipt for October 2026 - Monthly rent, Paid");
+  assert.equal(typeof rows[0].props.onPress, "function");
+  assert.match(rows[0].props.className, /cursor-pointer/);
+  const chips = nodes(list).filter(node => node.type === "@/app/components/display/StatusChip");
+  assert.ok(chips.every(chip => nodes(chip).some(node => node.props?.["aria-hidden"] === "true")), "every status chip carries an icon");
+  assert.ok(!all.some(node => String(node.type).endsWith("ReceiptModal")), "the receipt opens only after a row is pressed");
   assert.ok(content(all).includes("Recent payments"));
   assert.ok(content(all).includes("October 2026 - Monthly rent"));
   assert.ok(!content(all).includes("July 2026 - Monthly rent"));
@@ -406,7 +415,9 @@ test("Maintenance keeps its loading, error, empty and request states", () => {
       assert.ok(text.includes("Category: Structural"));
       assert.ok(text.includes("Low Urgency"));
       assert.ok(card.some(node => node.props.children?.[0] === 0 && node.props.children?.[1] === " Active"));
-      assert.ok(card.some(node => node.type === "@/app/components/display/StatusChip" && node.props.tone === "success" && node.props.children === "Resolved"));
+      const resolved = card.find(node => node.type === "@/app/components/display/StatusChip" && node.props.tone === "success");
+      assert.ok(content(nodes(resolved)).includes("Resolved"));
+      assert.ok(card.filter(node => node.type === "@/app/components/display/StatusChip").every(chip => nodes(chip).some(node => node.props?.["aria-hidden"] === "true")), "status and urgency chips carry an icon");
     }
   }
 });
