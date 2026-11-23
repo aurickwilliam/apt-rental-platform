@@ -57,8 +57,8 @@ export default function ApplicationHistoryRow({ application, returnHref }: Appli
       </div>
 
       <div className="min-w-0 flex-1 space-y-0.5">
-        <div className="flex min-w-0 items-center gap-2">
-          <h3 className="min-w-0 flex-1 truncate font-nunito text-base font-semibold leading-snug">{name}</h3>
+        <div className="flex min-w-0 items-start gap-2">
+          <h3 className="line-clamp-2 min-w-0 flex-1 break-words font-nunito text-base font-semibold leading-snug">{name}</h3>
           <StatusChip tone={style.chipColor} className="shrink-0 font-nunito font-semibold">
             <span className="flex items-center gap-1">
               <StatusIcon size={14} aria-hidden="true" />
