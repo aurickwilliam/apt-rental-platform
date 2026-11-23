@@ -136,7 +136,7 @@ test("unresolved finance keeps the rental shell and hides payment actions; failu
   for (const failure of [{ financeError: "Bill unavailable" }, { paymentError: "History unavailable" }]) {
     const failed = renderRental(failure);
     assert.ok(!content(failed).includes("Pay now"));
-    assert.ok(!content(failed).includes("No completed payments yet."));
+    assert.ok(!failed.some(node => node.props?.title === "No completed payments yet"));
     assert.ok(content(failed).includes("Payment history could not load"));
     assert.ok(failed.some(node => node.type === "./components/RentalHero"));
     assert.ok(failed.some(node => node.type === "./components/RentFinanceError"));
@@ -371,7 +371,9 @@ test("recent payments is a short list, newest three, never a sideways-scrolling 
   assert.ok(content(all).includes("October 2026 - Monthly rent"));
   assert.ok(!content(all).includes("July 2026 - Monthly rent"));
   assert.ok(!all.some(node => String(node.type).startsWith("Table")));
-  assert.ok(content(renderRental()).includes("No completed payments yet."));
+  const empty = renderRental().find(node => node.props?.title === "No completed payments yet");
+  assert.ok(empty, "the shared EmptyState (icon on a circle, title, description) fills an empty list");
+  assert.ok(empty.props.description.length > 0);
 });
 
 test("recent payments list the same rows as Payment History: no pending payments, no abandoned checkouts", () => {
@@ -384,7 +386,7 @@ test("recent payments list the same rows as Payment History: no pending payments
   };
   assert.deepEqual([...labelsOf(["paid", "pending", "failed", "failed", "rejected"])], ["Paid", "Rejected"], "pending and failed are hidden, rejected cash stays");
   assert.deepEqual([...labelsOf(["pending", "failed", "failed"])], [], "only pending and failed rows leaves nothing to list");
-  assert.ok(content(renderRental({ payments: rows(["pending", "failed"]) })).includes("No completed payments yet."));
+  assert.ok(renderRental({ payments: rows(["pending", "failed"]) }).some(node => node.props?.title === "No completed payments yet"));
   assert.deepEqual([...labelsOf(["expired"])], ["Failed"], "an expired attempt that passes the rule still reads Failed, never Pending");
 });
 

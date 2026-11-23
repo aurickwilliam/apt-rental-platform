@@ -14,6 +14,7 @@ import {
 
 import { formatPesoDisplay } from "@repo/utils";
 
+import EmptyState from "@/app/components/display/EmptyState";
 import StatusChip from "@/app/components/display/StatusChip";
 import { usePayment } from "@/hooks/use-payments";
 
@@ -81,7 +82,12 @@ export default function PaymentHistoryCard({ rows, loading, failed, onRetry }: P
           </Button>
         </div>
       ) : rows.length === 0 ? (
-        <p className="py-6 text-center font-inter text-sm text-muted-foreground">No completed payments yet.</p>
+        <EmptyState
+          className="py-4"
+          icon={IconReceipt}
+          title="No completed payments yet"
+          description="Receipts for paid rent will show up here once a payment goes through."
+        />
       ) : (
         <ul aria-label="Recent payments" className="divide-y divide-border">
           {rows.slice(0, RECENT_PAYMENT_LIMIT).map((row) => {
