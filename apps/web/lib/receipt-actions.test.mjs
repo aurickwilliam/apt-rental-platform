@@ -157,6 +157,6 @@ test("the receipt shows the actions in its footer, and the actions are the only 
   const { readFile } = await import("node:fs/promises");
   const read = name => readFile(new URL(`../app/tenant/payment/components/${name}.tsx`, import.meta.url), "utf8");
   const [card, view] = await Promise.all([read("ReceiptCard"), read("ReceiptView")]);
-  assert.match(view, /actions=\{<ReceiptActions payment=\{payment\} \/>\}/);
+  assert.match(view, /actions=\{<ReceiptActions payment=\{payment\} viewer=\{viewer\} \/>\}/);
   assert.doesNotMatch(card, /Save to Photos|onSave|onShare/, "no inert buttons left in the card");
 });

@@ -52,6 +52,11 @@ function renderRentalRoot({ paid = false, bill = null, payments = [], effects = 
     "@repo/constants": { MAINTENANCE_URGENCY: [{ value: "low", label: "Low" }, { value: "high", label: "High" }] },
     "@repo/utils": {
       formatPesoDisplay: amount => `₱ ${amount}`,
+      // The shared Payment History rule, as in packages/utils/src/paymentHistory.ts.
+      filterPaymentHistory: (rows, showFailed) => rows.filter(row => {
+        const status = row.status.toLowerCase();
+        return status !== "pending" && !(status === "failed" && !showFailed);
+      }),
       getCurrentRentStatus: () => bill
         ? { monthlyRent: bill.monthlyRent, isFullyPaid: bill.rentPaid, periodStart: bill.periodStart, dueDate: bill.dueDate }
         : { monthlyRent: 15500, isFullyPaid: paid, periodStart: "2026-11-01", dueDate: "2026-11-05" },
@@ -131,7 +136,7 @@ test("unresolved finance keeps the rental shell and hides payment actions; failu
   for (const failure of [{ financeError: "Bill unavailable" }, { paymentError: "History unavailable" }]) {
     const failed = renderRental(failure);
     assert.ok(!content(failed).includes("Pay now"));
-    assert.ok(!content(failed).includes("No payments recorded yet."));
+    assert.ok(!content(failed).includes("No completed payments yet."));
     assert.ok(content(failed).includes("Payment history could not load"));
     assert.ok(failed.some(node => node.type === "./components/RentalHero"));
     assert.ok(failed.some(node => node.type === "./components/RentFinanceError"));
@@ -225,7 +230,7 @@ test("the payment card lists the charges behind its total, the last confirmed pa
 });
 
 test("My Rental identifies move-in payments correctly in its history", () => {
-  const all = renderRental({ bill: moveInBill, payments: [{ id: "move-in", billing_kind: "move_in", amount: 45500, status: "pending", date: "2026-10-21", period_start: "2026-10-01" }] });
+  const all = renderRental({ bill: moveInBill, payments: [{ id: "move-in", billing_kind: "move_in", amount: 45500, status: "paid", date: "2026-10-21", period_start: "2026-10-01" }] });
   assert.ok(content(all).includes("October 2026 - Move-in payment"));
   assert.ok(!content(all).includes("October 2026 - Monthly rent"));
 });
@@ -366,16 +371,21 @@ test("recent payments is a short list, newest three, never a sideways-scrolling 
   assert.ok(content(all).includes("October 2026 - Monthly rent"));
   assert.ok(!content(all).includes("July 2026 - Monthly rent"));
   assert.ok(!all.some(node => String(node.type).startsWith("Table")));
-  assert.ok(content(renderRental()).includes("No payments recorded yet."));
+  assert.ok(content(renderRental()).includes("No completed payments yet."));
 });
 
-test("a failed or expired payment shows a Failed chip, never Pending", () => {
-  const payments = ["failed", "expired", "pending"].map((status, index) => (
+test("recent payments list the same rows as Payment History: no pending payments, no abandoned checkouts", () => {
+  const rows = statuses => statuses.map((status, index) => (
     { id: `p${index}`, billing_kind: "monthly", amount: 15000, status, date: `2026-10-1${index}`, period_start: "2026-10-01" }
   ));
-  const list = renderRental({ payments }).find(node => node.type === "ul" && node.props["aria-label"] === "Recent payments");
-  const labels = nodes(list).filter(node => node.type === "Button").map(row => row.props["aria-label"].split(", ").pop());
-  assert.deepEqual([...labels], ["Failed", "Failed", "Pending"]);
+  const labelsOf = statuses => {
+    const list = renderRental({ payments: rows(statuses) }).find(node => node.type === "ul" && node.props["aria-label"] === "Recent payments");
+    return list ? nodes(list).filter(node => node.type === "Button").map(row => row.props["aria-label"].split(", ").pop()) : [];
+  };
+  assert.deepEqual([...labelsOf(["paid", "pending", "failed", "failed", "rejected"])], ["Paid", "Rejected"], "pending and failed are hidden, rejected cash stays");
+  assert.deepEqual([...labelsOf(["pending", "failed", "failed"])], [], "only pending and failed rows leaves nothing to list");
+  assert.ok(content(renderRental({ payments: rows(["pending", "failed"]) })).includes("No completed payments yet."));
+  assert.deepEqual([...labelsOf(["expired"])], ["Failed"], "an expired attempt that passes the rule still reads Failed, never Pending");
 });
 
 test("lease progress reports the share elapsed and a plain time-left label", () => {

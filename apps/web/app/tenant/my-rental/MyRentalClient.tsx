@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Button, toast } from "@heroui/react";
 import { IconCircleCheck } from "@tabler/icons-react";
+import { filterPaymentHistory } from "@repo/utils";
 
 import { useTenancy } from "@/hooks/use-tenancy";
 import { useAuthIdentity } from "@/hooks/use-auth-identity";
@@ -158,7 +159,9 @@ function RentalContent({ initialContext, authUserId }: { initialContext?: Initia
   const summary = buildRentalSummary({ tenancy, payments, currentPayment, pendingFees, today });
   const financeFailed = Boolean(financeError || paymentError);
 
-  const paymentHistory: PaymentHistoryItem[] = payments.map((payment) => {
+  // The same rule as the Payment History page (shared with mobile): pending payments
+// live in the verify flow and abandoned checkouts are not history, so both pages list the same rows.
+  const paymentHistory: PaymentHistoryItem[] = filterPaymentHistory(payments, false).map((payment) => {
     const paymentDate = payment.date ?? payment.period_start ?? payment.period_end ?? today.toISOString();
     const paymentLabel = payment.billing_kind === "lease_renewal" ? "Lease Renewal"
       : payment.billing_kind === "move_in" ? "Move-in payment"

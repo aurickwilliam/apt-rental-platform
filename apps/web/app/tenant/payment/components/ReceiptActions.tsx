@@ -5,7 +5,7 @@ import { Button, toast } from "@heroui/react";
 import { IconCheck, IconCopy, IconDownload, IconShare2 } from "@tabler/icons-react";
 
 import { useHydrated } from "@/hooks/use-hydrated";
-import { receiptData } from "@/lib/receipt-data";
+import { receiptData, type ReceiptViewer } from "@/lib/receipt-data";
 import { renderReceiptImage } from "@/lib/receipt-image";
 import type { PaymentRecord } from "@/service/paymentService";
 
@@ -26,6 +26,8 @@ function download(blob: Blob, filename: string) {
 
 interface ReceiptActionsProps {
   payment: PaymentRecord;
+  /** Whose wording the saved picture uses; the tenant's by default. */
+  viewer?: ReceiptViewer;
 }
 
 /**
@@ -36,7 +38,7 @@ interface ReceiptActionsProps {
  * into a chat. Nothing leaves the device unless the tenant picks a destination.
  * Saving and copying also raise a toast in the page's top-right corner (see Providers).
  */
-export default function ReceiptActions({ payment }: ReceiptActionsProps) {
+export default function ReceiptActions({ payment, viewer = "tenant" }: ReceiptActionsProps) {
   const hydrated = useHydrated();
   const fonts = useRef<HTMLSpanElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -60,7 +62,7 @@ export default function ReceiptActions({ payment }: ReceiptActionsProps) {
     const probe = fonts.current ? getComputedStyle(fonts.current) : null;
     const heading = probe?.fontFamily || "sans-serif";
     const body = fonts.current?.parentElement ? getComputedStyle(fonts.current.parentElement).fontFamily : "sans-serif";
-    const data = receiptData(payment, "tenant");
+    const data = receiptData(payment, viewer);
     return { data, blob: renderReceiptImage(data, { heading, body }) };
   };
 

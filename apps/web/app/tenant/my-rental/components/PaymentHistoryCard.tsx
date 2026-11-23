@@ -81,7 +81,7 @@ export default function PaymentHistoryCard({ rows, loading, failed, onRetry }: P
           </Button>
         </div>
       ) : rows.length === 0 ? (
-        <p className="py-6 text-center font-inter text-sm text-muted-foreground">No payments recorded yet.</p>
+        <p className="py-6 text-center font-inter text-sm text-muted-foreground">No completed payments yet.</p>
       ) : (
         <ul aria-label="Recent payments" className="divide-y divide-border">
           {rows.slice(0, RECENT_PAYMENT_LIMIT).map((row) => {
