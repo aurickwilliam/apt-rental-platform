@@ -94,6 +94,18 @@ function TenancySkeleton() {
             </div>
             <Sk className="h-9 w-full rounded-full" />
           </div>
+
+          <div className={`${CARD} space-y-3`}>
+            <div className="flex items-center gap-3">
+              <Sk className="size-12 shrink-0 rounded-full" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <Sk className="h-5 w-32 rounded-lg" />
+                <Sk className="h-3 w-44 max-w-full rounded-lg" />
+              </div>
+              <Sk className="h-6 w-24 shrink-0 rounded-full" />
+            </div>
+            <Sk className="h-9 w-44 rounded-full" />
+          </div>
         </div>
       </div>
     </>

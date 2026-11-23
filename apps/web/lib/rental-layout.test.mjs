@@ -494,7 +494,7 @@ test("loading shows the photo beside a payment card, then the two columns with q
   assert.match(columns.props.className, /@min-\[56rem\]\/rental:items-start/);
   const [main, side] = columns.props.children;
   assert.equal(nodes(main.props.children[0]).filter(node => node.type === "Skeleton" && node.props.className.includes("size-12")).length, 5, "five quick action tiles open the main column");
-  assert.equal(nodes(main).filter(node => node.type === "Skeleton" && node.props.className.includes("h-10 w-full")).length, 3, "recent payment rows close the main column");
+  assert.equal(nodes(main).filter(node => node.type === "Skeleton" && node.props.className.includes("size-10") && node.props.className.includes("rounded-full")).length, 3, "recent payment rows (receipt circle, two lines, amount and chip) close the main column");
   assert.ok(nodes(side).some(node => node.type === "Skeleton" && node.props.className.includes("size-14")), "landlord avatar");
   assert.ok(nodes(side).some(node => node.type === "Skeleton" && node.props.className.includes("h-2 w-full")), "lease progress bar");
   assert.ok(!all.some(node => node.props?.["aria-label"] === "Loading rent calendar"));
