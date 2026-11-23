@@ -15,7 +15,7 @@ import ZigzagEdge from "@/app/tenant/payment/components/ZigzagEdge";
 import type { PaymentStatus } from "@/app/tenant/payment/types";
 import { statusVariant } from "@/app/tenant/payment/utils";
 import type { LandlordPaymentRecord } from "@/service/landlordPaymentService";
-import { receiptData, type ReceiptTone } from "../lib/receiptData";
+import { receiptData, type ReceiptTone } from "@/lib/receipt-data";
 import { Button } from "@heroui/react";
 
 type StatusIcon = ComponentType<{ size?: number; className?: string }>;
@@ -106,7 +106,7 @@ export default function PaymentReceipt({ payment, footer }: PaymentReceiptProps)
         <div className="my-5 border-t border-dashed border-zinc-300" />
 
         <dl className="space-y-3">
-          <Row label="Tenant">{data.tenant}</Row>
+          <Row label={data.partyLabel}>{data.party}</Row>
           <Row label="Apartment">{data.apartment}</Row>
           <Row label={data.dateLabel}>
             {data.date}

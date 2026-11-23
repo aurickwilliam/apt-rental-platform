@@ -1,5 +1,6 @@
 "use client";
 
+import ReceiptActions from "./ReceiptActions";
 import ReceiptCard from "./ReceiptCard";
 import {
   formatDateFull,
@@ -40,6 +41,7 @@ export default function ReceiptView({ payment, transparent = false }: { payment:
         paymentLabel={payment.billing_kind === "lease_renewal" ? "Lease Renewal" : payment.billing_kind === "move_in" ? "Move-in payment" : undefined}
         periodLabel={periodLabel}
         backgroundColor={transparent ? "transparent" : "#376BF5"}
+        actions={<ReceiptActions payment={payment} />}
       />
 
       {isCashPending && (

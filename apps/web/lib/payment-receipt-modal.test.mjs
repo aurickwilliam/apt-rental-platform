@@ -8,7 +8,9 @@ const compound = (name, parts) => Object.assign(() => {}, Object.fromEntries(par
 const Modal = compound("Modal", ["Root", "Backdrop", "Container", "Dialog", "CloseTrigger", "Body"]);
 
 function compile(file, dependencies, globals = {}) {
-  const source = readFileSync(new URL(`../app/landlord/payments/components/${file}`, import.meta.url), "utf8");
+  // `@lib/name.ts` is a shared module in lib/; anything else is a landlord payments component.
+  const path = file.startsWith("@lib/") ? `../lib/${file.slice(5)}` : `../app/landlord/payments/components/${file}`;
+  const source = readFileSync(new URL(path, import.meta.url), "utf8");
   const compiled = ts.transpileModule(source, {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 },
   }).outputText;
@@ -155,7 +157,7 @@ const formatters = {
   },
   "@/lib/landlord-payments-view": { ledgerPeriodLabel: value => `period:${value}` },
 };
-const receiptDataModule = () => compile("../lib/receiptData.ts", { ...formatters });
+const receiptDataModule = () => compile("@lib/receipt-data.ts", { ...formatters });
 
 function loadReceipt() {
   const react = { useState: initial => [initial, () => {}], useRef: initial => ({ current: initial }), useEffect() {} };
@@ -164,7 +166,7 @@ function loadReceipt() {
     "@/app/components/display/PaymentMethodChip": { default: "PaymentMethodChip" },
     "@/app/components/display/StatusChip": { default: "StatusChip" },
     "@/app/tenant/payment/components/ZigzagEdge": { default: "ZigzagEdge" },
-    "../lib/receiptData": receiptDataModule(),
+    "@/lib/receipt-data": receiptDataModule(),
   };
   return { module: compile("PaymentReceipt.tsx", deps) };
 }
@@ -212,14 +214,23 @@ test("the receipt data is plain text with landlord wording, a filename and a tot
   const { receiptData } = receiptDataModule();
   const paid = receiptData(payment({ status: "paid" }));
   assert.deepEqual(
-    { title: paid.title, tone: paid.tone, amount: paid.amount, period: paid.period, tenant: paid.tenant, apartment: paid.apartment, dateLabel: paid.dateLabel, method: paid.method, reference: paid.reference, filename: paid.filename },
-    { title: "Payment received", tone: "success", amount: "₱6000", period: "period:2026-03-05", tenant: "Ryan", apartment: "Unit A", dateLabel: "Paid on", method: "Cash", reference: "APT-ABCD1234", filename: "receipt-APT-ABCD1234.png" },
+    { title: paid.title, tone: paid.tone, amount: paid.amount, period: paid.period, party: paid.party, apartment: paid.apartment, dateLabel: paid.dateLabel, method: paid.method, reference: paid.reference, filename: paid.filename },
+    { title: "Payment received", tone: "success", amount: "₱6000", period: "period:2026-03-05", party: "Ryan", apartment: "Unit A", dateLabel: "Paid on", method: "Cash", reference: "APT-ABCD1234", filename: "receipt-APT-ABCD1234.png" },
   );
   assert.equal(paid.breakdown.length, 0);
+  const tenant = receiptData(payment({ status: "paid", landlord_name: "Maria" }), "tenant");
+  assert.deepEqual(
+    { title: tenant.title, partyLabel: tenant.partyLabel, party: tenant.party, filename: tenant.filename },
+    { title: "Payment Successful", partyLabel: "Landlord", party: "Maria", filename: "receipt-APT-ABCD1234.png" },
+    "a tenant reads the on-screen title and sees the landlord",
+  );
+  assert.equal(receiptData(payment({ status: "rejected" }), "tenant").title, "Cash Payment Rejected");
+  assert.equal(receiptData(payment({ landlord_name: null }), "tenant").party, "—");
+  assert.equal(receiptData(payment({ status: "paid" })).partyLabel, "Tenant", "the landlord view is unchanged");
   assert.equal(receiptData(payment({ status: "rejected" })).tone, "danger");
   assert.equal(receiptData(payment({ status: "pending" })).tone, "warning");
   assert.equal(receiptData(payment({ status: "pending" })).dateLabel, "Recorded on");
-  assert.equal(receiptData(payment({ tenant_name: null, apartment_name: null })).tenant, "—");
+  assert.equal(receiptData(payment({ tenant_name: null, apartment_name: null })).party, "—");
   const moveIn = receiptData(payment({ status: "paid", billing_kind: "move_in", breakdown: [{ label: "Rent", amount: 6000 }] }));
   assert.equal(moveIn.period, "Move-in payment");
   assert.deepEqual([...moveIn.breakdown.map(line => [line.label, line.value])], [["Rent", "₱6000"]]);
@@ -244,7 +255,7 @@ function fakeCanvas() {
   return { canvas, calls };
 }
 
-const imageModule = (globals) => compile("../lib/receiptImage.ts", {}, globals);
+const imageModule = (globals) => compile("@lib/receipt-image.ts", {}, globals);
 const fonts = { heading: "Nunito", body: "Inter" };
 
 test("the receipt image is drawn from the same data, sized to its content, at twice the resolution", () => {
