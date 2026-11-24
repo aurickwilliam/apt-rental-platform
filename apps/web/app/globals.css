@@ -1186,6 +1186,17 @@
     @apply bg-muted text-muted-foreground hover:bg-[#d1d5db];
   }
 
+  /* Outline buttons are controls, not cards: keep their edge at the --input
+     strength now that --border is the softer card hairline. Dark mode keeps
+     the subtle border-border. */
+  .button--outline {
+    @apply border-input;
+  }
+
+  .dark .button--outline {
+    @apply border-border;
+  }
+
   .input, .textarea {
     /* border-input keeps the field outline at its light-mode strength now that
        --border is the softer card hairline; dark mode keeps the subtle

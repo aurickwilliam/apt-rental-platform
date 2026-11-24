@@ -109,7 +109,7 @@ function RenewalContent({tenancyId,portal}:LeaseRenewalClientProps) {
   );
   if (portal === "landlord") {
     return <main className="w-full min-w-0 px-4 py-6 sm:px-6">
-      <Link href={`/landlord/properties/${c.apartmentId}`} className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted/50"><IconArrowLeft size={16} aria-hidden /> Back to property</Link>
+      <Link href={`/landlord/properties/${c.apartmentId}`} className="inline-flex items-center gap-2 rounded-full border border-input dark:border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted/50"><IconArrowLeft size={16} aria-hidden /> Back to property</Link>
       <header className="mt-3">
         <h1 className="font-nunito text-3xl font-bold">Lease Renewal</h1>
         <p className="mt-1 text-muted-foreground">{c.apartmentName} · {c.tenantName}</p>
@@ -209,7 +209,7 @@ function RenewalContent({tenancyId,portal}:LeaseRenewalClientProps) {
     </main>;
   }
   return <main className="w-full min-w-0 px-4 py-6 sm:px-6">
-    <Link href={portal==='tenant'?'/tenant/my-rental':`/landlord/properties/${c.apartmentId}`} className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted/50"><IconArrowLeft size={16} aria-hidden /> Back to {portal==='tenant'?'My Rental':'property'}</Link>
+    <Link href={portal==='tenant'?'/tenant/my-rental':`/landlord/properties/${c.apartmentId}`} className="inline-flex items-center gap-2 rounded-full border border-input dark:border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted/50"><IconArrowLeft size={16} aria-hidden /> Back to {portal==='tenant'?'My Rental':'property'}</Link>
     <header className="mt-3">
       <h1 className="font-nunito text-3xl font-bold">Lease renewal</h1>
       <p className="mt-1 text-muted-foreground">{c.apartmentName} · {c.tenantName}</p>
@@ -264,7 +264,7 @@ function RenewalContent({tenancyId,portal}:LeaseRenewalClientProps) {
           <div className="flex flex-wrap gap-3">
             <Button className="min-w-[10rem] flex-1 justify-center" isDisabled={renewal.busy||lockedMonths===null} onPress={()=>void renewal.act('request',{durationMonths:lockedMonths})}>Request Lease Renewal</Button>
             <Button variant="outline" className="min-w-[10rem] flex-1 justify-center" isDisabled={renewal.busy} onPress={()=>setConfirm('not_renewing')}>I Will Not Renew</Button>
-            <Link href="/tenant/my-rental" className="inline-flex h-10 min-w-[10rem] flex-1 items-center justify-center rounded-full border border-border bg-card px-4 text-sm font-medium hover:bg-muted/50">Decide Later</Link>
+            <Link href="/tenant/my-rental" className="inline-flex h-10 min-w-[10rem] flex-1 items-center justify-center rounded-full border border-input dark:border-border bg-card px-4 text-sm font-medium hover:bg-muted/50">Decide Later</Link>
           </div>
         </section>}
         {!r&&!canRequestLeaseRenewal(c.leaseEnd,c.today,c.active)&&<p className="text-sm text-muted-foreground">Requests open during the final 30 days of an active, dated lease. Missing or expired terms need review.</p>}

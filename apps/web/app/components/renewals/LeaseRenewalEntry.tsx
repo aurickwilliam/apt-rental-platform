@@ -61,7 +61,7 @@ export default function LeaseRenewalEntry({tenancyId,portal}:{tenancyId:string;p
       <StatusChip tone={statusTone}>{statusLabel}</StatusChip>
     </div>
     <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
-      <Link href={href} className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted/50"><IconFileText size={14} aria-hidden /> {eligible?'Review renewal options':'View renewal details'}</Link>
+      <Link href={href} className="inline-flex items-center gap-2 rounded-full border border-input dark:border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted/50"><IconFileText size={14} aria-hidden /> {eligible?'Review renewal options':'View renewal details'}</Link>
     </div>
     {renewal.actionError&&<p role="alert" className="mt-2 text-sm text-danger">{renewal.actionError}</p>}
     {promptModal}
