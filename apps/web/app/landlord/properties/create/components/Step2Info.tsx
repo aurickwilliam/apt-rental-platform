@@ -95,7 +95,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             className="w-full"
           >
             <Label>Property Type</Label>
-            <Select.Trigger className="rounded-lg border border-border bg-card data-[focus-visible=true]:border-primary data-[open=true]:border-primary cursor-pointer">
+            <Select.Trigger className="rounded-lg border border-input dark:border-border bg-card data-[focus-visible=true]:border-primary data-[open=true]:border-primary cursor-pointer">
               <Select.Value />
               <Select.Indicator />
             </Select.Trigger>
@@ -119,7 +119,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             className="w-full"
           >
             <Label>Furnished Type</Label>
-            <Select.Trigger className="rounded-lg border border-border bg-card data-[focus-visible=true]:border-primary data-[open=true]:border-primary cursor-pointer">
+            <Select.Trigger className="rounded-lg border border-input dark:border-border bg-card data-[focus-visible=true]:border-primary data-[open=true]:border-primary cursor-pointer">
               <Select.Value />
               <Select.Indicator />
             </Select.Trigger>
@@ -312,7 +312,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
         <div className="grid grid-cols-2 gap-4">
           <TextField isRequired isInvalid={!!errors.province} isDisabled>
             <Label>Province</Label>
-            <Input value="Metro Manila" className="bg-muted text-muted-foreground border-border" />
+            <Input value="Metro Manila" className="bg-muted text-muted-foreground border-input dark:border-border" />
             <FieldError>{errors.province}</FieldError>
           </TextField>
 
@@ -336,7 +336,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             className="w-full"
           >
             <Label>City</Label>
-            <Select.Trigger className="rounded-lg border border-border bg-card cursor-pointer focus-visible:border-primary data-[open=true]:border-primary">
+            <Select.Trigger className="rounded-lg border border-input dark:border-border bg-card cursor-pointer focus-visible:border-primary data-[open=true]:border-primary">
               <Select.Value />
               <Select.Indicator />
             </Select.Trigger>
@@ -364,7 +364,7 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             className="w-full"
           >
             <Label>Barangay</Label>
-            <Select.Trigger className="rounded-lg border border-border bg-card cursor-pointer focus-visible:border-primary data-[open=true]:border-primary">
+            <Select.Trigger className="rounded-lg border border-input dark:border-border bg-card cursor-pointer focus-visible:border-primary data-[open=true]:border-primary">
               <Select.Value />
               <Select.Indicator />
             </Select.Trigger>

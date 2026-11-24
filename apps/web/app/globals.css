@@ -1186,10 +1186,26 @@
     @apply bg-muted text-muted-foreground hover:bg-[#d1d5db];
   }
 
+  /* Outline buttons are controls, not cards: keep their edge at the --input
+     strength now that --border is the softer card hairline. Dark mode keeps
+     the subtle border-border. */
+  .button--outline {
+    @apply border-input;
+  }
+
+  .dark .button--outline {
+    @apply border-border;
+  }
+
   .input, .textarea {
-    /* border-border (not gray-300): identical in light mode, subtle in dark
-       mode instead of stark white outlines. */
-    @apply rounded-xl border border-border placeholder:text-gray-400 transition-all;
+    /* border-input keeps the field outline at its light-mode strength now that
+       --border is the softer card hairline; dark mode keeps the subtle
+       border-border instead of stark white outlines. */
+    @apply rounded-xl border border-input placeholder:text-gray-400 transition-all;
+  }
+
+  .dark .input, .dark .textarea {
+    @apply border-border;
   }
 
   .input:hover, .input[data-hovered="true"],
@@ -1245,7 +1261,11 @@
   .select__trigger {
     /* Same as .input above: token border (not gray-300) and no hardcoded bg
        so dark mode works. */
-    @apply rounded-xl border border-border transition-all;
+    @apply rounded-xl border border-input transition-all;
+  }
+
+  .dark .select__trigger {
+    @apply border-border;
   }
 
   /* Placeholder text color — targets the value slot */
@@ -2061,7 +2081,9 @@ body[data-scroll-locked] [role="option"] {
   --accent: #EFF6FF;
   --accent-foreground: #333333;
   --destructive: #E50914;
-  --border: #D1D5DB;
+  /* Subtle hairline for cards, tables and dividers: the same #E5EAF2 mobile uses
+     for card borders. Form controls keep the stronger --input outline. */
+  --border: #E5EAF2;
   --input: #D1D5DB;
   --ring: #376BF5;
   --chart-1: oklch(0.646 0.222 41.116);

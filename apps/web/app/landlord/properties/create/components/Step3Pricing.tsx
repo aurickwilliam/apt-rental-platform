@@ -98,7 +98,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
             className="w-full"
           >
             <Label>Security Deposit</Label>
-            <Select.Trigger className="rounded-lg border border-border bg-card cursor-pointer focus-visible:border-primary data-[open=true]:border-primary">
+            <Select.Trigger className="rounded-lg border border-input dark:border-border bg-card cursor-pointer focus-visible:border-primary data-[open=true]:border-primary">
               <Select.Value />
               <Select.Indicator />
             </Select.Trigger>
@@ -125,7 +125,7 @@ export default function Step3Pricing({ formData, updateForm, errors }: Props) {
             className="w-full"
           >
             <Label>Advance Rent</Label>
-            <Select.Trigger className="rounded-lg border border-border bg-card cursor-pointer focus-visible:border-primary data-[open=true]:border-primary">
+            <Select.Trigger className="rounded-lg border border-input dark:border-border bg-card cursor-pointer focus-visible:border-primary data-[open=true]:border-primary">
               <Select.Value />
               <Select.Indicator />
             </Select.Trigger>

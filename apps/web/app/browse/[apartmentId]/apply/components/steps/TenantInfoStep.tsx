@@ -112,7 +112,7 @@ export default function TenantInfoStep({ form, errors, onChange, clearError, onB
           isInvalid={!!errors.employmentType}
         >
           <Label>{t("apply.tenant.employmentType")}</Label>
-          <Select.Trigger className="border-border bg-card text-card-foreground">
+          <Select.Trigger className="border-input dark:border-border bg-card text-card-foreground">
             <Select.Value />
             <Select.Indicator />
           </Select.Trigger>

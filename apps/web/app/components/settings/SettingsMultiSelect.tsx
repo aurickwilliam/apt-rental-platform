@@ -42,7 +42,7 @@ export default function SettingsMultiSelect({
       }}
       className={`group ${className}`}
     >
-      <Select.Trigger className="cursor-pointer border-border bg-card! text-foreground hover:bg-muted! group-data-[invalid=true]:border-destructive!">
+      <Select.Trigger className="cursor-pointer border-input dark:border-border bg-card! text-foreground hover:bg-muted! group-data-[invalid=true]:border-destructive!">
         <Select.Value />
         <Select.Indicator />
       </Select.Trigger>

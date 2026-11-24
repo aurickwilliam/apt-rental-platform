@@ -122,7 +122,7 @@ function RequestVisitPageInner() {
           <div className="flex flex-col gap-5 mt-6">
             <TextField isRequired isInvalid={!!errors.visitDate} value={visitDate} onChange={(v: string) => { setVisitDate(v); if (v) clearError("visitDate"); }}>
               <Label>Preferred Visit Date</Label>
-              <Input type="date" className="bg-card border-border text-card-foreground" />
+              <Input type="date" className="bg-card border-input dark:border-border text-card-foreground" />
               <FieldError>{errors.visitDate}</FieldError>
             </TextField>
 
@@ -133,7 +133,7 @@ function RequestVisitPageInner() {
                 <Label>Preferred Visit Time</Label>
                 <div className="flex gap-2">
                   <Select placeholder="Hour" value={visitHour || null} onChange={(k) => { const v = k ? String(k) : ""; setVisitHour(v); if (v) clearError("visitHour"); }} className="flex-1">
-                    <Select.Trigger className="bg-card border-border text-card-foreground">
+                    <Select.Trigger className="bg-card border-input dark:border-border text-card-foreground">
                       <Select.Value />
                       <Select.Indicator />
                     </Select.Trigger>
@@ -148,7 +148,7 @@ function RequestVisitPageInner() {
                     </Select.Popover>
                   </Select>
                   <Select value={period} onChange={(k) => setPeriod((k ? String(k) : "AM") as "AM" | "PM")} className="w-24">
-                    <Select.Trigger className="bg-card border-border text-card-foreground">
+                    <Select.Trigger className="bg-card border-input dark:border-border text-card-foreground">
                       <Select.Value />
                       <Select.Indicator />
                     </Select.Trigger>
@@ -193,7 +193,7 @@ function RequestVisitPageInner() {
 
             <TextField value={notes} onChange={(v: string) => setNotes(v)}>
               <Label>Additional Notes (Optional)</Label>
-              <TextArea placeholder="Any specific questions or requests for the visit..." rows={4} className="bg-card border-border text-card-foreground" />
+              <TextArea placeholder="Any specific questions or requests for the visit..." rows={4} className="bg-card border-input dark:border-border text-card-foreground" />
             </TextField>
 
             <Button onPress={handleSubmit} isDisabled={submitting}>

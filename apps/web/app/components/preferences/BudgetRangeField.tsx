@@ -198,7 +198,7 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor={`${idPrefix}-min`}>{t("settings.budget.minimum")}</Label>
-            <InputGroup className="rounded-xl border border-border bg-card transition-colors focus-within:border-primary">
+            <InputGroup className="rounded-xl border border-input dark:border-border bg-card transition-colors focus-within:border-primary">
               <InputGroup.Prefix>
                 <span className="pl-3 text-sm font-semibold text-muted-foreground" aria-hidden="true">
                   ₱
@@ -225,7 +225,7 @@ const BudgetRangeField = forwardRef<BudgetRangeFieldHandle, BudgetRangeFieldProp
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor={`${idPrefix}-max`}>{t("settings.budget.maximum")}</Label>
-            <InputGroup className="rounded-xl border border-border bg-card transition-colors focus-within:border-primary">
+            <InputGroup className="rounded-xl border border-input dark:border-border bg-card transition-colors focus-within:border-primary">
               <InputGroup.Prefix>
                 <span className="pl-3 text-sm font-semibold text-muted-foreground" aria-hidden="true">
                   ₱
