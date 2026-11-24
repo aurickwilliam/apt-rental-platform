@@ -176,8 +176,12 @@ test("bill and payment-history failures never publish a payable amount from part
     if (failure === "failBill") assert.equal(h.render().tenancy.bill, null);
   }
   const client = source("app/tenant/my-rental/MyRentalClient.tsx");
-  assert.match(client, /financeError \|\| paymentError \? \(/);
-  assert.ok(client.indexOf("Pay now") > client.indexOf("paymentError ? ("));
+  assert.match(client, /const financeFailed = Boolean\(financeError \|\| paymentError\);/);
+  assert.match(client, /failed=\{financeFailed\}/);
+  // The payment card (the only Pay now) renders only after both finance gates.
+  assert.ok(client.indexOf("<PaymentSummaryCard") > client.indexOf("paymentError ? ("));
+  assert.ok(!client.includes("Pay now"));
+  assert.match(source("app/tenant/my-rental/components/PaymentSummaryCard.tsx"), /Pay now/);
 });
 
 test("server rental loader authorizes first, shares the caller-bound query, and passes context but never finance", async () => {
@@ -303,15 +307,16 @@ test("loading composition retains one maintenance heading and common finance geo
   const client = source("app/tenant/my-rental/MyRentalClient.tsx");
   for (const component of ["RentFinanceSkeleton", "PaymentHistorySkeleton"]) {
     assert.match(skeleton, new RegExp(`<${component} />`));
-    assert.match(client, new RegExp(`<${component} />`));
   }
+  assert.match(client, /<RentFinanceSkeleton \/>/);
+  assert.match(source("app/tenant/my-rental/components/PaymentHistoryCard.tsx"), /<PaymentHistorySkeleton \/>/);
   assert.doesNotMatch(client, /variant="applications"/);
   assert.match(client, /identity\.generation === 0 \? initialContext : undefined/);
   assert.match(client, /<RentalContent key=/);
   assert.match(client, /seed\?\.renderedAt \?\? "browser"/);
   assert.match(client, /const renderedAt = initialContext\?\.renderedAt;/);
   assert.match(client, /new Date\(renderedAt\)/);
-  assert.match(client, /timeZone: "Asia\/Manila"/);
+  assert.match(source("app/tenant/my-rental/utils.ts"), /const MANILA = "Asia\/Manila";[\s\S]*timeZone: MANILA/);
   assert.match(client, /onAcknowledged=\{async \(\) => \{\s*return revalidate\(\);/);
   assert.match(source("app/landlord/applications/[applicationId]/page.tsx"), /useLandlordApplicationActions\(revalidate\)/);
   assert.match(source("app/landlord/payments/page.tsx"), /\{loading \? \(\s*<PaymentsBodySkeleton/);
@@ -697,8 +702,8 @@ test("portal width integration reaches extracted My Rental and detail shells wit
   for (const contents of [rental, skeleton]) {
     assert.match(contents, /@container\/rental min-w-0/);
     assert.match(contents, /<RentFinanceSkeleton \/>/);
-    assert.match(contents, /<PaymentHistorySkeleton \/>/);
   }
+  assert.match(skeleton, /<PaymentHistorySkeleton \/>/);
   const { default: Shell } = compile("app/landlord/applications/[applicationId]/components/ApplicationDetailShell.tsx", {
     "react/jsx-runtime": jsxRuntime, "next/link": { default: "Link" },
     "@tabler/icons-react": { IconArrowLeft: "ArrowLeft" },

@@ -5,9 +5,9 @@
 // history, so they are hidden unless the tenant picks the Failed filter.
 // Pending rows live in the verify and receipt flow, so they are always hidden.
 // Rejected cash (a landlord's decision) is a real outcome and stays visible.
-export function filterPaymentHistory<T extends { status: string }>(payments: T[], showFailed: boolean): T[] {
+export function filterPaymentHistory<T extends { status: string | null }>(payments: T[], showFailed: boolean): T[] {
   return payments.filter((payment) => {
-    const status = payment.status.toLowerCase()
+    const status = (payment.status ?? '').toLowerCase()
     if (status === 'pending') return false
     if (status === 'failed' && !showFailed) return false
     return true

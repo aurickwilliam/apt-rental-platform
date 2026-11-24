@@ -39,19 +39,15 @@ const SORT_OPTIONS: { label: string; value: ApplicationSort }[] = [
 
 interface ApplicationsListProps {
   className?: string;
-  showHeader?: boolean;
   applications: TenantApplication[];
   loading: boolean;
   error: string | null;
 }
 
-export default function ApplicationsList({ className = "", showHeader = true, applications, loading, error }: ApplicationsListProps) {
+export default function ApplicationsList({ className = "", applications, loading, error }: ApplicationsListProps) {
   const searchParams = useSearchParams();
   const queryString = searchParams.toString();
-  const urlFilters = useMemo(() => parseApplicationListFilters(queryString), [queryString]);
-  // The Application History modal never owns the page URL; it always shows the
-  // full, default-ordered list.
-  const filters = showHeader ? urlFilters : DEFAULT_APPLICATION_FILTERS;
+  const filters = useMemo(() => parseApplicationListFilters(queryString), [queryString]);
   const [filterOpen, setFilterOpen] = useState(false);
   const isMobile = useIsMobile();
   const drawerState = useOverlayState({ isOpen: filterOpen, onOpenChange: setFilterOpen });
@@ -63,11 +59,11 @@ export default function ApplicationsList({ className = "", showHeader = true, ap
   const restoredScroll = useRef(false);
 
   useLayoutEffect(() => {
-    if (!showHeader || restoredScroll.current || loading || applications.length === 0) return;
+    if (restoredScroll.current || loading || applications.length === 0) return;
     restoredScroll.current = true;
     const scrollTop = takeApplicationReturnScroll(listHref);
     if (scrollTop != null) window.scrollTo(0, scrollTop);
-  }, [applications.length, listHref, loading, showHeader]);
+  }, [applications.length, listHref, loading]);
 
   const activeFilterCount =
     filters.statuses.length + Number(filters.sort !== DEFAULT_APPLICATION_SORT);
@@ -77,7 +73,7 @@ export default function ApplicationsList({ className = "", showHeader = true, ap
     typeof window === "undefined" ? filters : parseApplicationListFilters(window.location.search);
 
   const commitFilters = (next: ApplicationListFilters) => {
-    if (!showHeader || typeof window === "undefined") return;
+    if (typeof window === "undefined") return;
     // replaceState keeps the current history entry, so Back goes to the page
     // the tenant came from instead of stepping through each filter change.
     window.history.replaceState(
@@ -208,28 +204,45 @@ export default function ApplicationsList({ className = "", showHeader = true, ap
   );
 
   return (
-    <div className={`@container/applications min-w-0 flex flex-col ${showHeader ? "gap-6 pt-4" : "gap-3"} ${className}`}>
-      {showHeader && (
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <ClipboardList size={20} className="text-primary" />
-            <h2 className="text-lg font-semibold text-card-foreground">My Applications</h2>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <p className="text-sm font-inter text-muted-foreground">
-              {loading
-                ? "Loading Applications..."
-                : `${filteredApplications.length} Application${filteredApplications.length === 1 ? "" : "s"}`}
-            </p>
-            {isMobile ? (
+    <div className={`@container/applications min-w-0 flex flex-col gap-6 pt-4 ${className}`}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <ClipboardList size={20} className="text-primary" />
+          <h2 className="text-lg font-semibold text-card-foreground">My Applications</h2>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-sm font-inter text-muted-foreground">
+            {loading
+              ? "Loading Applications..."
+              : `${filteredApplications.length} Application${filteredApplications.length === 1 ? "" : "s"}`}
+          </p>
+          {isMobile ? (
+            <Badge.Anchor>
+              <Button
+                variant="tertiary"
+                size="sm"
+                className="min-h-11"
+                onPress={() => setFilterOpen(true)}
+                aria-expanded={filterOpen}
+                aria-haspopup="dialog"
+                aria-label={activeFilterCount ? `Filter and sort applications, ${activeFilterCount} applied` : "Filter and sort applications"}
+              >
+                <Filter size={16} aria-hidden="true" />
+                Filter & sort
+              </Button>
+              {activeFilterCount > 0 && (
+                <Badge size="sm" placement="top-right" className="bg-primary! text-white!">
+                  {activeFilterCount}
+                </Badge>
+              )}
+            </Badge.Anchor>
+          ) : (
+            <Popover isOpen={filterOpen} onOpenChange={setFilterOpen}>
               <Badge.Anchor>
                 <Button
                   variant="tertiary"
                   size="sm"
                   className="min-h-11"
-                  onPress={() => setFilterOpen(true)}
-                  aria-expanded={filterOpen}
-                  aria-haspopup="dialog"
                   aria-label={activeFilterCount ? `Filter and sort applications, ${activeFilterCount} applied` : "Filter and sort applications"}
                 >
                   <Filter size={16} aria-hidden="true" />
@@ -241,47 +254,28 @@ export default function ApplicationsList({ className = "", showHeader = true, ap
                   </Badge>
                 )}
               </Badge.Anchor>
-            ) : (
-              <Popover isOpen={filterOpen} onOpenChange={setFilterOpen}>
-                <Badge.Anchor>
-                  <Button
-                    variant="tertiary"
-                    size="sm"
-                    className="min-h-11"
-                    aria-label={activeFilterCount ? `Filter and sort applications, ${activeFilterCount} applied` : "Filter and sort applications"}
-                  >
-                    <Filter size={16} aria-hidden="true" />
-                    Filter & sort
+              <Popover.Content placement="bottom end" className="w-[min(22rem,calc(100vw-2rem))]">
+                <Popover.Dialog className="space-y-5 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <Popover.Heading className="font-nunito text-lg font-semibold">
+                      Filter & sort
+                    </Popover.Heading>
+                    {!isDefaultFilter && (
+                      <Button variant="ghost" size="sm" onPress={resetFilters} className="text-danger">
+                        Reset
+                      </Button>
+                    )}
+                  </div>
+                  {filterSections}
+                  <Button className="w-full" onPress={() => setFilterOpen(false)}>
+                    Done
                   </Button>
-                  {activeFilterCount > 0 && (
-                    <Badge size="sm" placement="top-right" className="bg-primary! text-white!">
-                      {activeFilterCount}
-                    </Badge>
-                  )}
-                </Badge.Anchor>
-                <Popover.Content placement="bottom end" className="w-[min(22rem,calc(100vw-2rem))]">
-                  <Popover.Dialog className="space-y-5 p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <Popover.Heading className="font-nunito text-lg font-semibold">
-                        Filter & sort
-                      </Popover.Heading>
-                      {!isDefaultFilter && (
-                        <Button variant="ghost" size="sm" onPress={resetFilters} className="text-danger">
-                          Reset
-                        </Button>
-                      )}
-                    </div>
-                    {filterSections}
-                    <Button className="w-full" onPress={() => setFilterOpen(false)}>
-                      Done
-                    </Button>
-                  </Popover.Dialog>
-                </Popover.Content>
-              </Popover>
-            )}
-          </div>
+                </Popover.Dialog>
+              </Popover.Content>
+            </Popover>
+          )}
         </div>
-      )}
+      </div>
 
       {isMobile && filterOpen && (
         <Drawer.Root state={drawerState}>

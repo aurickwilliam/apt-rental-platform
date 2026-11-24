@@ -83,7 +83,7 @@ function ReceiptContent() {
       </Button>
       <div className="flex-1 flex flex-col items-center justify-center gap-4 w-full max-w-xl mx-auto py-6">
         <ReconciliationNotice pending={action.pending} error={action.error} onRetry={() => void action.retry()} />
-        <ReceiptView payment={payment} />
+        <ReceiptView payment={payment} viewer="landlord" />
         {isCashPending ? (
           <div className="flex flex-wrap justify-center gap-3">
             <Button

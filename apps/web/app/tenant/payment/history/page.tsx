@@ -107,6 +107,9 @@ function HistoryContent() {
   );
 
   const activeCount = filters.years.length + filters.statuses.length;
+  // Everything on record is pending or a failed attempt: explain it instead of blaming the filters.
+  const hasFailedAttempts = (paymentsQuery.data ?? []).some((payment) => payment.status.toLowerCase() === "failed");
+  const nothingCompleted = visiblePayments.length === 0 && activeCount === 0;
 
   const filtered = useMemo(() => {
     let r = [...visiblePayments];
@@ -201,7 +204,25 @@ function HistoryContent() {
         </div>
 
         {/* Content */}
-        {filtered.length === 0 ? (
+        {filtered.length === 0 && nothingCompleted ? (
+          <EmptyState
+            framed
+            icon={Receipt}
+            title="No completed payments yet"
+            description={
+              (paymentsQuery.data ?? []).length > 0
+                ? "Pending payments are tracked from My Rental, and abandoned checkouts appear under the Failed filter."
+                : "Your payments will appear here once you make one."
+            }
+            action={
+              hasFailedAttempts ? (
+                <Button variant="secondary" size="sm" onPress={() => setFilters({ years: [], statuses: ["Failed"], sort: "Newest" })}>
+                  Show failed attempts
+                </Button>
+              ) : undefined
+            }
+          />
+        ) : filtered.length === 0 ? (
           <EmptyState
             framed
             icon={Receipt}

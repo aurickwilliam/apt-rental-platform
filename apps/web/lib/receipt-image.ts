@@ -1,4 +1,4 @@
-import type { ReceiptData, ReceiptTone } from "./receiptData";
+import type { ReceiptData, ReceiptTone } from "./receipt-data";
 
 // The receipt is drawn on a canvas from its data, so the picture never depends on
 // page CSS, hidden DOM or fonts being captured. Metrics are in CSS pixels; the
@@ -31,7 +31,7 @@ type Row = { label: string; value: string; strong?: boolean };
 function rowsOf(data: ReceiptData): { main: Row[]; breakdown: Row[]; reference: Row } {
   return {
     main: [
-      { label: "Tenant", value: data.tenant },
+      { label: data.partyLabel, value: data.party },
       { label: "Apartment", value: data.apartment },
       { label: data.dateLabel, value: `${data.date}, ${data.time}` },
       { label: "Method", value: data.method },
