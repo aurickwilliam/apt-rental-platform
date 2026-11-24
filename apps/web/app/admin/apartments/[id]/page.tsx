@@ -17,18 +17,16 @@ import {
 import { fullName } from "./components/DetailPrimitives";
 import type {
   Activity,
-  Application,
+  ApartmentRentalActivity,
   Landlord,
-  Maintenance,
   Review,
   Summary,
-  Tenancy,
   Verification,
-  Visit,
 } from "./types";
 
 export const dynamic = "force-dynamic";
 const PREVIEW_LIMIT = 3;
+const UNAVAILABLE_SUMMARY = { items: [], counts: {}, error: true };
 
 export default async function AdminApartmentDetailPage({
   params,
@@ -75,34 +73,9 @@ export default async function AdminApartmentDetailPage({
       .eq("apartment_id", id)
       .order("submitted_at", { ascending: false })
       .limit(20),
-    supabase
-      .from("tenancies")
-      .select(
-        "id, status, lease_start, lease_end, monthly_rent, tenant:users!tenancies_tenant_id_fkey(first_name,last_name)",
-      )
-      .eq("apartment_id", id)
-      .eq("status", "active")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-    supabase
-      .from("rental_application")
-      .select("id, status, created_at")
-      .eq("apartment_id", id)
-      .order("created_at", { ascending: false })
-      .limit(PREVIEW_LIMIT),
-    supabase
-      .from("visit_request")
-      .select("id, status, visit_date, confirmed_visit_date")
-      .eq("apartment_id", id)
-      .order("created_at", { ascending: false })
-      .limit(PREVIEW_LIMIT),
-    supabase
-      .from("maintenance_request")
-      .select("id, title, urgency, status, created_at")
-      .eq("apartment_id", id)
-      .order("created_at", { ascending: false })
-      .limit(5),
+    // Admins have no read access to these tables: the function returns only
+    // what this page shows, with exact counts rather than preview lengths.
+    supabase.rpc("get_admin_apartment_activity", { p_apartment_id: id }),
     supabase
       .from("reviews")
       .select("id, rating, comment, created_at")
@@ -120,67 +93,7 @@ export default async function AdminApartmentDetailPage({
       .limit(20),
   ]);
 
-  // Exact head counts: previews must never be mistaken for totals. Keep every
-  // query scoped to the apartment, and never download all application records.
-  const applicationStatuses = [
-    "total",
-    "pending",
-    "approved",
-    "rejected",
-  ] as const;
-  const visitStatuses = [
-    "total",
-    "pending",
-    "approved",
-    "rescheduled",
-    "cancelled",
-    "rejected",
-  ] as const;
-  const maintenanceStatuses = [
-    "pending",
-    "in_progress",
-    "resolved",
-    "high",
-  ] as const;
   const countsPromise = Promise.all([
-      Promise.all(
-        applicationStatuses.map(async (status) => {
-          let query = supabase
-            .from("rental_application")
-            .select("id", { count: "exact", head: true })
-            .eq("apartment_id", id);
-          if (status !== "total") query = query.eq("status", status);
-          const result = await query;
-          return { status, count: result.count, error: result.error };
-        }),
-      ),
-      Promise.all(
-        visitStatuses.map(async (status) => {
-          let query = supabase
-            .from("visit_request")
-            .select("id", { count: "exact", head: true })
-            .eq("apartment_id", id);
-          if (status !== "total") query = query.eq("status", status);
-          const result = await query;
-          return { status, count: result.count, error: result.error };
-        }),
-      ),
-      Promise.all(
-        maintenanceStatuses.map(async (status) => {
-          let query = supabase
-            .from("maintenance_request")
-            .select("id", { count: "exact", head: true })
-            .eq("apartment_id", id);
-          query =
-            status === "high"
-              ? query
-                  .eq("urgency", "high")
-                  .in("status", ["pending", "in_progress"])
-              : query.eq("status", status);
-          const result = await query;
-          return { status, count: result.count, error: result.error };
-        }),
-      ),
       apartment.landlord_id
         ? supabase
             .from("apartments")
@@ -201,8 +114,8 @@ export default async function AdminApartmentDetailPage({
   // Counts need only the already-authorized apartment, not its previews.
   // Keep one coherent result, but overlap the two independent request waves.
   const [
-    [landlordResult, imagesResult, verificationResult, tenancyResult, applicationsResult, visitsResult, maintenanceResult, reviewsResult, apartmentAuditResult],
-    [applicationCounts, visitCounts, maintenanceCounts, propertyCount, verifiedPropertyCount],
+    [landlordResult, imagesResult, verificationResult, rentalResult, reviewsResult, apartmentAuditResult],
+    [propertyCount, verifiedPropertyCount],
   ] = await Promise.all([previewsPromise, countsPromise]);
 
   const verifications = verificationResult.data ?? [];
@@ -213,7 +126,7 @@ export default async function AdminApartmentDetailPage({
         .filter((value): value is string => Boolean(value)),
     ),
   ];
-  const [reviewersResult, verificationAuditResult, paymentResult, leaseResult] =
+  const [reviewersResult, verificationAuditResult, leaseResult] =
     await Promise.all([
       reviewerIds.length
         ? supabase
@@ -235,15 +148,6 @@ export default async function AdminApartmentDetailPage({
             .order("created_at", { ascending: false })
             .limit(20)
         : Promise.resolve({ data: [], error: null }),
-      tenancyResult.data
-        ? supabase
-            .from("payment")
-            .select("status, date, due_date")
-            .eq("tenancy_id", tenancyResult.data.id)
-            .order("date", { ascending: false })
-            .limit(1)
-            .maybeSingle()
-        : Promise.resolve({ data: null, error: null }),
       apartment.lease_agreement_url && verifications.length
         ? supabase.storage
             .from("lease-agreements")
@@ -262,34 +166,14 @@ export default async function AdminApartmentDetailPage({
           : null,
       }
     : null;
-  const tenancy: Tenancy | null = tenancyResult.data
-    ? {
-        ...tenancyResult.data,
-        tenant_name: fullName(tenancyResult.data.tenant) || null,
-      }
-    : null;
-  const counts = (
-    rows: Array<{ status: string; count: number | null; error: unknown }>,
-  ) => Object.fromEntries(rows.map((row) => [row.status, row.count ?? 0]));
-  const applications: Summary<Application> = {
-    items: applicationsResult.data ?? [],
-    counts: counts(applicationCounts),
-    error: Boolean(
-      applicationsResult.error || applicationCounts.some((row) => row.error),
-    ),
-  };
-  const visits: Summary<Visit> = {
-    items: visitsResult.data ?? [],
-    counts: counts(visitCounts),
-    error: Boolean(visitsResult.error || visitCounts.some((row) => row.error)),
-  };
-  const maintenance: Summary<Maintenance> = {
-    items: maintenanceResult.data ?? [],
-    counts: counts(maintenanceCounts),
-    error: Boolean(
-      maintenanceResult.error || maintenanceCounts.some((row) => row.error),
-    ),
-  };
+  const rental = rentalResult.error
+    ? null
+    : (rentalResult.data as unknown as ApartmentRentalActivity);
+  const summary = <T,>(value: Pick<Summary<T>, "items" | "counts"> | undefined): Summary<T> =>
+    value ? { ...value, error: false } : UNAVAILABLE_SUMMARY;
+  const applications = summary(rental?.applications);
+  const visits = summary(rental?.visits);
+  const maintenance = summary(rental?.maintenance);
   const auditRows = [
     ...(apartmentAuditResult.data ?? []),
     ...(verificationAuditResult.data ?? []),
@@ -312,14 +196,14 @@ export default async function AdminApartmentDetailPage({
   ]
     .sort((a, b) => b.created_at.localeCompare(a.created_at))
     .slice(0, 20);
-  const operationalError = Boolean(tenancyResult.error || paymentResult.error);
+  const rentalError = !rental;
   const sectionErrors = {
     landlord: Boolean(
       landlordResult.error || propertyCount.error || verifiedPropertyCount.error,
     ),
     images: Boolean(imagesResult.error),
     verification: Boolean(verificationResult.error || reviewersResult.error),
-    tenancy: operationalError,
+    tenancy: rentalError,
     applications: applications.error,
     visits: visits.error,
     maintenance: maintenance.error,
@@ -378,10 +262,10 @@ export default async function AdminApartmentDetailPage({
           />
           <ApartmentListingControls apartment={apartment} />
           <CurrentTenancyCard
-            tenancy={tenancy}
-            payment={paymentResult.data}
-            error={Boolean(tenancyResult.error)}
-            paymentError={Boolean(paymentResult.error)}
+            tenancy={rental?.tenancy ?? null}
+            payment={rental?.payment ?? null}
+            error={rentalError}
+            paymentError={rentalError}
             occupied={apartment.status === "occupied"}
           />
           <ApartmentLandlordCard

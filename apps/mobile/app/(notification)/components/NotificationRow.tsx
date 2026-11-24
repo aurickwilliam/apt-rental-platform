@@ -6,6 +6,8 @@ import {
   getRelativeTime,
 } from '@repo/utils'
 
+import type { LanguageCode } from '@repo/i18n';
+
 import NotificationIconTile from '@/app/(notification)/components/NotificationIconTile';
 import type { NotificationItem } from '@/hooks/notifications';
 
@@ -14,6 +16,8 @@ interface NotificationRowProps {
   onPress: () => void;
   /** Expanded group member: no icon or sender, indented under its summary. */
   compact?: boolean;
+  /** Active UI language for the row sentence and timestamp. */
+  language?: LanguageCode;
 }
 
 /**
@@ -25,13 +29,15 @@ export default function NotificationRow({
   notification,
   onPress,
   compact = false,
+  language = 'en',
 }: NotificationRowProps) {
   const unread = !notification.is_read;
   const { action, preview } = getNotificationRowPresentation(
     notification,
     getNotificationPreview(notification.data),
+    language,
   );
-  const timestamp = getRelativeTime(new Date(notification.created_at));
+  const timestamp = getRelativeTime(new Date(notification.created_at), language);
   const displayedPreview = compact ? preview ?? notification.message ?? action : preview;
   const accessibleLabel = composeNotificationRowLabel({
     title: notification.title,
@@ -39,7 +45,7 @@ export default function NotificationRow({
     preview: preview ?? undefined,
     isRead: !unread,
     timestamp,
-  });
+  }, language);
 
   return (
     <TouchableOpacity

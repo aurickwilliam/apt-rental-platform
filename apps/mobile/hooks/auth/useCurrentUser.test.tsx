@@ -82,8 +82,8 @@ describe("useCurrentUser", () => {
   /** Validates: Requirements 2.1, 2.2 */
   it("shares one auth/profile request between simultaneous consumers", async () => {
     const { client, QueryWrapper } = createWrapper();
-    const first = renderHook(() => useCurrentUser(), { wrapper: QueryWrapper });
-    const second = renderHook(() => useCurrentUser(), { wrapper: QueryWrapper });
+    const first = await renderHook(() => useCurrentUser(), { wrapper: QueryWrapper });
+    const second = await renderHook(() => useCurrentUser(), { wrapper: QueryWrapper });
 
     await waitFor(() => expect(first.result.current.data?.id).toBe(profileRecord.id));
     await waitFor(() => expect(second.result.current.data?.id).toBe(profileRecord.id));
@@ -91,8 +91,8 @@ describe("useCurrentUser", () => {
     expect(mockGetUser).toHaveBeenCalledTimes(1);
     expect(mockFrom).toHaveBeenCalledTimes(1);
 
-    first.unmount();
-    second.unmount();
+    await first.unmount();
+    await second.unmount();
     client.clear();
   });
 
@@ -104,9 +104,11 @@ describe("useCurrentUser", () => {
         mockGetUser.mockClear();
         mockFrom.mockClear();
 
-        const consumers = Array.from({ length: consumerCount }, () =>
-          renderHook(() => useCurrentUser(), { wrapper: QueryWrapper }),
-        );
+        const mount = () => renderHook(() => useCurrentUser(), { wrapper: QueryWrapper });
+        const consumers: Awaited<ReturnType<typeof mount>>[] = [];
+        for (let index = 0; index < consumerCount; index += 1) {
+          consumers.push(await mount());
+        }
 
         await Promise.all(
           consumers.map(({ result }) =>
@@ -117,7 +119,7 @@ describe("useCurrentUser", () => {
         expect(mockGetUser).toHaveBeenCalledTimes(1);
         expect(mockFrom).toHaveBeenCalledTimes(1);
 
-        consumers.forEach(({ unmount }) => unmount());
+        for (const { unmount } of consumers) await unmount();
         client.clear();
       }),
       { numRuns: 10 },
@@ -127,12 +129,12 @@ describe("useCurrentUser", () => {
   /** Validates: Requirements 2.1, 3.2 */
   it("serves a warm current-user read without another request and refetches when explicitly requested", async () => {
     const { client, QueryWrapper } = createWrapper();
-    const first = renderHook(() => useCurrentUser(), { wrapper: QueryWrapper });
+    const first = await renderHook(() => useCurrentUser(), { wrapper: QueryWrapper });
 
     await waitFor(() => expect(first.result.current.data?.id).toBe(profileRecord.id));
-    first.unmount();
+    await first.unmount();
 
-    const second = renderHook(() => useCurrentUser(), { wrapper: QueryWrapper });
+    const second = await renderHook(() => useCurrentUser(), { wrapper: QueryWrapper });
     await waitFor(() => expect(second.result.current.data?.id).toBe(profileRecord.id));
 
     expect(mockGetUser).toHaveBeenCalledTimes(1);
@@ -144,7 +146,7 @@ describe("useCurrentUser", () => {
     expect(mockGetUser).toHaveBeenCalledTimes(2);
     expect(mockFrom).toHaveBeenCalledTimes(2);
 
-    second.unmount();
+    await second.unmount();
     client.clear();
   });
 
@@ -154,17 +156,19 @@ describe("useCurrentUser", () => {
       createUserQuery({ data: null, error: new Error("Profile read failed") }),
     );
     const { client, QueryWrapper } = createWrapper();
-    const user = renderHook(() => useCurrentUser(), { wrapper: QueryWrapper });
-    const userId = renderHook(() => useCurrentUserId(), { wrapper: QueryWrapper });
+    // One tree so both consumers mount in the same commit, sharing the first read.
+    const consumers = await renderHook(
+      () => ({ user: useCurrentUser(), userId: useCurrentUserId() }),
+      { wrapper: QueryWrapper },
+    );
 
-    await waitFor(() => expect(user.result.current.isError).toBe(true));
+    await waitFor(() => expect(consumers.result.current.user.isError).toBe(true));
 
-    expect(user.result.current.data).toBeUndefined();
-    expect(userId.result.current).toBeNull();
+    expect(consumers.result.current.user.data).toBeUndefined();
+    expect(consumers.result.current.userId).toBeNull();
     expect(mockGetUser).toHaveBeenCalledTimes(1);
 
-    user.unmount();
-    userId.unmount();
+    await consumers.unmount();
     client.clear();
   });
 

@@ -9,25 +9,25 @@ jest.mock("@/hooks/tenancy/useTenancy", () => ({ getTenancyQueryKey: (id: string
 jest.mock("./useMaintenanceRequestHistory", () => ({ getMaintenanceRequestHistoryQueryKey: (id: string) => ["maintenance-request-history", id] }));
 jest.mock("./useMaintenanceRequests", () => ({ getLatestMaintenanceRequestQueryKey: (id: string) => ["maintenance-request-latest", id] }));
 
-it("refreshes the exact maintenance and bill resources on screen focus without canceling an in-flight read", () => {
+it("refreshes the exact maintenance and bill resources on screen focus without canceling an in-flight read", async () => {
   const client = new QueryClient();
   const invalidate = jest.spyOn(client, "invalidateQueries");
   const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
-  const { unmount } = renderHook(() => useMaintenanceFocusRefresh("apartment-1", "tenant-1"), { wrapper });
-  act(() => { mockFocus.mock.calls.at(-1)[0](); });
+  const { unmount } = await renderHook(() => useMaintenanceFocusRefresh("apartment-1", "tenant-1"), { wrapper });
+  await act(() => { mockFocus.mock.calls.at(-1)[0](); });
   expect(invalidate).toHaveBeenCalledTimes(3);
   for (const key of [["maintenance-request-history", "apartment-1"], ["maintenance-request-latest", "apartment-1"], ["tenancy", "tenant-1"]]) {
     expect(invalidate).toHaveBeenCalledWith({ queryKey: key, exact: true }, { cancelRefetch: false });
   }
-  unmount(); client.clear();
+  await unmount(); client.clear();
 });
 
-it("does not refresh unidentified resources", () => {
+it("does not refresh unidentified resources", async () => {
   const client = new QueryClient();
   const invalidate = jest.spyOn(client, "invalidateQueries");
   const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
-  const { unmount } = renderHook(() => useMaintenanceFocusRefresh(), { wrapper });
-  act(() => { mockFocus.mock.calls.at(-1)[0](); });
+  const { unmount } = await renderHook(() => useMaintenanceFocusRefresh(), { wrapper });
+  await act(() => { mockFocus.mock.calls.at(-1)[0](); });
   expect(invalidate).not.toHaveBeenCalled();
-  unmount(); client.clear();
+  await unmount(); client.clear();
 });

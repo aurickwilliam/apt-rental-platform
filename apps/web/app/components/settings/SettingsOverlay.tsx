@@ -3,9 +3,22 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
+import { requestTutorialReplay } from "@/lib/tutorial-controller";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
+/** Spoken placeholder while the Settings chunk loads. */
+function OpeningSettings() {
+  const { t } = useTranslation();
+  return (
+    <span role="status" className="sr-only">
+      {t("settings.opening")}
+    </span>
+  );
+}
 
 const SettingsModal = dynamic(() => import("./SettingsModal"), {
-  loading: () => <span role="status" className="sr-only">Opening settings…</span>,
+  loading: () => <OpeningSettings />,
 });
 const ChangePasswordModal = dynamic(() => import("./ChangePasswordModal"));
 const ChangeEmailModal = dynamic(() => import("./ChangeEmailModal"));
@@ -23,6 +36,8 @@ export default function SettingsOverlay({
 }) {
   const searchParams = useSearchParams();
   const open = searchParams.get("settings") === SETTINGS_QUERY_VALUE;
+  // Deep-link intent for the tenant tab, cleared with the dialog below.
+  const requestedRental = searchParams.get("settingsTab") === "rental";
   // Stay mounted after the first open so reopening is instant and the
   // dialog can play its exit animation instead of being torn down.
   const [hasOpened, setHasOpened] = useState(open);
@@ -39,6 +54,7 @@ export default function SettingsOverlay({
   const close = () => {
     const url = new URL(window.location.href);
     url.searchParams.delete("settings");
+    url.searchParams.delete("settingsTab");
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
   };
 
@@ -52,6 +68,12 @@ export default function SettingsOverlay({
     setChangeEmailOpen(true);
   };
 
+  // Settings closes first; the tour then starts over the portal page.
+  const startTutorial = (portal: "tenant" | "landlord") => {
+    close();
+    requestTutorialReplay(portal);
+  };
+
   return (
     <>
       <SettingsModal
@@ -59,8 +81,10 @@ export default function SettingsOverlay({
         onClose={close}
         initialRoles={initialRoles}
         activePortal={activePortal}
+        requestedRental={requestedRental}
         onChangePassword={openChangePassword}
         onChangeEmail={openChangeEmail}
+        onStartTutorial={startTutorial}
       />
       <ChangePasswordModal isOpen={changePasswordOpen} onOpenChange={setChangePasswordOpen} />
       <ChangeEmailModal isOpen={changeEmailOpen} onOpenChange={setChangeEmailOpen} />

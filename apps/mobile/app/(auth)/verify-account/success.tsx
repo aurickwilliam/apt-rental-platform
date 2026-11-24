@@ -13,10 +13,12 @@ import { useVerificationStore } from '@/stores/useVerificationStore'
 import { useProfile } from 'hooks/auth'
 import { usePortalStore } from '@/stores/usePortalStore'
 import { choosePortal } from '@/service/auth/portalPreference'
+import { useTranslation } from '@/hooks/i18n'
 
 export default function Success() {
   const router = useRouter();
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   const reset = useVerificationStore((state) => state.reset);
   const { profile, loading } = useProfile();
@@ -58,7 +60,11 @@ export default function Success() {
     <ScreenWrapper
       className='p-5'
     >
-      <StepProgress currentStep={5} totalSteps={5} stepName="Verification Submitted" />
+      <StepProgress
+        currentStep={5}
+        totalSteps={5}
+        stepName={t("authMobile.verify.submitted")}
+      />
 
       <View className='flex-1 items-center justify-center gap-5'>
         <Image 
@@ -69,17 +75,17 @@ export default function Success() {
 
         <View className='flex gap-2'>
           <Text className='text-3xl text-success-text font-nunitoBold text-center'>
-            Verification Submitted
+            {t("authMobile.verify.submitted")}
           </Text>
 
           <Text className='text-foreground text-base font-inter text-center mx-10'>
-            Our team will review your ID shortly. You’ll be notified once your account is verified.
+            {t("authMobile.verify.submittedBody")}
           </Text>
         </View>
       </View>
 
       <Button isDisabled={loading || !choosePortal(profile?.roles ?? [], activePortal)} onPress={handleGoToProfile}>
-        <Button.Label>Go to Profile</Button.Label>
+        <Button.Label>{t("authMobile.verify.goToProfile")}</Button.Label>
       </Button>
     </ScreenWrapper>
   )

@@ -14,13 +14,13 @@
     "./portal-preference": "./src/portal-preference.ts"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.97.0",
-    "@supabase/ssr": "^0.9.0"
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.119.0"
   },
   "peerDependencies": {
+    "@react-native-async-storage/async-storage": ">=1.17.0",
     "next": ">=16.4.1",
-    "react-native": ">=0.70.0",
-    "@react-native-async-storage/async-storage": ">=1.17.0"
+    "react-native": ">=0.70.0"
   },
   "peerDependenciesMeta": {
     "next": {
@@ -34,8 +34,10 @@
     }
   },
   "devDependencies": {
-    "@types/node": "^20.19.26",
-    "next": ">=16.4.1",
-    "typescript": "^5.3.3"
+    "@types/node": "^22.20.5",
+    "next": "^16.4.5",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "typescript": "^5.9.3"
   }
 }

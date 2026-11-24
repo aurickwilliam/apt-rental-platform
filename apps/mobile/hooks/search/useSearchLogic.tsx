@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
 import {
   APARTMENT_TYPES,
+  CAMANAVA_CITIES,
   CAMANAVA_FILTER_OPTIONS,
   FLOOR_LEVELS,
   FURNISHED_TYPES,
@@ -17,7 +18,7 @@ import {
   type ApartmentCardRow,
 } from "@/service/search/apartmentCards";
 
-import { type FilterState } from "@/app/(tabs)/components/search/FilterBottomSheet";
+import { DEFAULT_FILTERS, type FilterState } from "@/service/search/searchFilters";
 import { type ApartmentCardProps } from "@/components/cards/ApartmentCard";
 
 const CITIES = [...CAMANAVA_FILTER_OPTIONS];
@@ -27,6 +28,17 @@ const MIN_BUDGET = 1000;
 const MAX_BUDGET = 50000;
 const MIN_SIZE = 10;
 const MAX_SIZE = 300;
+
+// Some but not all cities picked in the sheet. None or all means no filter.
+const hasLocationFilter = (locations: string[]) =>
+  locations.length > 0 && locations.length < CAMANAVA_CITIES.length;
+
+// The city chips and the sheet's Location section are two views of one choice:
+// one city is a chip, all cities is "CAMANAVA", and a mix has no chip.
+const citiesForChip = (city: string): string[] =>
+  city === CITIES[0] ? [...CAMANAVA_CITIES] : [city];
+const chipForLocations = (locations: string[]): string =>
+  locations.length === 1 ? locations[0] : CITIES[0];
 
 type UseSearchLogicParams = {
   initialCity?: string;
@@ -91,7 +103,10 @@ export function useSearchLogic({ initialCity }: UseSearchLogicParams = {}) {
       );
     }
 
-    if (city !== "CAMANAVA") {
+    // Cities picked in the filter sheet replace the city chip.
+    if (activeFilters && hasLocationFilter(activeFilters.locations)) {
+      query = query.in("city", activeFilters.locations);
+    } else if (city !== "CAMANAVA") {
       query = query.eq("city", city);
     }
 
@@ -317,6 +332,7 @@ export function useSearchLogic({ initialCity }: UseSearchLogicParams = {}) {
   const handleApplyFilters = useCallback(
     (newFilters: FilterState) => {
       setFilters(newFilters);
+      setSelectedCity(chipForLocations(newFilters.locations));
       fetchApartments(false, newFilters);
     },
     [fetchApartments],
@@ -324,8 +340,29 @@ export function useSearchLogic({ initialCity }: UseSearchLogicParams = {}) {
 
   const handleClearFilters = useCallback(() => {
     setFilters(null);
+    setSelectedCity(CITIES[0]);
     fetchApartments(false, null);
   }, [fetchApartments]);
+
+  // A chip tap moves the sheet's cities with it (when filters exist).
+  const selectCity = useCallback((city: string) => {
+    setSelectedCity(city);
+    setFilters((prev) => (prev ? { ...prev, locations: citiesForChip(city) } : prev));
+  }, []);
+
+  // What the sheet shows: its saved filters, with Location following the chip.
+  const sheetFilters = useMemo<FilterState>(() => {
+    const base = filters ?? DEFAULT_FILTERS;
+    return hasLocationFilter(base.locations)
+      ? base
+      : { ...base, locations: citiesForChip(selectedCity) };
+  }, [filters, selectedCity]);
+
+  // Several cities picked in the sheet match no single chip.
+  const chipCity =
+    filters && hasLocationFilter(filters.locations) && filters.locations.length > 1
+      ? ""
+      : selectedCity;
 
   // Persist only browse inputs (never results), scoped to the current
   // account. Draft keystrokes are excluded — only committed state saves.
@@ -344,6 +381,7 @@ export function useSearchLogic({ initialCity }: UseSearchLogicParams = {}) {
     let count = 0;
 
     if (filters.verifiedOnly) count++;
+    if (hasLocationFilter(filters.locations)) count++;
     if (filters.budget[0] > MIN_BUDGET || filters.budget[1] < MAX_BUDGET)
       count++;
     if (
@@ -384,6 +422,7 @@ export function useSearchLogic({ initialCity }: UseSearchLogicParams = {}) {
   return {
     apartments,
     activeFilterCount,
+    chipCity,
     cities: CITIES,
     committedSearch,
     commitSearch,
@@ -405,8 +444,10 @@ export function useSearchLogic({ initialCity }: UseSearchLogicParams = {}) {
     refreshing,
     resultCount,
     searchDraft,
+    selectCity,
     selectedCity,
     setIsGridView,
+    sheetFilters,
     setSearchDraft,
     setSelectedCity,
   };

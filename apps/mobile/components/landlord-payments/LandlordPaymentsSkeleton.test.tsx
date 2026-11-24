@@ -13,13 +13,13 @@ jest.mock("heroui-native", () => {
 });
 
 describe("LandlordPaymentsSkeleton", () => {
-  it("loads as one HeroUI skeleton group with an accessible name", () => {
-    render(<LandlordPaymentsSkeleton />);
+  it("loads as one HeroUI skeleton group with an accessible name", async () => {
+    await render(<LandlordPaymentsSkeleton />);
     expect(mockGroup.props).toMatchObject({ isLoading: true, accessibilityLabel: "Loading payments" });
   });
 
-  it("mirrors the loaded screen: picker, four tiles, status row with a round filter button, four cards", () => {
-    render(<LandlordPaymentsSkeleton />);
+  it("mirrors the loaded screen: picker, four tiles, status row with a round filter button, four cards", async () => {
+    await render(<LandlordPaymentsSkeleton />);
     const items = mockGroup.items;
     expect(items.filter((className) => className.includes("h-24 rounded-3xl"))).toHaveLength(4);
     expect(items.filter((className) => className.includes("h-28 w-full rounded-3xl"))).toHaveLength(4);

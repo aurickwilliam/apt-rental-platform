@@ -4,6 +4,8 @@ import { IconBell, IconBellRinging, IconMessageCircle } from '@tabler/icons-reac
 
 import ScreenWrapper from 'components/layout/ScreenWrapper'
 import StandardHeader from 'components/layout/StandardHeader'
+import type { TranslationKey } from '@repo/i18n'
+import { useTranslation } from '@/hooks/i18n/useTranslation'
 
 import { NOTIFICATION_TYPE_LABELS } from 'constants/notifications'
 import { useNotificationPreferences, useNotificationTypeColor, getNotificationTypeIcon } from '@/hooks/notifications'
@@ -16,31 +18,32 @@ type GeneralToggleKey = 'notifications_enabled' | 'push_enabled' | 'show_chat_to
 const GENERAL_TOGGLES: {
   key: GeneralToggleKey
   icon: typeof IconBell
-  title: string
-  description: string
+  titleKey: TranslationKey
+  descriptionKey: TranslationKey
 }[] = [
   {
     key: 'notifications_enabled',
     icon: IconBell,
-    title: 'In-App Notifications',
-    description: 'Show banner notifications while using the app',
+    titleKey: 'settings.notifications.inApp.title',
+    descriptionKey: 'settings.notifications.inApp.description',
   },
   {
     key: 'push_enabled',
     icon: IconBellRinging,
-    title: 'Push Notifications',
-    description: 'Receive alerts on your device when the app is closed',
+    titleKey: 'settings.notifications.push.title',
+    descriptionKey: 'settings.notifications.push.description',
   },
   {
     key: 'show_chat_toasts',
     icon: IconMessageCircle,
-    title: 'Message Toasts in Chat',
-    description: 'Show a banner for new messages in the chat you are viewing',
+    titleKey: 'settings.notifications.chatToasts.title',
+    descriptionKey: 'settings.notifications.chatToasts.description',
   },
 ]
 
 export default function NotificationSettingsScreen() {
   const { colors } = useColors();
+  const { t } = useTranslation();
   const { preferences, setPreferences } = useNotificationPreferences();
   const { getColor } = useNotificationTypeColor();
 
@@ -70,14 +73,16 @@ export default function NotificationSettingsScreen() {
     <ScreenWrapper
       scrollable
       bottomPadding={50}
-      header={<StandardHeader title='Notifications' />}
+      header={<StandardHeader title={t('settings.notifications')} />}
       className='p-5'
     >
       <View className='flex gap-3'>
-        <Text className='text-foreground text-base font-nunitoSemiBold'>General</Text>
+        <Text className='text-foreground text-base font-nunitoSemiBold'>
+          {t('settings.notifications.general')}
+        </Text>
 
         <ListGroup className="shadow-none border border-border">
-          {GENERAL_TOGGLES.map(({ key, icon: Icon, title, description }, index) => (
+          {GENERAL_TOGGLES.map(({ key, icon: Icon, titleKey, descriptionKey }, index) => (
             <View key={key}>
               {index > 0 && <Separator className='mx-4' />}
 
@@ -87,8 +92,10 @@ export default function NotificationSettingsScreen() {
                 </ListGroup.ItemPrefix>
 
                 <ListGroup.ItemContent>
-                  <ListGroup.ItemTitle>{title}</ListGroup.ItemTitle>
-                  <ListGroup.ItemDescription>{description}</ListGroup.ItemDescription>
+                  <ListGroup.ItemTitle>{t(titleKey)}</ListGroup.ItemTitle>
+                  <ListGroup.ItemDescription>
+                    {t(descriptionKey)}
+                  </ListGroup.ItemDescription>
                 </ListGroup.ItemContent>
 
                 <ListGroup.ItemSuffix>
@@ -104,10 +111,12 @@ export default function NotificationSettingsScreen() {
       </View>
 
       <View className='flex gap-3 mt-5'>
-        <Text className='text-foreground text-base font-nunitoSemiBold'>Notification Types</Text>
+        <Text className='text-foreground text-base font-nunitoSemiBold'>
+          {t('settings.notifications.types')}
+        </Text>
 
         <ListGroup className="shadow-none border border-border">
-          {NOTIFICATION_TYPE_LABELS.map(({ type, label }, index) => (
+          {NOTIFICATION_TYPE_LABELS.map(({ type, labelKey }, index) => (
             <View key={type}>
               {index > 0 && <Separator className='mx-4' />}
 
@@ -120,7 +129,7 @@ export default function NotificationSettingsScreen() {
                 </ListGroup.ItemPrefix>
 
                 <ListGroup.ItemContent>
-                  <ListGroup.ItemTitle>{label}</ListGroup.ItemTitle>
+                  <ListGroup.ItemTitle>{t(labelKey)}</ListGroup.ItemTitle>
                 </ListGroup.ItemContent>
 
                 <ListGroup.ItemSuffix>
@@ -141,7 +150,7 @@ export default function NotificationSettingsScreen() {
         className="mt-5"
         onPress={resetToDefaults}
       >
-        Reset to Defaults
+        {t('settings.notifications.reset')}
       </Button>
     </ScreenWrapper>
   )

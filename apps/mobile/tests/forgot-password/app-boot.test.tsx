@@ -40,7 +40,7 @@ describe("App boot with a password reset", () => {
 
   it("signs out an unfinished reset instead of restoring it into a portal", async () => {
     mockAbandon.mockResolvedValueOnce(true);
-    render(<Index />);
+    await render(<Index />);
 
     await act(async () => {
       await mockAuthCallback?.("INITIAL_SESSION", { user: { id: "auth-user" } });
@@ -52,7 +52,7 @@ describe("App boot with a password reset", () => {
 
   it("boots normally when no reset was left unfinished", async () => {
     mockAbandon.mockResolvedValueOnce(false);
-    render(<Index />);
+    await render(<Index />);
 
     await act(async () => {
       await mockAuthCallback?.("INITIAL_SESSION", null);

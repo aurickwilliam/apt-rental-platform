@@ -28,7 +28,7 @@ jest.mock('@tabler/icons-react-native', () => {
 // primitives with real Pressable/View hosts so press and a11y queries work.
 jest.mock('heroui-native', () => {
   const React = jest.requireActual<typeof import('react')>('react');
-  const { Pressable, View } =
+  const { Pressable, View, Text } =
     jest.requireActual<typeof import('react-native')>('react-native');
 
   const PressableFeedbackMock = function PressableFeedbackMock({
@@ -59,7 +59,9 @@ jest.mock('heroui-native', () => {
   }: {
     children: React.ReactNode;
   }) {
-    return React.createElement(View, null, children);
+    // Real Avatar.Fallback renders its initials inside a Text node; the raw
+    // string would violate RN's text-in-Text rule under v14's test renderer.
+    return React.createElement(View, null, React.createElement(Text, null, children));
   };
 
   return {
@@ -76,8 +78,8 @@ const baseProps = {
 };
 
 describe('MessageCard', () => {
-  it('renders name, apartment, preview, and timestamp', () => {
-    render(<MessageCard {...baseProps} />);
+  it('renders name, apartment, preview, and timestamp', async () => {
+    await render(<MessageCard {...baseProps} />);
 
     const name = screen.getByText('Ana Santos');
     expect(name).toBeTruthy();
@@ -90,8 +92,8 @@ describe('MessageCard', () => {
     expect(screen.getByText('2h ago')).toBeTruthy();
   });
 
-  it('bolds the name and announces the unread count when unread', () => {
-    render(<MessageCard {...baseProps} unreadCount={3} />);
+  it('bolds the name and announces the unread count when unread', async () => {
+    await render(<MessageCard {...baseProps} unreadCount={3} />);
 
     expect(screen.getByText('Ana Santos').props.className).toContain(
       'font-nunitoBold'
@@ -104,8 +106,8 @@ describe('MessageCard', () => {
     expect(screen.getByText('3')).toBeTruthy();
   });
 
-  it('keeps the regular weight and a plain label when read', () => {
-    render(<MessageCard {...baseProps} unreadCount={0} />);
+  it('keeps the regular weight and a plain label when read', async () => {
+    await render(<MessageCard {...baseProps} unreadCount={0} />);
 
     expect(screen.getByText('Ana Santos').props.className).toContain(
       'font-nunitoSemiBold'
@@ -118,8 +120,8 @@ describe('MessageCard', () => {
     ).toBeTruthy();
   });
 
-  it('caps the announced and badged count at 99+', () => {
-    render(<MessageCard {...baseProps} unreadCount={150} />);
+  it('caps the announced and badged count at 99+', async () => {
+    await render(<MessageCard {...baseProps} unreadCount={150} />);
 
     expect(
       screen.getByLabelText(
@@ -134,8 +136,8 @@ describe('MessageCard', () => {
     { messageType: 'video', expected: 'Sent a video' },
     { messageType: 'gif', expected: 'Sent a GIF' },
     { messageType: 'file', expected: 'Sent a document' },
-  ])('previews a received $messageType attachment', ({ messageType, expected }) => {
-    render(
+  ])('previews a received $messageType attachment', async ({ messageType, expected }) => {
+    await render(
       <MessageCard
         {...baseProps}
         lastMessage={null}
@@ -147,8 +149,8 @@ describe('MessageCard', () => {
     expect(screen.getByText(expected)).toBeTruthy();
   });
 
-  it('prefixes attachment previews I sent with "You"', () => {
-    render(
+  it('prefixes attachment previews I sent with "You"', async () => {
+    await render(
       <MessageCard
         {...baseProps}
         lastMessage={null}
@@ -160,21 +162,21 @@ describe('MessageCard', () => {
     expect(screen.getByText('You sent a video')).toBeTruthy();
   });
 
-  it('opens the conversation on press', () => {
+  it('opens the conversation on press', async () => {
     const onPress = jest.fn();
-    render(<MessageCard {...baseProps} onPress={onPress} />);
+    await render(<MessageCard {...baseProps} onPress={onPress} />);
 
-    fireEvent.press(
+    await fireEvent.press(
       screen.getByLabelText('Chat with Ana Santos about Sun Residences')
     );
 
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
-  it('runs the swipe actions as accessibility actions', () => {
+  it('runs the swipe actions as accessibility actions', async () => {
     const onMore = jest.fn();
     const onPin = jest.fn();
-    render(
+    await render(
       <MessageCard
         {...baseProps}
         actions={[
@@ -185,15 +187,15 @@ describe('MessageCard', () => {
     );
 
     const row = screen.getByLabelText('Chat with Ana Santos about Sun Residences');
-    fireEvent(row, 'onAccessibilityAction', { nativeEvent: { actionName: 'togglePin' } });
-    fireEvent(row, 'onAccessibilityAction', { nativeEvent: { actionName: 'unknown' } });
+    await fireEvent(row, 'onAccessibilityAction', { nativeEvent: { actionName: 'togglePin' } });
+    await fireEvent(row, 'onAccessibilityAction', { nativeEvent: { actionName: 'unknown' } });
 
     expect(onPin).toHaveBeenCalledTimes(1);
     expect(onMore).not.toHaveBeenCalled();
   });
 
-  it('announces marked unread, pinned and muted states', () => {
-    render(<MessageCard {...baseProps} isMarkedUnread isPinned isMuted />);
+  it('announces marked unread, pinned and muted states', async () => {
+    await render(<MessageCard {...baseProps} isMarkedUnread isPinned isMuted />);
 
     expect(
       screen.getByLabelText(

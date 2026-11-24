@@ -70,8 +70,8 @@ const TENANCY_ID = 'tenancy-1';
 const TENANCY_TOPIC = `tenancy-live:${TENANT_ID}`;
 const PAYMENT_TOPIC = `tenancy-payment-live:${TENANCY_ID}`;
 
-function flushTimers(): void {
-  act(() => {
+async function flushTimers(): void {
+  await act(() => {
     jest.advanceTimersByTime(5);
   });
 }
@@ -86,23 +86,23 @@ afterEach(() => {
   jest.useRealTimers();
 });
 
-function emit(channel: MockChannel | undefined, payload: MockPayload): void {
-  act(() => {
+async function emit(channel: MockChannel | undefined, payload: MockPayload): void {
+  await act(() => {
     channel?.handlers[0]?.(payload);
   });
 }
 
 describe('useTenancyRealtime', () => {
-  it('reuses live channels across an unmount → remount in the same tick', () => {
-    const first = renderHook(() => useTenancyRealtime(TENANT_ID, TENANCY_ID, {}));
+  it('reuses live channels across an unmount → remount in the same tick', async () => {
+    const first = await renderHook(() => useTenancyRealtime(TENANT_ID, TENANCY_ID, {}));
     expect(mockChannelFactory).toHaveBeenCalledTimes(2);
 
-    first.unmount();
+    await first.unmount();
 
     // Remounting before the deferred teardown fires must reuse the channels —
     // recreating them returns the still-joined instances and throws
     // "cannot add postgres_changes callbacks ... after subscribe()".
-    const second = renderHook(() => useTenancyRealtime(TENANT_ID, TENANCY_ID, {}));
+    const second = await renderHook(() => useTenancyRealtime(TENANT_ID, TENANCY_ID, {}));
 
     expect(mockChannelFactory).toHaveBeenCalledTimes(2);
     expect(mockRemoveChannel).not.toHaveBeenCalled();
@@ -124,69 +124,69 @@ describe('useTenancyRealtime', () => {
       },
     ]);
 
-    second.unmount();
-    flushTimers();
+    await second.unmount();
+    await flushTimers();
 
     expect(mockRemoveChannel).toHaveBeenCalledTimes(2);
   });
 
-  it('removes channels only after the deferred teardown window', () => {
-    const { unmount } = renderHook(() =>
+  it('removes channels only after the deferred teardown window', async () => {
+    const { unmount } = await renderHook(() =>
       useTenancyRealtime(TENANT_ID, TENANCY_ID, {}),
     );
 
-    unmount();
+    await unmount();
 
     expect(mockRemoveChannel).not.toHaveBeenCalled();
     expect(mockChannelsByName.size).toBe(2);
 
-    flushTimers();
+    await flushTimers();
 
     expect(mockRemoveChannel).toHaveBeenCalledTimes(2);
     expect(mockChannelsByName.size).toBe(0);
   });
 
-  it('shares one channel per identity across consumers', () => {
-    const first = renderHook(() => useTenancyRealtime(TENANT_ID, TENANCY_ID, {}));
-    const second = renderHook(() => useTenancyRealtime(TENANT_ID, TENANCY_ID, {}));
+  it('shares one channel per identity across consumers', async () => {
+    const first = await renderHook(() => useTenancyRealtime(TENANT_ID, TENANCY_ID, {}));
+    const second = await renderHook(() => useTenancyRealtime(TENANT_ID, TENANCY_ID, {}));
 
     expect(mockChannelFactory).toHaveBeenCalledTimes(2);
 
-    first.unmount();
-    flushTimers();
+    await first.unmount();
+    await flushTimers();
 
     // One consumer remains — channels must stay subscribed.
     expect(mockRemoveChannel).not.toHaveBeenCalled();
     expect(mockChannelFactory).toHaveBeenCalledTimes(2);
 
-    second.unmount();
-    flushTimers();
+    await second.unmount();
+    await flushTimers();
 
     expect(mockRemoveChannel).toHaveBeenCalledTimes(2);
   });
 
-  it('fans matching events out and ignores events for other rows', () => {
+  it('fans matching events out and ignores events for other rows', async () => {
     const onTenancyChange = jest.fn();
     const onPaymentChange = jest.fn();
-    const { unmount } = renderHook(() =>
+    const { unmount } = await renderHook(() =>
       useTenancyRealtime(TENANT_ID, TENANCY_ID, { onTenancyChange, onPaymentChange }),
     );
 
-    emit(mockChannelsByName.get(TENANCY_TOPIC), {
+    await emit(mockChannelsByName.get(TENANCY_TOPIC), {
       eventType: 'INSERT',
       new: { id: 'tenancy-1', tenant_id: TENANT_ID },
       old: null,
     });
     expect(onTenancyChange).toHaveBeenCalledTimes(1);
 
-    emit(mockChannelsByName.get(TENANCY_TOPIC), {
+    await emit(mockChannelsByName.get(TENANCY_TOPIC), {
       eventType: 'UPDATE',
       new: { id: 'other-tenancy', tenant_id: 'someone-else' },
       old: null,
     });
     expect(onTenancyChange).toHaveBeenCalledTimes(1);
 
-    emit(mockChannelsByName.get(PAYMENT_TOPIC), {
+    await emit(mockChannelsByName.get(PAYMENT_TOPIC), {
       eventType: 'UPDATE',
       new: { id: 'payment-1', tenancy_id: TENANCY_ID, period_start: '2026-08-01' },
       old: null,
@@ -196,22 +196,22 @@ describe('useTenancyRealtime', () => {
       record: { id: 'payment-1', tenancy_id: TENANCY_ID, period_start: '2026-08-01' },
     });
 
-    emit(mockChannelsByName.get(PAYMENT_TOPIC), {
+    await emit(mockChannelsByName.get(PAYMENT_TOPIC), {
       eventType: 'DELETE',
       new: null,
       old: { id: 'payment-2', tenancy_id: 'other-tenancy' },
     });
     expect(onPaymentChange).toHaveBeenCalledTimes(1);
 
-    unmount();
-    flushTimers();
+    await unmount();
+    await flushTimers();
   });
 
-  it('invokes the latest callbacks through refs without resubscribing', () => {
+  it('invokes the latest callbacks through refs without resubscribing', async () => {
     const firstOnChange = jest.fn();
     const secondOnChange = jest.fn();
 
-    const { rerender, unmount } = renderHook<
+    const { rerender, unmount } = await renderHook<
       void,
       { callbacks: TenancyRealtimeCallbacks }
     >(
@@ -221,9 +221,9 @@ describe('useTenancyRealtime', () => {
 
     expect(mockChannelFactory).toHaveBeenCalledTimes(1);
 
-    rerender({ callbacks: { onTenancyChange: secondOnChange } });
+    await rerender({ callbacks: { onTenancyChange: secondOnChange } });
 
-    emit(mockChannelsByName.get(TENANCY_TOPIC), {
+    await emit(mockChannelsByName.get(TENANCY_TOPIC), {
       eventType: 'UPDATE',
       new: { id: 'tenancy-1', tenant_id: TENANT_ID },
       old: null,
@@ -233,7 +233,7 @@ describe('useTenancyRealtime', () => {
     expect(secondOnChange).toHaveBeenCalledTimes(1);
     expect(mockChannelsByName.get(TENANCY_TOPIC)?.handlers).toHaveLength(1);
 
-    unmount();
-    flushTimers();
+    await unmount();
+    await flushTimers();
   });
 });

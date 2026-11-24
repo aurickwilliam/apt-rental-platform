@@ -23,6 +23,8 @@ import {
 
 import { OTHER_PET, getPetsError, minimumPetCount } from '@repo/constants'
 
+import { useTranslation } from '@/hooks/i18n'
+
 import { applicationAnswersFromSavedPreferences } from '@/service/applications/applicationFormPreferences'
 
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
@@ -41,6 +43,7 @@ type FormErrors = {
 
 export default function SecondProcess() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { apartmentId } = useLocalSearchParams<{ apartmentId: string }>();
 
   const { rentalPreferences, updateRentalPreferences, patchRentalPreferences } = useApplicationFormStore();
@@ -113,41 +116,40 @@ export default function SecondProcess() {
     const newErrors: FormErrors = {}
 
     if (!rentalPreferences.moveInDate)
-      newErrors.moveInDate = 'Please select your preferred move-in date.'
+      newErrors.moveInDate = t("apply.error.moveInRequired");
     else if (isPastDate(rentalPreferences.moveInDate))
-      newErrors.moveInDate = 'Move-in date cannot be in the past.'
+      newErrors.moveInDate = t("apply.error.moveInPast");
     else if (isToday(rentalPreferences.moveInDate))
-      newErrors.moveInDate = 'Move-in date cannot be today.'
+      newErrors.moveInDate = t("apply.error.moveInToday");
 
     if (
       rentalPreferences.noOccupants === null ||
       rentalPreferences.noOccupants <= 0
     ) {
-      newErrors.noOccupants =
-        "Please enter a valid number of occupants.";
+      newErrors.noOccupants = t("apply.error.occupantsInvalid");
     }
     else if (
       maxOccupants !== null && 
       rentalPreferences.noOccupants > maxOccupants
     ) {
-      newErrors.noOccupants = `Please enter ${maxOccupants} or fewer occupants.`
+      newErrors.noOccupants = t("apply.error.occupantsTooMany", { count: maxOccupants })
     }
 
     if (rentalPreferences.hasPets === undefined)
-      newErrors.hasPets = 'Please indicate if you have pets.'
+      newErrors.hasPets = t("apply.error.hasPetsRequired");
     else if (petsError)
       newErrors.petDetails = petsError
 
     if (rentalPreferences.needParking === undefined)
-      newErrors.needParking = 'Please indicate if you need parking.'
+      newErrors.needParking = t("apply.error.parkingRequired");
     else if (rentalPreferences.needParking && rentalPreferences.listOfVehicles.length === 0)
-      newErrors.parkingDetails = 'Please select the kinds of vehicles you have.'
+      newErrors.parkingDetails = t("apply.error.vehicleKindsRequired");
 
     if (rentalPreferences.isSmoker === undefined)
-      newErrors.isSmoker = 'Please indicate if you are a smoker.'
+      newErrors.isSmoker = t("apply.error.smokerRequired");
 
     if (rentalPreferences.hasDisability === undefined)
-      newErrors.hasDisability = 'Please indicate if anyone in your household has a disability.'
+      newErrors.hasDisability = t("apply.error.disabilityRequired");
 
     setErrors(newErrors)
     const isValid = Object.keys(newErrors).length === 0
@@ -186,7 +188,7 @@ export default function SecondProcess() {
     <ScreenWrapper
       header={
       <ApplicationHeader
-        currentTitle="Rental Preferences"
+        currentTitle={t("apply.step.preferences")}
         step={2}
       />
       }
@@ -208,8 +210,8 @@ export default function SecondProcess() {
             }}
           >
             <DateField
-              label="Preferred Move-In Date:"
-              placeholder="Select your preferred move-in date"
+              label={`${t("apply.prefs.moveInDate")}:`}
+              placeholder={t("apply.prefs.moveInPlaceholder")}
               required
               value={rentalPreferences.moveInDate}
               onChange={(value) => {
@@ -228,9 +230,9 @@ export default function SecondProcess() {
             }}
           >
             <TextField isRequired isInvalid={!!errors.noOccupants}>
-              <Label>Number of Occupants:</Label>
+              <Label>{`${t("apply.prefs.occupants")}:`}</Label>
               <Input
-                placeholder="Enter the number of occupants"
+                placeholder={t("apply.prefs.occupantsPlaceholder")}
                 keyboardType="numeric"
                 value={
                   rentalPreferences.noOccupants !== null
@@ -254,7 +256,7 @@ export default function SecondProcess() {
               />
               {maxOccupants !== null && (
                 <Description hideOnInvalid>
-                  This unit allows a maximum of {maxOccupants} occupant{maxOccupants === 1 ? '' : 's'}.
+                  {t("apply.prefs.maxOccupants", { count: maxOccupants })}
                 </Description>
               )}
               <FieldError>{errors.noOccupants}</FieldError>
@@ -265,7 +267,7 @@ export default function SecondProcess() {
 
           {savedAnswers ? (
             <Description>
-              Filled in from your saved rental preferences. Change any answer for this application.
+              {t("apply.prefs.prefilled")}
             </Description>
           ) : null}
 
@@ -278,7 +280,7 @@ export default function SecondProcess() {
             className="flex gap-5 mb-3"
           >
             <YesNoRadioField
-              label="Do you have pets?"
+              label={t("apply.prefs.hasPets")}
               required
               value={rentalPreferences.hasPets}
               error={errors.hasPets}
@@ -339,7 +341,7 @@ export default function SecondProcess() {
             className="flex gap-5 mb-3"
           >
             <YesNoRadioField
-              label="Do you need parking?"
+              label={t("apply.prefs.parking")}
               required
               value={rentalPreferences.needParking}
               error={errors.needParking}
@@ -384,7 +386,7 @@ export default function SecondProcess() {
             className="mb-3"
           >
             <YesNoRadioField
-              label="Are you a smoker?"
+              label={t("apply.prefs.smoker")}
               required
               value={rentalPreferences.isSmoker}
               error={errors.isSmoker}
@@ -404,7 +406,7 @@ export default function SecondProcess() {
             className="mb-3"
           >
             <YesNoRadioField
-              label="Does anyone in your household have a disability?"
+              label={t("apply.prefs.disability")}
               required
               value={rentalPreferences.hasDisability}
               error={errors.hasDisability}
@@ -419,18 +421,18 @@ export default function SecondProcess() {
 
           {/* Additional Notes (optional) — never errors, no ref needed */}
           <TextField>
-            <Label>Additional Notes:</Label>
+            <Label>{`${t("apply.prefs.notes")}:`}</Label>
             <TextArea
               maxLength={1000}
               className="h-50 p-3"
-              placeholder="Enter any additional information or preferences"
+              placeholder={t("apply.prefs.notesPlaceholder")}
               value={rentalPreferences.additionalNotes}
               onChangeText={(text) =>
                 updateRentalPreferences("additionalNotes", text)
               }
             />
             <Description>
-              {rentalPreferences.additionalNotes.length}/1000 characters
+              {t("apply.prefs.notesCount", { count: rentalPreferences.additionalNotes.length, max: 1000 })}
             </Description>
           </TextField>
         </View>
@@ -442,11 +444,11 @@ export default function SecondProcess() {
             onPress={() => router.back()}
             className="flex-1"
           >
-            <Button.Label>Back</Button.Label>
+            <Button.Label>{t("common.back")}</Button.Label>
           </Button>
 
           <Button onPress={handleNext} className="flex-1">
-            <Button.Label>Next</Button.Label>
+            <Button.Label>{t("common.next")}</Button.Label>
           </Button>
         </View>
       </View>

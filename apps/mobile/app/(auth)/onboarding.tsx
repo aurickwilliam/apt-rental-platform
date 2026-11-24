@@ -16,12 +16,15 @@ import { USER_ROLES } from '../../constants/onboarding-data/user-role';
 
 import OnBoardingSlide from 'components/layout/OnBoardingSlide';
 
+import { useTranslation } from '@/hooks/i18n';
+
 import { Button } from "heroui-native"
 
 // Get the device width
 const { width } = Dimensions.get('window');
 
 export default function OnboardingScreen() {
+  const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const insets = useSafeAreaInsets();
 
@@ -131,9 +134,7 @@ export default function OnboardingScreen() {
                 variant="secondary"
                 className="flex-1"
               >
-                <Button.Label>
-                  Skip
-                </Button.Label>
+                <Button.Label>{t("common.skip")}</Button.Label>
               </Button>
 
               <Button
@@ -141,9 +142,7 @@ export default function OnboardingScreen() {
                 variant="primary"
                 className="flex-1"
               >
-                <Button.Label>
-                  Next
-                </Button.Label>
+                <Button.Label>{t("common.next")}</Button.Label>
               </Button>
             </>
           ) : (
@@ -159,9 +158,7 @@ export default function OnboardingScreen() {
                   <Button
                     variant={role.type === "primary" ? "primary" : "secondary"}
                   >
-                    <Button.Label>
-                      {role.label}
-                    </Button.Label>
+                    <Button.Label>{t(role.labelKey)}</Button.Label>
                   </Button>
                 </Link>
               </View>

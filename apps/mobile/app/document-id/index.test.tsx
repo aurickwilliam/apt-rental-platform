@@ -1,7 +1,7 @@
-import { render, screen, waitFor, fireEvent } from "@testing-library/react-native";
-import { IconHourglass } from "@tabler/icons-react-native";
+import { render, screen, waitFor, fireEvent, within } from "@testing-library/react-native";
 
 import Index from "./index";
+import { queryAllByHostProps } from "../../tests/support/testTraversal";
 
 const mockRouter = { push: jest.fn(), replace: jest.fn() };
 
@@ -111,7 +111,9 @@ jest.mock("heroui-native", () => {
     children?: React.ReactNode;
     style?: React.ComponentProps<typeof View>["style"];
   }) {
-    return React.createElement(View, { style }, children);
+    // Chip.Label wraps its text in a Text node; a bare string under View
+    // violates RN's text-in-Text rule in the v14 test renderer.
+    return React.createElement(Text, { style }, children);
   };
 
   const SkeletonGroupMock = ({ children }: { children?: React.ReactNode }) =>
@@ -239,26 +241,26 @@ beforeEach(() => {
 });
 
 describe("APT Passport wallet screen", () => {
-  it("holds the skeleton while the wallet query is loading", () => {
+  it("holds the skeleton while the wallet query is loading", async () => {
     mockPassportState.loading = true;
 
-    render(<Index />);
+    await render(<Index />);
 
     expect(screen.getByTestId("passport-skeleton")).toBeTruthy();
     expect(screen.queryByText("No documents yet")).toBeNull();
   });
 
-  it("holds the skeleton while signed URLs are still resolving", () => {
+  it("holds the skeleton while signed URLs are still resolving", async () => {
     mockDocumentUrlsState.loading = true;
 
-    render(<Index />);
+    await render(<Index />);
 
     expect(screen.getByTestId("passport-skeleton")).toBeTruthy();
     expect(screen.queryByText("No documents yet")).toBeNull();
   });
 
-  it("shows the empty state once the wallet has settled empty", () => {
-    render(<Index />);
+  it("shows the empty state once the wallet has settled empty", async () => {
+    await render(<Index />);
 
     expect(screen.getByText("No documents yet")).toBeTruthy();
     expect(screen.queryByTestId("passport-skeleton")).toBeNull();
@@ -269,13 +271,13 @@ describe("APT Passport wallet screen", () => {
     // settled read already contains the primary row.
     mockPassportState.loading = true;
 
-    const { rerender } = render(<Index />);
+    const { rerender } = await render(<Index />);
 
     expect(screen.queryByText("No documents yet")).toBeNull();
 
     mockPassportState.loading = false;
     mockPassportState.documents = [primaryDoc];
-    rerender(<Index />);
+    await rerender(<Index />);
 
     await waitFor(() =>
       expect(screen.getByText("Valid ID / Government ID")).toBeTruthy(),
@@ -284,7 +286,7 @@ describe("APT Passport wallet screen", () => {
   });
 
   it("keeps settled content visible on later refetches", async () => {
-    const { rerender } = render(<Index />);
+    const { rerender } = await render(<Index />);
 
     await waitFor(() =>
       expect(screen.getByText("No documents yet")).toBeTruthy(),
@@ -292,14 +294,14 @@ describe("APT Passport wallet screen", () => {
 
     mockPassportState.refreshing = true;
     mockPassportState.documents = [primaryDoc];
-    rerender(<Index />);
+    await rerender(<Index />);
 
     expect(screen.getByText("Valid ID / Government ID")).toBeTruthy();
     expect(screen.queryByText("No documents yet")).toBeNull();
     expect(screen.queryByTestId("passport-skeleton")).toBeNull();
   });
 
-  it("shows the section empty state when only the verified ID exists", () => {
+  it("shows the section empty state when only the verified ID exists", async () => {
     mockPassportState.documents = [primaryDoc];
     mockDocumentUrlsState.resolved = [
       {
@@ -309,7 +311,7 @@ describe("APT Passport wallet screen", () => {
       },
     ];
 
-    render(<Index />);
+    await render(<Index />);
 
     expect(screen.getByText("Valid ID / Government ID")).toBeTruthy();
     expect(screen.getByText("No supporting documents yet")).toBeTruthy();
@@ -319,8 +321,8 @@ describe("APT Passport wallet screen", () => {
     expect(screen.queryByText("Contact Support")).toBeNull();
   });
 
-  it("never renders the help footer", () => {
-    render(<Index />);
+  it("never renders the help footer", async () => {
+    await render(<Index />);
 
     expect(screen.queryByText("Need help?")).toBeNull();
     expect(screen.queryByText("Contact Support")).toBeNull();
@@ -340,8 +342,8 @@ describe("Supporting documents view toggle", () => {
     ];
   });
 
-  it("defaults to the grid view", () => {
-    render(<Index />);
+  it("defaults to the grid view", async () => {
+    await render(<Index />);
 
     expect(screen.getByLabelText("Toggle view")).toBeTruthy();
     // Grid cards use "Tap to View"; list rows use "Tap to view".
@@ -349,94 +351,90 @@ describe("Supporting documents view toggle", () => {
     expect(screen.queryByText("Tap to view")).toBeNull();
   });
 
-  it("switches to the vertical list view", () => {
-    render(<Index />);
+  it("switches to the vertical list view", async () => {
+    await render(<Index />);
 
-    fireEvent.press(screen.getByLabelText("Toggle view"));
+    await fireEvent.press(screen.getByLabelText("Toggle view"));
 
     expect(screen.getByText("Tap to view")).toBeTruthy();
     expect(screen.queryByText("Tap to View")).toBeNull();
   });
 
-  it("insets the list row content inside its card", () => {
-    render(<Index />);
-    fireEvent.press(screen.getByLabelText("Toggle view"));
+  it("insets the list row content inside its card", async () => {
+    await render(<Index />);
+    await fireEvent.press(screen.getByLabelText("Toggle view"));
 
-    const RNView =
-      jest.requireActual<typeof import("react-native")>("react-native").View;
     expect(
-      screen.UNSAFE_getAllByType(RNView).some(
-        (node) => node.props.className === "px-4",
-      ),
-    ).toBe(true);
+      queryAllByHostProps(screen.root!, "View", { className: "px-4" }).length,
+    ).toBeGreaterThan(0);
   });
 
-  it("routes to the detail screen from a list row", () => {
-    render(<Index />);
+  it("routes to the detail screen from a list row", async () => {
+    await render(<Index />);
 
-    fireEvent.press(screen.getByLabelText("Toggle view"));
-    fireEvent.press(screen.getByText("Payslip"));
+    await fireEvent.press(screen.getByLabelText("Toggle view"));
+    await fireEvent.press(screen.getByText("Payslip"));
 
     expect(mockRouter.push).toHaveBeenCalledWith("/document-id/doc-2");
   });
 
-  it("renders a PDF thumbnail for PDF documents", () => {
+  it("renders a PDF thumbnail for PDF documents", async () => {
     mockPassportState.documents = [primaryDoc, pdfDoc];
     mockDocumentUrlsState.resolved = [frontResolved, pdfResolved];
 
-    render(<Index />);
+    await render(<Index />);
 
     expect(screen.getByTestId("pdf-thumbnail")).toBeTruthy();
   });
 
-  it("does not try to render a private PDF without a signed URL", () => {
+  it("does not try to render a private PDF without a signed URL", async () => {
     mockPassportState.documents = [primaryDoc, pdfDoc];
     mockDocumentUrlsState.resolved = [
       frontResolved,
       { ...pdfResolved, signedUrl: null },
     ];
 
-    render(<Index />);
+    await render(<Index />);
 
     expect(screen.getByText("Proof of Income")).toBeTruthy();
     expect(screen.queryByTestId("pdf-thumbnail")).toBeNull();
   });
 
-  it("renders a PDF thumbnail in the list view too", () => {
+  it("renders a PDF thumbnail in the list view too", async () => {
     mockPassportState.documents = [primaryDoc, pdfDoc];
     mockDocumentUrlsState.resolved = [frontResolved, pdfResolved];
 
-    render(<Index />);
+    await render(<Index />);
 
-    fireEvent.press(screen.getByLabelText("Toggle view"));
+    await fireEvent.press(screen.getByLabelText("Toggle view"));
 
     expect(screen.getByTestId("pdf-thumbnail")).toBeTruthy();
   });
 
-  it("keeps image previews for image documents", () => {
+  it("keeps image previews for image documents", async () => {
     mockPassportState.documents = [primaryDoc, payslipDoc];
     mockDocumentUrlsState.resolved = [frontResolved, payslipResolved];
 
-    render(<Index />);
+    await render(<Index />);
 
     expect(screen.queryByTestId("pdf-thumbnail")).toBeNull();
     expect(screen.getByText("Payslip")).toBeTruthy();
   });
 
-  it("shows the shield in the card corner for verified supporting documents", () => {
+  it("shows the shield in the card corner for verified supporting documents", async () => {
     mockPassportState.documents = [primaryDoc, { ...payslipDoc, is_verified: true }];
-    render(<Index />);
+    await render(<Index />);
 
     expect(screen.getByTestId("verified-badge")).toBeTruthy();
     expect(screen.queryByTestId("expired-badge")).toBeNull();
   });
 
-  it("overlays the under-review chip at the top left of the document thumbnail", () => {
+  it("overlays the under-review chip at the top left of the document thumbnail", async () => {
     mockPassportState.documents = [
       primaryDoc,
       { ...payslipDoc, review_status: "pending" },
     ];
-    render(<Index />);
+    await render(<Index />);
 
     const badge = screen.getByTestId("pending-badge");
     expect(badge.props.className).toContain("absolute top-2 left-2");
@@ -445,30 +443,38 @@ describe("Supporting documents view toggle", () => {
       borderColor: "#FCD34D",
       borderWidth: 1,
     });
-    expect(badge.findByType(IconHourglass).props.color).toBe("#92400E");
+    // The hourglass icon surfaces its warning color as the SVG host's stroke.
     expect(
-      badge.findAll(
-        (node) => node.children.includes("Under review") && node.props.style?.color === "#92400E",
+      badge.queryAll((node) => node.type === "RNSVGSvgView" && node.props.stroke === "#92400E"),
+    ).toHaveLength(1);
+    expect(
+      badge.queryAll(
+        (node) =>
+          node.type === "Text" &&
+          (node.children as unknown[]).includes("Under review") &&
+          (node.props.style as { color?: string }).color === "#92400E",
       ).length,
     ).toBeGreaterThan(0);
     expect(screen.getByText("Payslip")).toBeTruthy();
     expect(screen.queryByTestId("verified-badge")).toBeNull();
   });
 
-  it("shows expired instead of verified on cards and list rows", () => {
+  it("shows expired instead of verified on cards and list rows", async () => {
     mockPassportState.documents = [
       primaryDoc,
       { ...payslipDoc, is_verified: true, expires_at: "2020-01-01" },
     ];
     mockDocumentUrlsState.resolved = [frontResolved, payslipResolved];
-    render(<Index />);
+    await render(<Index />);
 
     expect(screen.queryByTestId("verified-badge")).toBeNull();
     expect(screen.getByTestId("expired-badge")).toBeTruthy();
 
-    fireEvent.press(screen.getByLabelText("Toggle view"));
-    expect(screen.getByText("Expired")).toBeTruthy();
-    expect(screen.queryByText("Verified")).toBeNull();
+    await fireEvent.press(screen.getByLabelText("Toggle view"));
+    const expiredText = screen.getByText("Expired");
+    // The row flips from Verified to Expired — the primary ID's own chip still
+    // shows Verified elsewhere, so scope to the row.
+    expect(within(expiredText.parent!).queryByText("Verified")).toBeNull();
   });
 });
 
@@ -495,7 +501,7 @@ describe("Valid ID flip control", () => {
     ];
   });
 
-  it("hides the flip button when the ID has no back side", () => {
+  it("hides the flip button when the ID has no back side", async () => {
     mockPassportState.documents = [primaryDoc];
     mockDocumentUrlsState.resolved = [
       {
@@ -505,7 +511,7 @@ describe("Valid ID flip control", () => {
       },
     ];
 
-    render(<Index />);
+    await render(<Index />);
 
     expect(screen.getByText("Valid ID / Government ID")).toBeTruthy();
     expect(screen.queryByLabelText("Show back of ID")).toBeNull();
@@ -513,12 +519,12 @@ describe("Valid ID flip control", () => {
     expect(screen.getByTestId("chip-soft-success-md")).toBeTruthy();
   });
 
-  it("flips between front and back when the button is tapped", () => {
-    render(<Index />);
+  it("flips between front and back when the button is tapped", async () => {
+    await render(<Index />);
 
     expect(screen.getByLabelText("Show back of ID")).toBeTruthy();
 
-    fireEvent.press(screen.getByLabelText("Show back of ID"));
+    await fireEvent.press(screen.getByLabelText("Show back of ID"));
 
     expect(screen.getByLabelText("Show front of ID")).toBeTruthy();
     expect(screen.queryByLabelText("Show back of ID")).toBeNull();
@@ -526,31 +532,27 @@ describe("Valid ID flip control", () => {
 });
 
 describe("PassportSkeleton", () => {
-  it("renders a skeleton group matching the wallet layout", () => {
+  it("renders a skeleton group matching the wallet layout", async () => {
     const ActualSkeleton = jest.requireActual<
       typeof import("./components/PassportSkeleton")
     >("./components/PassportSkeleton").default;
 
-    render(<ActualSkeleton />);
+    await render(<ActualSkeleton />);
 
     expect(screen.getByTestId("skeleton-group")).toBeTruthy();
     expect(screen.getAllByTestId("skeleton-item").length).toBeGreaterThan(0);
   });
 
-  it("lays the card placeholders out in two columns", () => {
+  it("lays the card placeholders out in two columns", async () => {
     const ActualSkeleton = jest.requireActual<
       typeof import("./components/PassportSkeleton")
     >("./components/PassportSkeleton").default;
-    const RNView =
-      jest.requireActual<typeof import("react-native")>("react-native").View;
 
-    const { UNSAFE_getAllByType } = render(<ActualSkeleton />);
-    const wrappers = UNSAFE_getAllByType(RNView).filter(
-      (node: { props?: { className?: string } }) =>
-        node.props?.className === "w-[48%]",
-    );
+    await render(<ActualSkeleton />);
 
     // Four 2-column placeholders, matching the four-card grid of the real view.
-    expect(wrappers.length).toBe(4);
+    expect(
+      queryAllByHostProps(screen.root!, "View", { className: "w-[48%]" }),
+    ).toHaveLength(4);
   });
 });

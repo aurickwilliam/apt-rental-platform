@@ -99,13 +99,13 @@ beforeEach(() => {
   mockRole = "landlord";
 });
 
-it("explains with a toast, without navigating, when an admin taps a passport review notification", () => {
+it("explains with a toast, without navigating, when an admin taps a passport review notification", async () => {
   mockNotifications = [
     notification({ title: "New passport document submitted", data: { screen: "passportReview", documentId: "doc-1" } }),
   ];
-  render(<NotificationList filter="all" />);
+  await render(<NotificationList filter="all" />);
 
-  fireEvent.press(screen.getByText("New passport document submitted"));
+  await fireEvent.press(screen.getByText("New passport document submitted"));
 
   expect(mockMarkAsRead).toHaveBeenCalledWith("n1");
   expect(mockPush).not.toHaveBeenCalled();
@@ -116,7 +116,7 @@ it("explains with a toast, without navigating, when an admin taps a passport rev
   });
 });
 
-it("opens the application when a landlord taps a new-application notification", () => {
+it("opens the application when a landlord taps a new-application notification", async () => {
   mockNotifications = [
     notification({
       type: "apartment",
@@ -124,19 +124,19 @@ it("opens the application when a landlord taps a new-application notification", 
       data: { screen: "application", applicationId: "app-1", apartmentId: "apt-1" },
     }),
   ];
-  render(<NotificationList filter="all" />);
+  await render(<NotificationList filter="all" />);
 
-  fireEvent.press(screen.getByText("New Application"));
+  await fireEvent.press(screen.getByText("New Application"));
 
   expect(mockPush).toHaveBeenCalledWith("/landlord/tenant-applications/app-1");
   expect(mockToastShow).not.toHaveBeenCalled();
 });
 
-it("does nothing visible for a notification with no target", () => {
+it("does nothing visible for a notification with no target", async () => {
   mockNotifications = [notification({ title: "Plain", data: {} })];
-  render(<NotificationList filter="all" />);
+  await render(<NotificationList filter="all" />);
 
-  fireEvent.press(screen.getByText("Plain"));
+  await fireEvent.press(screen.getByText("Plain"));
 
   expect(mockPush).not.toHaveBeenCalled();
   expect(mockToastShow).not.toHaveBeenCalled();
@@ -158,7 +158,7 @@ const renderedTexts = () => {
 /** The given titles in on-screen order, ignoring every other text. */
 const orderOf = (titles: string[]) => renderedTexts().filter((text) => titles.includes(text));
 
-it("renders a reaction as a sentence with its quoted message preview", () => {
+it("renders a reaction as a sentence with its quoted message preview", async () => {
   mockNotifications = [
     notification({
       type: "message",
@@ -167,14 +167,14 @@ it("renders a reaction as a sentence with its quoted message preview", () => {
       data: { screen: "chat", event: "reaction", messagePreview: "See you at 6pm" },
     }),
   ];
-  render(<NotificationList filter="all" />);
+  await render(<NotificationList filter="all" />);
 
   expect(screen.getByText("Emma Stone")).toBeTruthy();
   expect(screen.getByText(/reacted ❤️ to your message/)).toBeTruthy();
   expect(screen.getByText("“See you at 6pm”")).toBeTruthy();
 });
 
-it("renders no preview line when the payload has no usable preview", () => {
+it("renders no preview line when the payload has no usable preview", async () => {
   mockNotifications = [
     notification({
       type: "message",
@@ -183,14 +183,14 @@ it("renders no preview line when the payload has no usable preview", () => {
       data: { screen: "chat", event: "reaction", messagePreview: "   " },
     }),
   ];
-  render(<NotificationList filter="all" />);
+  await render(<NotificationList filter="all" />);
 
   expect(screen.queryByText(/“/)).toBeNull();
 });
 
-it("shows a lone chat message as sender + action with a quoted preview", () => {
+it("shows a lone chat message as sender + action with a quoted preview", async () => {
   mockNotifications = [chat("m1", { message: "Hello", created_at: "2026-10-18T10:00:00" })];
-  render(<NotificationList filter="all" />);
+  await render(<NotificationList filter="all" />);
 
   expect(screen.getByText("Emma Stone")).toBeTruthy();
   expect(screen.getByText(/sent you a message/)).toBeTruthy();
@@ -198,133 +198,133 @@ it("shows a lone chat message as sender + action with a quoted preview", () => {
   expect(screen.getByText("just now")).toBeTruthy();
 });
 
-it("keeps non-chat notifications as title plus an unquoted message", () => {
+it("keeps non-chat notifications as title plus an unquoted message", async () => {
   mockNotifications = [notification({ title: "Payment Received", message: "₱12,000 from Emma", type: "payment" })];
-  render(<NotificationList filter="all" />);
+  await render(<NotificationList filter="all" />);
 
   expect(screen.getByText("Payment Received")).toBeTruthy();
   expect(screen.getByText("₱12,000 from Emma")).toBeTruthy();
 });
 
-it("groups the feed under Today, Yesterday and dated section headers", () => {
+it("groups the feed under Today, Yesterday and dated section headers", async () => {
   mockNotifications = [
     notification({ id: "old", title: "Older", created_at: new Date(2026, 9, 10, 9).toISOString() }),
     notification({ id: "y", title: "Yesterday row", created_at: new Date(2026, 9, 17, 12).toISOString() }),
     notification({ id: "t", title: "Today row", created_at: new Date(2026, 9, 18, 9).toISOString() }),
   ];
-  render(<NotificationList filter="all" />);
+  await render(<NotificationList filter="all" />);
 
   expect(screen.getAllByRole("header").map((h) => h.props.children)).toEqual(["Today", "Yesterday", "Oct 10"]);
   expect(orderOf(["Today row", "Yesterday row", "Older"])).toEqual(["Today row", "Yesterday row", "Older"]);
 });
 
-it("sorts refreshed feed rows newest-first with stable timestamp ties", () => {
+it("sorts refreshed feed rows newest-first with stable timestamp ties", async () => {
   mockNotifications = [
     notification({ id: "older", title: "Older row", created_at: "2026-10-17T12:00:00Z" }),
     notification({ id: "b", title: "Today B", created_at: "2026-10-18T12:00:00Z" }),
     notification({ id: "a", title: "Today A", created_at: "2026-10-18T12:00:00Z" }),
   ];
   const titles = ["New arrival", "Today A", "Today B", "Older row"];
-  const { rerender } = render(<NotificationList filter="all" />);
+  const { rerender } = await render(<NotificationList filter="all" />);
   expect(orderOf(titles)).toEqual(["Today A", "Today B", "Older row"]);
 
   // The existing Realtime subscription refreshes the query cache with a new array.
   mockNotifications = [...mockNotifications, notification({
     id: "new", title: "New arrival", created_at: "2026-10-18T13:00:00Z",
   })];
-  rerender(<NotificationList filter="all" />);
+  await rerender(<NotificationList filter="all" />);
   expect(orderOf(titles)).toEqual(["New arrival", "Today A", "Today B", "Older row"]);
 
-  fireEvent.press(screen.getByText("Today A"));
+  await fireEvent.press(screen.getByText("Today A"));
   expect(mockMarkAsRead).toHaveBeenCalledWith("a");
   mockNotifications = mockNotifications.map(n => ({ ...n, is_read: true }));
-  rerender(<NotificationList filter="all" />);
+  await rerender(<NotificationList filter="all" />);
   expect(orderOf(titles)).toEqual(["New arrival", "Today A", "Today B", "Older row"]);
 });
 
-it("keeps only unread rows, and whole groups with an unread member, on the Unread tab", () => {
+it("keeps only unread rows, and whole groups with an unread member, on the Unread tab", async () => {
   mockNotifications = [
     notification({ id: "read", title: "Read row", is_read: true }),
     notification({ id: "unread", title: "Unread row", created_at: "2026-10-18T09:00:00" }),
     chat("g1", { created_at: "2026-10-18T10:00:00", is_read: true }),
     chat("g2", { created_at: "2026-10-18T10:05:00" }),
   ];
-  render(<NotificationList filter="unread" />);
+  await render(<NotificationList filter="unread" />);
 
   expect(screen.queryByText("Read row")).toBeNull();
   expect(screen.getByText("Unread row")).toBeTruthy();
   expect(screen.getByText(/sent you 2 messages/)).toBeTruthy();
 });
 
-it("shows an all-caught-up message when nothing is unread", () => {
+it("shows an all-caught-up message when nothing is unread", async () => {
   mockNotifications = [notification({ is_read: true })];
-  render(<NotificationList filter="unread" />);
+  await render(<NotificationList filter="unread" />);
 
   expect(screen.getByText("You're all caught up")).toBeTruthy();
 });
 
-it("offers a way back to all notifications from the Unread empty state", () => {
+it("offers a way back to all notifications from the Unread empty state", async () => {
   mockNotifications = [notification({ is_read: true })];
   const onShowAll = jest.fn();
-  render(<NotificationList filter="unread" onShowAll={onShowAll} />);
+  await render(<NotificationList filter="unread" onShowAll={onShowAll} />);
 
-  fireEvent.press(screen.getByText("View all notifications"));
+  await fireEvent.press(screen.getByText("View all notifications"));
 
   expect(onShowAll).toHaveBeenCalled();
 });
 
-it("explains an empty feed instead of leaving blank space", () => {
+it("explains an empty feed instead of leaving blank space", async () => {
   mockNotifications = [];
-  render(<NotificationList filter="all" />);
+  await render(<NotificationList filter="all" />);
 
   expect(screen.getByText("No notifications yet")).toBeTruthy();
   expect(screen.queryByText("View all notifications")).toBeNull();
 });
 
 describe("message groups", () => {
-  it("collapses consecutive messages from one sender into a summary with the latest preview", () => {
+  it("collapses consecutive messages from one sender into a summary with the latest preview", async () => {
     mockNotifications = [
       chat("m1", { message: "first", created_at: "2026-10-18T10:00:00" }),
       chat("m2", { message: "second", created_at: "2026-10-18T10:10:00" }),
     ];
-    render(<NotificationList filter="all" />);
+    await render(<NotificationList filter="all" />);
 
     expect(screen.getByText(/sent you 2 messages/)).toBeTruthy();
     expect(screen.getByText("Latest: “second”")).toBeTruthy();
     expect(screen.queryByText("“first”")).toBeNull();
   });
 
-  it("does not group messages past the window or from another sender", () => {
+  it("does not group messages past the window or from another sender", async () => {
     mockNotifications = [
       chat("m1", { created_at: "2026-10-18T09:00:00" }),
       chat("m2", { created_at: "2026-10-18T10:00:00" }),
       chat("m3", { sender: "peer-2", created_at: "2026-10-18T10:05:00" }),
     ];
-    render(<NotificationList filter="all" />);
+    await render(<NotificationList filter="all" />);
 
     expect(screen.queryByText(/sent you 2 messages/)).toBeNull();
     expect(screen.getAllByText(/sent you a message/)).toHaveLength(3);
   });
 
-  it("never groups reactions", () => {
+  it("never groups reactions", async () => {
     mockNotifications = [
       chat("m1", { created_at: "2026-10-18T10:00:00" }),
       chat("m2", { created_at: "2026-10-18T10:02:00", message: "Reacted ❤️ to your message",
         data: { screen: "chat", event: "reaction", senderId: "peer-1", conversationKey: "chat:none:user-1:peer-1" } }),
     ];
-    render(<NotificationList filter="all" />);
+    await render(<NotificationList filter="all" />);
 
     expect(screen.queryByText(/sent you 2 messages/)).toBeNull();
   });
 
-  it("expands in place without navigating or marking anything read", () => {
+  it("expands in place without navigating or marking anything read", async () => {
     mockNotifications = [
       chat("m1", { message: "first", created_at: "2026-10-18T10:00:00" }),
       chat("m2", { message: "second", created_at: "2026-10-18T10:10:00" }),
     ];
-    render(<NotificationList filter="all" />);
+    await render(<NotificationList filter="all" />);
 
-    fireEvent.press(screen.getByLabelText("Expand messages from Emma Stone"));
+    await fireEvent.press(screen.getByLabelText("Expand messages from Emma Stone"));
 
     expect(screen.getByText("“second”")).toBeTruthy();
     expect(screen.getByText("“first”")).toBeTruthy();
@@ -332,47 +332,47 @@ describe("message groups", () => {
     expect(mockPush).not.toHaveBeenCalled();
     expect(mockMarkAsRead).not.toHaveBeenCalled();
 
-    fireEvent.press(screen.getByLabelText("Collapse messages from Emma Stone"));
+    await fireEvent.press(screen.getByLabelText("Collapse messages from Emma Stone"));
     expect(screen.getByText("Latest: “second”")).toBeTruthy();
   });
 
-  it("opens the conversation and acknowledges the unread members when the summary is tapped", () => {
+  it("opens the conversation and acknowledges the unread members when the summary is tapped", async () => {
     mockNotifications = [
       chat("m1", { created_at: "2026-10-18T10:00:00" }),
       chat("m2", { created_at: "2026-10-18T10:05:00", is_read: true }),
       chat("m3", { created_at: "2026-10-18T10:10:00" }),
     ];
-    render(<NotificationList filter="all" />);
+    await render(<NotificationList filter="all" />);
 
-    fireEvent.press(screen.getByText(/sent you 3 messages/));
+    await fireEvent.press(screen.getByText(/sent you 3 messages/));
 
     expect(mockMarkAsRead.mock.calls.map(([id]) => id).sort()).toEqual(["m1", "m3"]);
     expect(mockPush).toHaveBeenCalledWith(expect.objectContaining({ pathname: "/chat/[conversationId]" }));
   });
 
-  it("acknowledges nothing when the group has no resolvable conversation", () => {
+  it("acknowledges nothing when the group has no resolvable conversation", async () => {
     const orphan = (id: string, at: string) => notification({
       id, type: "message", title: "Emma Stone", message: id, created_at: at,
       data: { screen: "chat", senderId: "peer-1", conversationKey: "chat:broken" },
     });
-    mockNotifications = [orphan("m1", "2026-10-18T10:00:00"), orphan("m2", "2026-10-18T10:05:00")];
-    render(<NotificationList filter="all" />);
+    mockNotifications = [await orphan("m1", "2026-10-18T10:00:00"), await orphan("m2", "2026-10-18T10:05:00")];
+    await render(<NotificationList filter="all" />);
 
-    fireEvent.press(screen.getByText(/sent you 2 messages/));
+    await fireEvent.press(screen.getByText(/sent you 2 messages/));
 
     expect(mockMarkAsRead).not.toHaveBeenCalled();
     expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it("opens and acknowledges a single expanded member on its own", () => {
+  it("opens and acknowledges a single expanded member on its own", async () => {
     mockNotifications = [
       chat("m1", { message: "first", created_at: "2026-10-18T10:00:00" }),
       chat("m2", { message: "second", created_at: "2026-10-18T10:10:00" }),
     ];
-    render(<NotificationList filter="all" />);
+    await render(<NotificationList filter="all" />);
 
-    fireEvent.press(screen.getByLabelText("Expand messages from Emma Stone"));
-    fireEvent.press(screen.getByText("“first”"));
+    await fireEvent.press(screen.getByLabelText("Expand messages from Emma Stone"));
+    await fireEvent.press(screen.getByText("“first”"));
 
     expect(mockMarkAsRead).toHaveBeenCalledTimes(1);
     expect(mockMarkAsRead).toHaveBeenCalledWith("m1");

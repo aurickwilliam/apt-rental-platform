@@ -35,6 +35,8 @@ export interface ApartmentCardProps {
   onPress?: () => void;
   onPressFavorite?: () => void;
   isVerified?: boolean;
+  /** Verified preference matches; set only on Recommended for You cards. */
+  reasons?: readonly string[];
 }
 
 export default function ApartmentCard({
@@ -52,6 +54,7 @@ export default function ApartmentCard({
   onPress,
   onPressFavorite,
   isVerified = false,
+  reasons,
 }: ApartmentCardProps) {
   const { width } = useWindowDimensions();
   const { colors } = useColors();
@@ -112,6 +115,15 @@ export default function ApartmentCard({
               >
                 {location}
               </Text>
+              {reasons && reasons.length > 0 ? (
+                <View className="mt-1 flex-row flex-wrap gap-1">
+                  {reasons.map((reason) => (
+                    <View key={reason} className="rounded-full bg-default px-1.5 py-px">
+                      <Text className="text-[10px] leading-3 text-default-foreground font-inter">{reason}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
             </View>
 
             {/* Utilities — list-only */}

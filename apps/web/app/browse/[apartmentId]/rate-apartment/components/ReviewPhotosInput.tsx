@@ -7,6 +7,8 @@ import Image from "next/image";
 import { Label, Button } from "@heroui/react";
 import { IconPhotoPlus, IconUpload, IconX } from "@tabler/icons-react";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
 export type ReviewPhoto = {
   // Null for photos already stored from a previous submission — they carry
   // a storage path instead and are never re-uploaded.
@@ -31,6 +33,7 @@ export default function ReviewPhotosInput({
   onAdd,
   onRemove,
 }: ReviewPhotosInputProps) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [selectionError, setSelectionError] = useState<string | null>(null);
 
@@ -46,9 +49,14 @@ export default function ReviewPhotosInput({
 
     for (const file of files) {
       if (!file.type.startsWith("image/")) {
-        rejected.push(`${file.name} is not an image`);
+        rejected.push(t("reviews.photos.notImage", { name: file.name }));
       } else if (file.size > MAX_REVIEW_IMAGE_SIZE_BYTES) {
-        rejected.push(`${file.name} exceeds the ${MAX_REVIEW_IMAGE_SIZE_MB}MB limit`);
+        rejected.push(
+          t("reviews.photos.tooLarge", {
+            name: file.name,
+            size: MAX_REVIEW_IMAGE_SIZE_MB,
+          }),
+        );
       } else {
         valid.push(file);
       }
@@ -64,7 +72,7 @@ export default function ReviewPhotosInput({
   return (
     <div>
       <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium text-grey-700">Photos (optional)</Label>
+        <Label className="text-sm font-medium text-grey-700">{t("reviews.photos.title")}</Label>
         <span className="text-xs text-grey-400">
           {images.length} / {MAX_REVIEW_IMAGES}
         </span>
@@ -85,14 +93,14 @@ export default function ReviewPhotosInput({
             <div key={photo.url} className="group relative h-32 overflow-hidden rounded-xl">
               <Image
                 src={photo.url}
-                alt="Review photo"
+                alt={t("reviews.photos.alt")}
                 fill
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-black/0 transition group-hover:bg-black/20" />
               <Button
                 variant="ghost"
-                aria-label="Remove photo"
+                aria-label={t("reviews.photos.removeAria")}
                 onClick={() => onRemove(photo.url)}
                 className="button--bare absolute right-1.5 top-1.5 rounded-full bg-black/60 p-1 text-white opacity-0 transition group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100"
               >
@@ -108,7 +116,7 @@ export default function ReviewPhotosInput({
               className="button--bare flex h-32 flex-col items-center justify-center rounded-xl border-2 border-dashed border-grey-300 transition hover:border-primary hover:bg-primary/5"
             >
               <IconPhotoPlus size={20} className="mb-1 text-grey-400" />
-              <span className="text-xs text-grey-400">Add photo</span>
+              <span className="text-xs text-grey-400">{t("reviews.photos.addOne")}</span>
             </Button>
           )}
         </div>
@@ -123,9 +131,9 @@ export default function ReviewPhotosInput({
           <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10">
             <IconUpload size={22} className="text-primary" />
           </div>
-          <span className="text-sm font-medium text-grey-600">Add photos</span>
+          <span className="text-sm font-medium text-grey-600">{t("reviews.photos.add")}</span>
           <span className="text-xs text-grey-400">
-            PNG, JPG up to {MAX_REVIEW_IMAGE_SIZE_MB}MB
+            {t("reviews.photos.hint", { size: MAX_REVIEW_IMAGE_SIZE_MB })}
           </span>
         </Button>
       )}

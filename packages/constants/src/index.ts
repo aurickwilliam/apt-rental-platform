@@ -1,5 +1,6 @@
 export * from "./address";
 export * from "./apartment";
+export * from "./apartment/electricity-meter";
 export * from "./user";
 
 export { COLORS, STATUS_COLORS } from "./colors";
@@ -27,3 +28,4 @@ export {
   type BankCode,
   type BankTransferBank,
 } from "./bankTransfer";
+export { CAMANAVA_LANDMARKS, type CamanavaLandmark, type LandmarkKind } from "./camanava-landmarks";

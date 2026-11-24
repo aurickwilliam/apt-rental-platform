@@ -27,6 +27,11 @@ interface UseConversationRealtimeArgs {
   setMessages: Dispatch<SetStateAction<ChatMessage[]>>;
   refreshMessages: () => Promise<void>;
   onConversationRead?: (conversationKey: string) => void;
+  /**
+   * Called after an incoming message was marked read while the thread is
+   * visible, with that message's timestamp, so its notification can follow.
+   */
+  onIncomingMessageRead?: (createdAt: string) => void;
 }
 
 interface UseConversationRealtimeResult {
@@ -64,6 +69,7 @@ export default function useConversationRealtime({
   setMessages,
   refreshMessages,
   onConversationRead,
+  onIncomingMessageRead,
 }: UseConversationRealtimeArgs): UseConversationRealtimeResult {
   const [isContactTyping, setIsContactTyping] = useState(false);
   const channelRef = useRef<RealtimeChannel | null>(null);
@@ -75,13 +81,15 @@ export default function useConversationRealtime({
   const apartmentRef = useRef(apartmentId);
   const conversationKeyRef = useRef(conversationKey);
   const onReadRef = useRef(onConversationRead);
+  const onIncomingReadRef = useRef(onIncomingMessageRead);
   const refreshRef = useRef(refreshMessages);
   useEffect(() => {
     apartmentRef.current = apartmentId;
     conversationKeyRef.current = conversationKey;
     onReadRef.current = onConversationRead;
+    onIncomingReadRef.current = onIncomingMessageRead;
     refreshRef.current = refreshMessages;
-  }, [apartmentId, conversationKey, onConversationRead, refreshMessages]);
+  }, [apartmentId, conversationKey, onConversationRead, onIncomingMessageRead, refreshMessages]);
 
   /**
    * Publishes this user's typing state as a Broadcast on the conversation
@@ -159,22 +167,29 @@ export default function useConversationRealtime({
           },
           (payload: { new: Record<string, unknown> }) => {
             const incoming = payload.new as unknown as ChatMessage;
-            if (
-              apartmentRef.current &&
-              incoming.apartment_id !== apartmentRef.current
-            ) {
+            // A general inquiry thread (no apartment) must not take in
+            // messages of the same person about a listing, and vice versa.
+            if ((incoming.apartment_id ?? null) !== (apartmentRef.current ?? null)) {
               return;
             }
             if (incoming.receiver_id !== currentUserId) return;
 
             setMessages((prev) => mergeIncomingMessage(prev, incoming));
 
+            // A hidden tab has not seen the message: leave it (and its
+            // notification) unread. Returning to the tab runs the open-sync.
+            if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+
             void supabase
               .from("chat")
               .update({ is_read: true, read_at: new Date().toISOString() })
               .eq("id", incoming.id)
               .eq("receiver_id", currentUserId)
-              .eq("is_read", false);
+              .eq("is_read", false)
+              .select("id")
+              .then(({ error }: { error: unknown }) => {
+                if (!error) onIncomingReadRef.current?.(incoming.created_at);
+              });
 
             const key = conversationKeyRef.current;
             if (key) onReadRef.current?.(key);

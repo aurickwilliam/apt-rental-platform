@@ -56,20 +56,20 @@ beforeEach(() => {
 });
 
 describe.each(["light", "dark"] as const)("ratings summary in %s mode", theme => {
-  it("explains the waiting period for a locked stay without offering a review", () => {
+  it("explains the waiting period for a locked stay without offering a review", async () => {
     mockUseUniwind.mockReturnValue({ theme, hasAdaptiveThemes: true });
     mockStayLocked = true;
-    const screen = render(<RatingsPage />);
+    const screen = await render(<RatingsPage />);
     expect(screen.getByText("Reviews unlock after 3 months of stay.").props.className).toContain("text-muted");
     expect(screen.queryByText("Write a Review")).toBeNull();
   });
 
-  it.each([0, 4.5])("uses matching yellow score/stars/fills and a theme-aware track for score %s", score => {
+  it.each([0, 4.5])("uses matching yellow score/stars/fills and a theme-aware track for score %s", async score => {
     mockUseUniwind.mockReturnValue({ theme, hasAdaptiveThemes: true });
     mockOverallRating = score;
     mockTotalReviews = score ? 10 : 0;
     const colors = MOBILE_COLORS[theme];
-    const screen = render(<RatingsPage />);
+    const screen = await render(<RatingsPage />);
     expect(StyleSheet.flatten(screen.getByText(score.toFixed(1)).props.style).color).toBe(colors.rating);
     for (const star of screen.getAllByTestId("rating-star")) {
       expect(StyleSheet.flatten(star.props.style).backgroundColor).toBe(colors.rating);
@@ -87,31 +87,31 @@ describe.each(["light", "dark"] as const)("ratings summary in %s mode", theme =>
   });
 });
 
-it("hides the waiting-period hint while eligibility is loading", () => {
+it("hides the waiting-period hint while eligibility is loading", async () => {
   mockStayLocked = true;
   mockCheckingEligibility = true;
-  const screen = render(<RatingsPage />);
+  const screen = await render(<RatingsPage />);
   expect(screen.queryByText("Reviews unlock after 3 months of stay.")).toBeNull();
 });
 
-it("does not show a waiting-period hint without a locked stay", () => {
-  const screen = render(<RatingsPage />);
+it("does not show a waiting-period hint without a locked stay", async () => {
+  const screen = await render(<RatingsPage />);
   expect(screen.queryByText("Reviews unlock after 3 months of stay.")).toBeNull();
 });
 
-it("keeps the review action available when the stay is eligible", () => {
+it("keeps the review action available when the stay is eligible", async () => {
   mockCanReview = true;
-  const screen = render(<RatingsPage />);
+  const screen = await render(<RatingsPage />);
   expect(screen.getByText("Write a Review")).toBeTruthy();
   expect(screen.queryByText("Reviews unlock after 3 months of stay.")).toBeNull();
 });
 
-it("updates meter surfaces when the resolved theme changes without changing the score", () => {
+it("updates meter surfaces when the resolved theme changes without changing the score", async () => {
   mockOverallRating = 4.5;
-  const screen = render(<RatingsPage />);
+  const screen = await render(<RatingsPage />);
   expect(StyleSheet.flatten(screen.getAllByTestId("rating-track")[0].props.style).backgroundColor).toBe(MOBILE_COLORS.light.surfaceTertiary);
   mockUseUniwind.mockReturnValue({ theme: "dark", hasAdaptiveThemes: true });
-  screen.rerender(<RatingsPage />);
+  await await screen.rerender(<RatingsPage />);
   expect(StyleSheet.flatten(screen.getAllByTestId("rating-track")[0].props.style).backgroundColor).toBe(MOBILE_COLORS.dark.surfaceTertiary);
   expect(StyleSheet.flatten(screen.getByText("4.5").props.style).color).toBe(MOBILE_COLORS.dark.rating);
 });

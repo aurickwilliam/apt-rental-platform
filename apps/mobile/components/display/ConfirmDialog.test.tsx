@@ -25,25 +25,25 @@ jest.mock("heroui-native", () => {
 const props = { isOpen: true, title: "Hide Listing", description: "Your property will not be deleted.", confirmLabel: "Hide Listing", onConfirm: jest.fn(), onOpenChange: jest.fn() };
 beforeEach(() => jest.clearAllMocks());
 
-it("preserves ordinary confirmation and cancel behavior", () => {
-  const screen = render(<ConfirmDialog {...props} />);
-  fireEvent.press(screen.getByRole("button", { name: "Hide Listing" }));
+it("preserves ordinary confirmation and cancel behavior", async () => {
+  const screen = await render(<ConfirmDialog {...props} />);
+  await fireEvent.press(screen.getByRole("button", { name: "Hide Listing" }));
   expect(props.onConfirm).toHaveBeenCalledTimes(1);
-  fireEvent.press(screen.getByRole("button", { name: "Cancel" }));
+  await fireEvent.press(screen.getByRole("button", { name: "Cancel" }));
   expect(props.onOpenChange).toHaveBeenCalledWith(false);
 });
 
-it("blocks confirm, cancel, close, and backdrop dismissal while pending", () => {
-  const screen = render(<ConfirmDialog {...props} isPending />);
-  fireEvent.press(screen.getByRole("button", { name: "Hide Listing" }));
-  fireEvent.press(screen.getByRole("button", { name: "Cancel" }));
-  fireEvent.press(screen.getByLabelText("Close"));
-  fireEvent.press(screen.getByTestId("overlay"));
+it("blocks confirm, cancel, close, and backdrop dismissal while pending", async () => {
+  const screen = await render(<ConfirmDialog {...props} isPending />);
+  await fireEvent.press(screen.getByRole("button", { name: "Hide Listing" }));
+  await fireEvent.press(screen.getByRole("button", { name: "Cancel" }));
+  await fireEvent.press(screen.getByLabelText("Close"));
+  await fireEvent.press(screen.getByTestId("overlay"));
   expect(props.onConfirm).not.toHaveBeenCalled();
   expect(props.onOpenChange).not.toHaveBeenCalled();
 });
 
-it("shows a database refusal as an accessible inline error", () => {
-  const screen = render(<ConfirmDialog {...props} errorMessage="This property has an active tenancy." />);
+it("shows a database refusal as an accessible inline error", async () => {
+  const screen = await render(<ConfirmDialog {...props} errorMessage="This property has an active tenancy." />);
   expect(screen.getByRole("alert").props.children).toBe("This property has an active tenancy.");
 });

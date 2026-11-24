@@ -8,25 +8,29 @@ import { useState, useEffect, useRef, type MouseEvent } from "react";
 import { Dropdown, Button, Label, buttonVariants } from "@heroui/react";
 import { IconMenu2 as Menu, IconX as X } from "@tabler/icons-react";
 
+import type { TranslationKey } from "@repo/i18n";
+
 import { useHydrated } from "@/hooks/use-hydrated";
 
 import ThemeToggle from "./ThemeToggle";
+import LanguageToggle from "@/app/components/i18n/LanguageToggle";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import UserAvatar from "@/app/components/profile/UserAvatar";
 import { useUser } from "@/hooks/use-user";
 import { signOut } from "@/service/signOutService";
 import { SETTINGS_QUERY_VALUE } from "@/app/components/settings/SettingsOverlay";
 import { PORTAL_COOKIE, preferredPortal } from "@/lib/portal-preference";
 
-const NAV_LINKS = [
-  { label: "Browse Apartments", href: "/browse" },
-  { label: "For owners", href: "/forowners" },
+const NAV_LINKS: { labelKey: TranslationKey; href: string }[] = [
+  { labelKey: "nav.browseApartments", href: "/browse" },
+  { labelKey: "nav.forOwners", href: "/forowners" },
 ];
 
-const SECTION_LINKS = [
-  { label: "How it works", href: "#how-it-works" },
-  { label: "Team", href: "#team" },
-  { label: "FAQs", href: "#faqs" },
-  { label: "Contact", href: "#contact" },
+const SECTION_LINKS: { labelKey: TranslationKey; href: string }[] = [
+  { labelKey: "nav.howItWorks", href: "#how-it-works" },
+  { labelKey: "nav.team", href: "#team" },
+  { labelKey: "nav.faqs", href: "#faqs" },
+  { labelKey: "nav.contact", href: "#contact" },
 ];
 
 const getInitials = (value: string) => {
@@ -37,6 +41,7 @@ const getInitials = (value: string) => {
 };
 
 export default function AppNavbar() {
+  const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuToggleRef = useRef<HTMLButtonElement>(null);
   const mounted = useHydrated();
@@ -116,7 +121,7 @@ export default function AppNavbar() {
               variant="ghost"
               className={`public-menu-toggle${isLanding ? " landing-menu-toggle" : ""}`}
               onPress={() => setIsMenuOpen((prev) => !prev)}
-              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+              aria-label={isMenuOpen ? t("nav.closeMenu") : t("nav.openMenu")}
               aria-expanded={isMenuOpen}
               aria-controls="public-mobile-menu"
             >
@@ -136,16 +141,16 @@ export default function AppNavbar() {
 
           {/* Center: nav links (desktop) */}
           <nav
-            aria-label="Main navigation"
+            aria-label={t("nav.mainNavigation")}
             className={
               isLanding
-                ? "hidden items-center gap-4 text-sm xl:flex xl:gap-6"
+                ? "hidden items-center gap-4 text-sm xl:flex xl:gap-5"
                 : "hidden items-center gap-6 text-sm md:flex lg:gap-10"
             }
           >
-            {NAV_LINKS.map(({ label, href }) => (
+            {NAV_LINKS.map(({ labelKey, href }) => (
               <Link
-                key={label}
+                key={labelKey}
                 href={href}
                 aria-current={pathname === href ? "page" : undefined}
                 className={
@@ -154,17 +159,17 @@ export default function AppNavbar() {
                     : "public-nav-link text-foreground font-medium"
                 }
               >
-                {label}
+                {t(labelKey)}
               </Link>
             ))}
             {isLanding
-              ? SECTION_LINKS.map(({ label, href }) => (
+              ? SECTION_LINKS.map(({ labelKey, href }) => (
                   <a
                     key={href}
                     href={href}
                     className="public-nav-link whitespace-nowrap text-foreground font-medium"
                   >
-                    {label}
+                    {t(labelKey)}
                   </a>
                 ))
               : null}
@@ -200,17 +205,17 @@ export default function AppNavbar() {
                       if (key === "logout")    signOut();
                     }}
                   >
-                    <Dropdown.Item id="profile" textValue="Profile">
-                      <Label>Profile</Label>
+                    <Dropdown.Item id="profile" textValue={t("nav.profile")}>
+                      <Label>{t("nav.profile")}</Label>
                     </Dropdown.Item>
-                    <Dropdown.Item id="dashboard" textValue="Dashboard">
-                      <Label>Dashboard</Label>
+                    <Dropdown.Item id="dashboard" textValue={t("nav.dashboard")}>
+                      <Label>{t("nav.dashboard")}</Label>
                     </Dropdown.Item>
-                    <Dropdown.Item id="settings" textValue="Settings">
-                      <Label>Settings</Label>
+                    <Dropdown.Item id="settings" textValue={t("nav.settings")}>
+                      <Label>{t("nav.settings")}</Label>
                     </Dropdown.Item>
-                    <Dropdown.Item id="logout" textValue="Log Out" variant="danger">
-                      <Label>Log Out</Label>
+                    <Dropdown.Item id="logout" textValue={t("nav.logOut")} variant="danger">
+                      <Label>{t("nav.logOut")}</Label>
                     </Dropdown.Item>
                   </Dropdown.Menu>
                 </Dropdown.Popover>
@@ -218,14 +223,15 @@ export default function AppNavbar() {
             ) : (
               <>
                 <Link href="/sign-in" className={buttonVariants({ variant: "ghost" })}>
-                  Sign In
+                  {t("nav.signIn")}
                 </Link>
                 <Link href="/sign-up" className={buttonVariants({ variant: "primary", className: "landing-cta" })}>
-                  Get started
+                  {t("nav.getStarted")}
                 </Link>
               </>
             )}
 
+            <LanguageToggle />
             <ThemeToggle />
           </div>
         </div>
@@ -235,7 +241,7 @@ export default function AppNavbar() {
       {isMenuOpen && (
         <nav
           id="public-mobile-menu"
-          aria-label="Mobile navigation"
+          aria-label={t("nav.mobileNavigation")}
           className={`${isLanding ? "landing-mobile-menu xl:hidden" : "md:hidden"} border-t border-divider bg-background px-6 py-4 flex flex-col gap-4`}
           onKeyDown={isLanding ? (event) => {
             if (event.key !== "Escape") return;
@@ -245,9 +251,9 @@ export default function AppNavbar() {
             menuToggleRef.current?.focus();
           } : undefined}
         >
-          {NAV_LINKS.map(({ label, href }) => (
+          {NAV_LINKS.map(({ labelKey, href }) => (
             <Link
-              key={label}
+              key={labelKey}
               href={href}
               aria-current={pathname === href ? "page" : undefined}
               className={
@@ -257,18 +263,18 @@ export default function AppNavbar() {
               }
               onClick={() => setIsMenuOpen(false)}
             >
-              {label}
+              {t(labelKey)}
             </Link>
           ))}
           {isLanding
-            ? SECTION_LINKS.map(({ label, href }) => (
+            ? SECTION_LINKS.map(({ labelKey, href }) => (
                 <a
                   key={href}
                   href={href}
                   className="public-nav-link py-2 text-foreground font-medium"
                   onClick={(event) => closeMenuAndScroll(event, href)}
                 >
-                  {label}
+                  {t(labelKey)}
                 </a>
               ))
             : null}
@@ -277,21 +283,21 @@ export default function AppNavbar() {
 
           {!loading && user ? (
             <div className="flex flex-col gap-4">
-              <Link href={getProfileHref()}   className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Profile</Link>
-              <Link href={getDashboardHref()} className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>Dashboard</Link>
+              <Link href={getProfileHref()}   className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>{t("nav.profile")}</Link>
+              <Link href={getDashboardHref()} className="text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>{t("nav.dashboard")}</Link>
               <Button
                 variant="ghost"
                 className="button--bare text-foreground font-medium text-left"
                 onClick={() => { openSettings(); setIsMenuOpen(false); }}
               >
-                Settings
+                {t("nav.settings")}
               </Button>
               <Button
                 variant="ghost"
                 onClick={() => { signOut(); setIsMenuOpen(false); }}
                 className="button--bare text-danger font-medium text-left"
               >
-                Log Out
+                {t("nav.logOut")}
               </Button>
             </div>
           ) : !loading ? (
@@ -301,16 +307,17 @@ export default function AppNavbar() {
                   which reads as broken at narrow widths. */}
               <div className="flex flex-col gap-3">
                 <Link href="/sign-in" className={buttonVariants({ variant: "outline", fullWidth: true })} onClick={() => setIsMenuOpen(false)}>
-                  Sign In
+                  {t("nav.signIn")}
                 </Link>
                 <Link href="/sign-up" className={buttonVariants({ variant: "primary", fullWidth: true, className: "landing-cta" })} onClick={() => setIsMenuOpen(false)}>
-                  Get started
+                  {t("nav.getStarted")}
                 </Link>
               </div>
             </>
           ) : null}
 
           <div className="h-px bg-divider" />
+          <LanguageToggle variant="menu" />
           <ThemeToggle />
         </nav>
       )}

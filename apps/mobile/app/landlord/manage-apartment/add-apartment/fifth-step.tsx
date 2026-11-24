@@ -88,6 +88,7 @@ export default function FifthStep() {
     floor_level: form.floorLevel,
     furnished_type: form.furnishingType || null,
     lease_duration: form.leaseDuration || null,
+    has_own_electricity_meter: form.hasOwnElectricityMeter,
     max_occupants: form.maxOccupants,
     security_deposit: securityDeposit,
     advance_rent: advanceRent,

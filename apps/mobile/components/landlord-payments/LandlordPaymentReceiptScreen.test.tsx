@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
+import { findAllInTree } from "../../tests/support/testTraversal";
 
 import LandlordPaymentReceipt from "@/app/landlord/manage-apartment/[apartmentId]/payment-history/[paymentId]";
 
@@ -73,37 +74,37 @@ beforeEach(() => {
 });
 
 describe("landlord payment receipt screen", () => {
-  it("is the web's receipt on the app's blue, not a transparent modal", () => {
-    render(<LandlordPaymentReceipt />);
+  it("is the web's receipt on the app's blue, not a transparent modal", async () => {
+    await render(<LandlordPaymentReceipt />);
     expect(screen.getByText("receipt pay-1 with actions")).toBeTruthy();
-    const root = screen.UNSAFE_root.findAll((node) => String(node.props.className ?? "").includes("bg-primary"));
+    const root = findAllInTree(screen.root!, (node) => String(node.props.className ?? "").includes("bg-primary"));
     expect(root.length).toBeGreaterThan(0);
   });
 
-  it("keeps an off-screen copy of the receipt without its buttons for the photo", () => {
-    render(<LandlordPaymentReceipt />);
+  it("keeps an off-screen copy of the receipt without its buttons for the photo", async () => {
+    await render(<LandlordPaymentReceipt />);
     // The copy is hidden from screen readers on purpose, so the query must include hidden elements.
     expect(screen.getByText("receipt pay-1 plain", { includeHiddenElements: true })).toBeTruthy();
-    const capture = screen.UNSAFE_root.findAll((node) => node.props.collapsable === false && node.props.pointerEvents === "none")[0];
+    const capture = findAllInTree(screen.root!, (node) => node.props.collapsable === false && node.props.pointerEvents === "none")[0];
     expect(capture.props.style).toMatchObject({ position: "absolute", left: -10000, backgroundColor: "#376BF5" });
     expect(capture.props.importantForAccessibility).toBe("no-hide-descendants");
   });
 
-  it("saves the photo through the hook", () => {
-    render(<LandlordPaymentReceipt />);
-    fireEvent.press(screen.getByLabelText("actions save"));
+  it("saves the photo through the hook", async () => {
+    await render(<LandlordPaymentReceipt />);
+    await fireEvent.press(screen.getByLabelText("actions save"));
     expect(mockSave).toHaveBeenCalledTimes(1);
   });
 
-  it("goes back from the chevron", () => {
-    render(<LandlordPaymentReceipt />);
-    fireEvent.press(screen.getByLabelText("Back"));
+  it("goes back from the chevron", async () => {
+    await render(<LandlordPaymentReceipt />);
+    await fireEvent.press(screen.getByLabelText("Back"));
     expect(mockBack).toHaveBeenCalledTimes(1);
   });
 
-  it("confirms and declines the payment through their own mutations, then refreshes the receipt", () => {
-    render(<LandlordPaymentReceipt />);
-    fireEvent.press(screen.getByLabelText("actions confirm"));
+  it("confirms and declines the payment through their own mutations, then refreshes the receipt", async () => {
+    await render(<LandlordPaymentReceipt />);
+    await fireEvent.press(screen.getByLabelText("actions confirm"));
     expect(mockConfirm.mutate).toHaveBeenCalledTimes(1);
     expect(mockConfirm.mutate.mock.calls[0][0]).toBe("pay-1");
     mockConfirm.mutate.mock.calls[0][1].onSuccess();
@@ -113,41 +114,41 @@ describe("landlord payment receipt screen", () => {
     expect(key).toEqual(["payment", "pay-1"]);
     expect(update({ id: "pay-1", status: "pending" })).toEqual({ id: "pay-1", status: "paid" });
 
-    fireEvent.press(screen.getByLabelText("actions decline"));
+    await fireEvent.press(screen.getByLabelText("actions decline"));
     expect(mockDecline.mutate.mock.calls[0][0]).toBe("pay-1");
     mockDecline.mutate.mock.calls[0][1].onSuccess();
     expect(mockSetQueryData.mock.calls[1][1]({ status: "pending" })).toEqual({ status: "rejected" });
     expect(mockConfirm.mutate).toHaveBeenCalledTimes(1);
   });
 
-  it("reports busy and the failed write's message, and starting over clears both mutations", () => {
+  it("reports busy and the failed write's message, and starting over clears both mutations", async () => {
     mockConfirm.isPending = true;
     mockDecline.error = new Error("Could not update payment status.");
-    render(<LandlordPaymentReceipt />);
+    await render(<LandlordPaymentReceipt />);
     expect(screen.getByText("busy=true error=Could not update payment status.")).toBeTruthy();
-    fireEvent.press(screen.getByLabelText("actions clear"));
+    await fireEvent.press(screen.getByLabelText("actions clear"));
     expect(mockConfirm.reset).toHaveBeenCalled();
     expect(mockDecline.reset).toHaveBeenCalled();
   });
 
-  it("shows a spinner while loading, with no receipt", () => {
+  it("shows a spinner while loading, with no receipt", async () => {
     mockQuery = { isLoading: true, error: null, refetch: jest.fn() };
-    render(<LandlordPaymentReceipt />);
+    await render(<LandlordPaymentReceipt />);
     expect(screen.getByText("spinner")).toBeTruthy();
     expect(screen.queryByText(/^receipt /)).toBeNull();
   });
 
-  it("offers Try Again for a load error and Go Back when the payment is gone", () => {
+  it("offers Try Again for a load error and Go Back when the payment is gone", async () => {
     mockQuery = { isLoading: false, error: new Error("down"), refetch: jest.fn() };
-    const failed = render(<LandlordPaymentReceipt />);
-    fireEvent.press(screen.getByText("Try Again"));
+    const failed = await render(<LandlordPaymentReceipt />);
+    await fireEvent.press(screen.getByText("Try Again"));
     expect(mockQuery.refetch).toHaveBeenCalled();
-    failed.unmount();
+    await failed.unmount();
 
     mockQuery = { isLoading: false, error: null, refetch: jest.fn() };
-    render(<LandlordPaymentReceipt />);
+    await render(<LandlordPaymentReceipt />);
     expect(screen.getByText("We could not find this payment.")).toBeTruthy();
-    fireEvent.press(screen.getByText("Go Back"));
+    await fireEvent.press(screen.getByText("Go Back"));
     expect(mockBack).toHaveBeenCalled();
   });
 });

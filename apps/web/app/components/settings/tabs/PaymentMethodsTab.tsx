@@ -11,6 +11,7 @@ import {
   type PaymentMethod,
 } from "@repo/utils";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { useLandlordPaymentMethods } from "@/hooks/use-landlord-payment-methods";
 import { useUser } from "@/hooks/use-user";
 import ErrorBanner from "@/app/components/display/ErrorBanner";
@@ -33,6 +34,7 @@ interface PaymentMethodsFormProps {
 
 // The draft is seeded once, so a background refresh never overwrites unsaved toggles.
 function PaymentMethodsForm({ initialMethods, onSave }: PaymentMethodsFormProps) {
+  const { language, t } = useTranslation();
   const [draft, setDraft] = useState(initialMethods);
   const [baseline, setBaseline] = useState(initialMethods);
   const [isSaving, setIsSaving] = useState(false);
@@ -51,7 +53,7 @@ function PaymentMethodsForm({ initialMethods, onSave }: PaymentMethodsFormProps)
       setBaseline(result);
       setSaved(true);
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Couldn't save your payment methods. Please try again.");
+      setError(saveError instanceof Error ? saveError.message : t("settings.paymentMethods.saveFailed"));
     } finally {
       setIsSaving(false);
     }
@@ -64,7 +66,7 @@ function PaymentMethodsForm({ initialMethods, onSave }: PaymentMethodsFormProps)
           <SettingsRow
             key={method}
             icon={METHOD_ICONS[method]}
-            title={paymentMethodLabel(method)}
+            title={paymentMethodLabel(method, language)}
             suffix={
               <ToggleSwitch
                 isSelected={draft.includes(method)}
@@ -74,7 +76,7 @@ function PaymentMethodsForm({ initialMethods, onSave }: PaymentMethodsFormProps)
                   setSaved(false);
                 }}
                 disabled={isSaving}
-                aria-label={`Accept ${paymentMethodLabel(method)}`}
+                aria-label={t("settings.paymentMethods.accept", { method: paymentMethodLabel(method, language) })}
               />
             }
           />
@@ -87,14 +89,14 @@ function PaymentMethodsForm({ initialMethods, onSave }: PaymentMethodsFormProps)
       {error ? <ErrorBanner message={error} /> : null}
 
       <div className="mt-4 flex items-center justify-end gap-3 px-4">
-        {saved && !dirty ? <span role="status" className="text-sm text-muted-foreground">Saved</span> : null}
+        {saved && !dirty ? <span role="status" className="text-sm text-muted-foreground">{t("settings.paymentMethods.saved")}</span> : null}
         <Button
           variant="primary"
           className="cursor-pointer"
           isDisabled={isSaving || !dirty || validation !== null}
           onPress={() => void submit()}
         >
-          {isSaving ? "Saving…" : "Save methods"}
+          {isSaving ? t("settings.paymentMethods.saving") : t("settings.paymentMethods.save")}
         </Button>
       </div>
     </>
@@ -102,22 +104,23 @@ function PaymentMethodsForm({ initialMethods, onSave }: PaymentMethodsFormProps)
 }
 
 export default function PaymentMethodsTab() {
+  const { t } = useTranslation();
   const { profile } = useUser();
   const methods = useLandlordPaymentMethods(profile?.id ?? null);
 
   return (
     <>
-      <h2 className="font-nunito text-lg font-bold text-primary">Payment Methods</h2>
+      <h2 className="font-nunito text-lg font-bold text-primary">{t("settings.paymentMethods.title")}</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Choose how tenants may pay you. This applies to all your listings. Turning a method off never changes payments already made or pending. APT stores method names only, never account numbers.
+        {t("settings.paymentMethods.description")}
       </p>
       {methods.loading ? (
-        <p className="mt-4 px-4 text-sm text-muted-foreground" role="status">Loading your payment methods…</p>
+        <p className="mt-4 px-4 text-sm text-muted-foreground" role="status">{t("settings.paymentMethods.loading")}</p>
       ) : methods.error ? (
         <div className="mt-4 px-4">
           <ErrorBanner message={methods.error} />
           <Button variant="secondary" size="sm" className="mt-3 cursor-pointer" onPress={() => void methods.refresh()}>
-            Retry
+            {t("common.retry")}
           </Button>
         </div>
       ) : (

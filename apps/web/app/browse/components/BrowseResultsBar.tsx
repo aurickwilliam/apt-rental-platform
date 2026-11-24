@@ -4,6 +4,8 @@ import { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@heroui/react";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
 import { FILTER_KEYS } from "../lib/browse-params";
 
 type Props = {
@@ -17,6 +19,7 @@ type Props = {
 export default function BrowseResultsBar({ resultCount, basePath = "/browse" }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
 
   const activeCount = useMemo(() => {
     let count = 0;
@@ -34,7 +37,7 @@ export default function BrowseResultsBar({ resultCount, basePath = "/browse" }: 
   return (
     <div className="mb-3 flex min-h-8 items-center justify-between gap-2">
       <p className="shrink-0 text-sm text-default-500" aria-live="polite">
-        {resultCount} result{resultCount === 1 ? "" : "s"}
+        {resultCount === 1 ? t("browse.results.one") : t("browse.results.other", { count: resultCount })}
       </p>
       {activeCount > 0 && (
         <Button
@@ -42,9 +45,9 @@ export default function BrowseResultsBar({ resultCount, basePath = "/browse" }: 
           size="sm"
           className="shrink-0 text-danger"
           onPress={clearAll}
-          aria-label="Clear all filters"
+          aria-label={t("browse.clearAllFilters.aria")}
         >
-          Clear
+          {t("browse.clear")}
         </Button>
       )}
     </div>

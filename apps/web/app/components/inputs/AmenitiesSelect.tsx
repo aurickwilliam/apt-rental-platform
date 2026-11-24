@@ -13,6 +13,9 @@ import {
 import { IconChevronDown as ChevronDown, IconSearch as Search, IconX as X } from "@tabler/icons-react";
 
 import { isRetiredAmenity, toggleAmenitySelection } from "@repo/constants";
+import { AMENITY_KEYS, enumLabel } from "@repo/i18n";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 import { Perk } from "./perks";
 
@@ -23,13 +26,15 @@ type Props = {
 };
 
 export default function AmenitiesSelect({ amenities, selected, onChange }: Props) {
+  const { language, t } = useTranslation();
   const [search, setSearch] = useState("");
+  const labelOf = (perk: Perk) => enumLabel(language, AMENITY_KEYS, perk.id);
 
   const filtered = amenities.filter(
     (a) =>
       // Retired perks (e.g. Furnished: use Furnished Type) only stay if picked.
       (!isRetiredAmenity(a.id) || selected.includes(a.id)) &&
-      a.name.toLowerCase().includes(search.toLowerCase())
+      labelOf(a).toLowerCase().includes(search.toLowerCase())
   );
 
   const toggle = (id: string) => {
@@ -37,7 +42,10 @@ export default function AmenitiesSelect({ amenities, selected, onChange }: Props
     onChange(toggleAmenitySelection(selected, id));
   };
 
-  const getLabel = (id: string) => amenities.find((a) => a.id === id)?.name ?? id;
+  const getLabel = (id: string) => {
+    const perk = amenities.find((a) => a.id === id);
+    return perk ? labelOf(perk) : id;
+  };
   const getIcon = (id: string) => amenities.find((a) => a.id === id)?.icon;
 
   return (
@@ -45,7 +53,9 @@ export default function AmenitiesSelect({ amenities, selected, onChange }: Props
       <Popover onOpenChange={() => setSearch("")}>
         <Popover.Trigger>
           <Button variant="outline" size="sm" className="w-full justify-between">
-            {selected.length > 0 ? `${selected.length} selected` : "Select amenities"}
+            {selected.length > 0
+              ? t("browse.filter.amenitiesSelected", { count: selected.length })
+              : t("browse.filter.amenitiesPlaceholder")}
             <ChevronDown size={14} />
           </Button>
         </Popover.Trigger>
@@ -58,7 +68,7 @@ export default function AmenitiesSelect({ amenities, selected, onChange }: Props
             <InputGroup className="rounded-xl border border-gray-300 bg-white transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-gray-400">
               <InputGroup.Input
                 autoFocus
-                placeholder="Search amenities..."
+                placeholder={t("browse.filter.amenitiesSearch")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -69,7 +79,7 @@ export default function AmenitiesSelect({ amenities, selected, onChange }: Props
 
             <div className="flex flex-col gap-1 max-h-48 overflow-y-auto overflow-x-hidden w-full pr-1">
               {filtered.length === 0 ? (
-                <p className="text-sm text-default-400 text-center py-2">No results</p>
+                <p className="text-sm text-default-400 text-center py-2">{t("browse.filter.amenitiesEmpty")}</p>
               ) : (
                 filtered.map((perk) => (
                   <Checkbox
@@ -84,7 +94,7 @@ export default function AmenitiesSelect({ amenities, selected, onChange }: Props
                       </Checkbox.Control>
                       <span className="flex items-center gap-2">
                         <perk.icon size={14} className="text-muted-foreground shrink-0" />
-                        {perk.name}
+                        {labelOf(perk)}
                       </span>
                     </Checkbox.Content>
                   </Checkbox>

@@ -34,7 +34,37 @@ Deno.test('report_reviewed never reveals the outcome', () => {
   assert(!email.text.includes('listing_hidden'))
 })
 
+Deno.test('rent_reminder uses the queued title and message, escaped', () => {
+  const email = renderEmail('rent_reminder', { title: 'Rent Past Due', body: 'Your <b>rent</b> was due.' })
+  assertEquals(email.subject, 'Rent Past Due')
+  assertStringIncludes(email.html, 'Your &lt;b&gt;rent&lt;/b&gt; was due.')
+  assert(!email.html.includes('<b>rent'))
+})
+
+Deno.test('verification_update shows the reason only for a rejection', () => {
+  const pending = renderEmail('verification_update', { title: 'Account verification pending', body: 'We received it.' })
+  assertStringIncludes(pending.text, 'We received it.')
+  assert(!pending.text.includes('Reason:'))
+
+  const rejected = renderEmail('verification_update', {
+    title: 'Account verification rejected',
+    body: 'Blurry photo',
+    reason: 'Blurry photo',
+  })
+  assertStringIncludes(rejected.text, 'Reason: Blurry photo')
+  assertStringIncludes(rejected.text, 'submit it again')
+})
+
+Deno.test('maintenance_update labels the tenant-written request and escapes it', () => {
+  const email = renderEmail('maintenance_update', { title: 'Maintenance Resolved', body: '<i>Leak</i>' })
+  assertEquals(email.subject, 'Maintenance Resolved')
+  assertStringIncludes(email.text, 'Request: <i>Leak</i>')
+  assertStringIncludes(email.html, '&lt;i&gt;Leak&lt;/i&gt;')
+})
+
 Deno.test('missing params fall back to safe defaults', () => {
+  assertEquals(renderEmail('payment_update', {}).subject, 'Payment update')
+  assertEquals(renderEmail('application_update', {}).subject, 'Application update')
   assertStringIncludes(renderEmail('listing_hidden', {}).text, '"Your listing"')
   assertStringIncludes(renderEmail('warning', {}).text, 'Please review our community rules.')
 })

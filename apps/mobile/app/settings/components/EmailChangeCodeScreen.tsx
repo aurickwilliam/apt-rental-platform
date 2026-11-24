@@ -9,8 +9,11 @@ import ScreenWrapper from "@/components/layout/ScreenWrapper";
 import ErrorDialog from "@/components/display/ErrorDialog";
 import CodeInput from "@/components/inputs/CodeInput";
 
+import type { TranslationKey } from "@repo/i18n";
+
 import { useColors } from "@/hooks/useTheme";
 import { useCountdown } from "@/hooks/auth";
+import { useTranslation } from "@/hooks/i18n";
 import {
   getEmailChangeAccount,
   resendEmailChangeCodes,
@@ -21,25 +24,28 @@ import {
   EMAIL_CHANGE_CODE_LENGTH,
   EMAIL_CHANGE_RESEND_COOLDOWN_SECONDS,
   EmailChangeError,
+  emailChangeErrorMessage,
   getEmailChangeErrorField,
   type EmailChangeInbox,
 } from "@repo/utils";
 
 
-const GENERIC_ERROR = "Something went wrong. Please try again.";
 const REQUEST_PATH = "/settings/change-email";
 const VERIFY_NEW_PATH = "/settings/change-email/verify-new";
 
-const COPY: Record<EmailChangeInbox, { step: string; title: string; body: string }> = {
+const COPY: Record<
+  EmailChangeInbox,
+  { stepKey: TranslationKey; titleKey: TranslationKey; bodyKey: TranslationKey }
+> = {
   current: {
-    step: "Step 1 of 2",
-    title: "Check your current email",
-    body: "Enter it below to confirm this change is really you.",
+    stepKey: "auth.changeEmail.step1of2",
+    titleKey: "auth.changeEmail.step1.title",
+    bodyKey: "auth.changeEmail.step1.body",
   },
   new: {
-    step: "Step 2 of 2",
-    title: "Check your new email",
-    body: "Enter it below to confirm you can receive email there.",
+    stepKey: "auth.changeEmail.step2of2",
+    titleKey: "auth.changeEmail.step2.title",
+    bodyKey: "auth.changeEmail.step2.body",
   },
 };
 
@@ -55,6 +61,7 @@ export default function EmailChangeCodeScreen({ inbox }: EmailChangeCodeScreenPr
   const router = useRouter();
   const { colors } = useColors();
   const { toast } = useToast();
+  const { language, t } = useTranslation();
 
   const [loading, setLoading] = useState(true);
   const [currentEmail, setCurrentEmail] = useState("");
@@ -92,19 +99,19 @@ export default function EmailChangeCodeScreen({ inbox }: EmailChangeCodeScreenPr
   const showError = (err: unknown) => {
     if (!(err instanceof EmailChangeError)) {
       console.error("Email change failed:", err instanceof Error ? err.name : typeof err);
-      setError(GENERIC_ERROR);
+      setError(t("authMobile.errorGeneric"));
       return;
     }
     if (err.reason === "no_pending_change") {
-      toast.show({ variant: "danger", label: err.message });
+      toast.show({ variant: "danger", label: emailChangeErrorMessage(language, err.reason) });
       startOver();
       return;
     }
     if (getEmailChangeErrorField(err.reason) === "code") {
-      setCodeError(err.message);
+      setCodeError(emailChangeErrorMessage(language, err.reason));
       return;
     }
-    setError(err.message);
+    setError(emailChangeErrorMessage(language, err.reason));
   };
 
   useEffect(() => {
@@ -157,8 +164,8 @@ export default function EmailChangeCodeScreen({ inbox }: EmailChangeCodeScreenPr
       // resumed change): go back and confirm it.
       toast.show({
         variant: "success",
-        label: "New email confirmed",
-        description: "Now enter the code from your current email.",
+        label: t("authMobile.changeEmail.newConfirmed"),
+        description: t("authMobile.changeEmail.newConfirmedBody"),
       });
       router.back();
     } catch (err) {
@@ -183,13 +190,13 @@ export default function EmailChangeCodeScreen({ inbox }: EmailChangeCodeScreenPr
       if (inbox === "new") {
         toast.show({
           variant: "success",
-          label: "New codes sent",
-          description: "Enter the code from your current email first.",
+          label: t("authMobile.changeEmail.newCodesSent"),
+          description: t("authMobile.changeEmail.resendFromCurrentBody"),
         });
         router.back();
         return;
       }
-      setResendNotice("New codes are on their way to both inboxes.");
+      setResendNotice(t("auth.changeEmail.resendBoth"));
     } catch (err) {
       showError(err);
     } finally {
@@ -209,21 +216,26 @@ export default function EmailChangeCodeScreen({ inbox }: EmailChangeCodeScreenPr
           </View>
 
           <View>
-            <Text className="text-accent text-2xl font-nunitoBold text-center">Email Updated</Text>
+            <Text className="text-accent text-2xl font-nunitoBold text-center">
+              {t("auth.changeEmail.successTitle")}
+            </Text>
             <Text className="text-foreground text-base font-inter mt-2 text-center">
-              Great! Your new email is ready to use. You’re still signed in here
-              {done.signOutFailed ? ", but other devices may still be signed in." : ", and any other devices were signed out."}
+              {done.signOutFailed
+                ? t("authMobile.changeEmail.successBodyOthersMayRemain")
+                : t("authMobile.changeEmail.successBodySignedOut")}
             </Text>
             {done.profileSyncFailed ? (
               <Text className="text-muted text-sm font-inter mt-2 text-center">
-                Your profile may show your old email for a little while.
+                {t("auth.changeEmail.profileSyncWarning")}
               </Text>
             ) : null}
           </View>
         </View>
 
         <Button onPress={() => router.dismissTo("/settings")}>
-          <Button.Label className="font-nunitoSemiBold">Back to Settings</Button.Label>
+          <Button.Label className="font-nunitoSemiBold">
+            {t("authMobile.backToSettings")}
+          </Button.Label>
         </Button>
       </ScreenWrapper>
     );
@@ -239,7 +251,7 @@ export default function EmailChangeCodeScreen({ inbox }: EmailChangeCodeScreenPr
           variant="ghost"
           className="-ml-2"
           onPress={router.back}
-          accessibilityLabel="Go back"
+          accessibilityLabel={t("authMobile.goBack")}
         >
           <IconChevronLeft size={26} color={colors.textPrimary} />
         </CloseButton>
@@ -252,20 +264,25 @@ export default function EmailChangeCodeScreen({ inbox }: EmailChangeCodeScreenPr
       ) : (
         <>
           <View className="flex gap-3 mt-5">
-            <Text className="text-muted text-sm font-interSemiBold">{copy.step}</Text>
+            <Text className="text-muted text-sm font-interSemiBold">
+              {t(copy.stepKey)}
+            </Text>
 
-            <Text className="text-foreground text-2xl font-nunitoBold">{copy.title}</Text>
+            <Text className="text-foreground text-2xl font-nunitoBold">
+              {t(copy.titleKey)}
+            </Text>
 
             <Text className="text-base text-foreground font-inter">
-              We’ve sent a 6-digit code to{" "}
-              <Text className="font-interSemiBold">{inboxEmail}</Text>. {copy.body}
+              {t("authMobile.changeEmail.sentBefore")}{" "}
+              <Text className="font-interSemiBold">{inboxEmail}</Text>.{" "}
+              {t(copy.bodyKey)}
             </Text>
 
             {/* Only the new address can be wrong: step 1 is the account's own email. */}
             {inbox === "new" ? (
               <LinkButton onPress={startOver} className="self-start p-0" isDisabled={verifying}>
                 <LinkButton.Label className="text-accent font-nunitoSemiBold underline">
-                  Wrong email? Change it
+                  {t("auth.wrongEmail")}
                 </LinkButton.Label>
               </LinkButton>
             ) : null}
@@ -296,9 +313,13 @@ export default function EmailChangeCodeScreen({ inbox }: EmailChangeCodeScreenPr
           </View>
 
           <View className="flex-row items-center justify-center">
-            <Text className="text-muted text-base">Didn&apos;t get the code? </Text>
+            <Text className="text-muted text-base">
+              {t("authMobile.otp.didntGetCode")}{" "}
+            </Text>
             {countdown > 0 ? (
-              <Text className="text-accent text-base font-nunitoSemiBold">Resend in {countdown}s</Text>
+              <Text className="text-accent text-base font-nunitoSemiBold">
+                {t("auth.otp.resendIn", { seconds: String(countdown) })}
+              </Text>
             ) : (
               <Pressable
                 onPress={handleResend}
@@ -308,7 +329,7 @@ export default function EmailChangeCodeScreen({ inbox }: EmailChangeCodeScreenPr
                 hitSlop={10}
               >
                 <Text className="text-accent text-base font-nunitoSemiBold">
-                  {resending ? "Sending..." : "Resend"}
+                  {resending ? t("auth.otp.sending") : t("auth.otp.resend")}
                 </Text>
               </Pressable>
             )}
@@ -322,7 +343,7 @@ export default function EmailChangeCodeScreen({ inbox }: EmailChangeCodeScreenPr
             className="mt-8"
           >
             <Button.Label className="font-nunitoSemiBold">
-              {verifying ? "Verifying..." : "Verify Code"}
+              {verifying ? t("auth.otp.verifying") : t("auth.otp.verifyCode")}
             </Button.Label>
             {verifying && <Spinner size="sm" color={colors.white} className="ml-2" />}
           </Button>

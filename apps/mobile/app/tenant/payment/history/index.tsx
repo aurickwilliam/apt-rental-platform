@@ -37,7 +37,7 @@ const toHistoryItem = (payment: PaymentRecord): FlatPayment => {
   return {
     id: payment.id,
     date: payment.date,
-    month: periodMonthLabel(payment.due_date ?? payment.period_start ?? payment.date),
+    month: payment.billing_kind==='lease_renewal'?'Lease Renewal':periodMonthLabel(payment.due_date ?? payment.period_start ?? payment.date),
     amount: payment.amount ?? 0,
     status: paymentStatusLabel(payment.status),
     apartmentName: payment.apartment_name ?? '—',

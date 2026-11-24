@@ -8,9 +8,10 @@ import { IconArrowLeft } from "@tabler/icons-react";
 
 import { usePasswordValidation } from "@repo/hooks";
 import { RECOVERY_START_PATH } from "@repo/supabase/password-recovery";
-import { PasswordError, type PasswordErrorReason } from "@repo/utils";
+import { passwordErrorMessage, type PasswordErrorReason } from "@repo/utils";
 
 import ErrorBanner from "@/app/components/display/ErrorBanner";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import NewPasswordFields from "@/app/components/inputs/NewPasswordFields";
 import {
   cancelPasswordRecovery,
@@ -20,7 +21,6 @@ import RecoveryHeader from "./RecoveryHeader";
 
 // Server errors shown under the password field; anything else shows the banner.
 const INLINE_PASSWORD_ERRORS = new Set<PasswordErrorReason>(["same_password", "weak_password"]);
-const UNEXPECTED_ERROR = "Something went wrong. Please try again.";
 
 // Rendered only for a verified recovery session (checked by the page and the
 // middleware). Leaving by any route other than success ends that session.
@@ -31,6 +31,7 @@ const UNEXPECTED_ERROR = "Something went wrong. Please try again.";
 // handles the redirect instead of it being shown as an error.
 export default function ResetPasswordClient() {
   const router = useRouter();
+  const { language, t } = useTranslation();
   const {
     password,
     setPassword,
@@ -60,16 +61,20 @@ export default function ResetPasswordClient() {
   }, []);
 
   const passwordError = (() => {
-    if (submitted && !password.trim()) return "This field is required";
+    if (submitted && !password.trim()) return t("auth.changePassword.required");
     if (submitted && !isPasswordValid) {
-      return "Password does not meet the requirements or password does not match";
+      return t("auth.changePassword.requirements");
     }
     return serverPasswordError;
   })();
 
   const confirmPasswordError = (() => {
-    if (submitted && !confirmPassword.trim()) return "This field is required";
-    if (submitted && password !== confirmPassword) return "Passwords do not match";
+    if (submitted && !confirmPassword.trim()) {
+      return t("auth.changePassword.required");
+    }
+    if (submitted && password !== confirmPassword) {
+      return t("auth.changePassword.mismatch");
+    }
     return null;
   })();
 
@@ -109,7 +114,7 @@ export default function ResetPasswordClient() {
       try {
         // Success redirects to the success page; only failures return.
         const { error: reason } = await updateRecoveredPassword(password);
-        const message = new PasswordError(reason).message;
+        const message = passwordErrorMessage(language, reason);
         if (INLINE_PASSWORD_ERRORS.has(reason)) {
           setServerPasswordError(message);
         } else if (reason === "session_expired") {
@@ -122,7 +127,7 @@ export default function ResetPasswordClient() {
         unstable_rethrow(err);
         // Log the type only: an unexpected message could echo the password.
         console.error("Password reset failed:", err instanceof Error ? err.name : typeof err);
-        setError(UNEXPECTED_ERROR);
+        setError(t("common.error"));
       }
     });
   };
@@ -135,15 +140,15 @@ export default function ResetPasswordClient() {
             isIconOnly
             variant="ghost"
             className="-ml-2 cursor-pointer"
-            aria-label="Cancel password reset"
+            aria-label={t("auth.recovery.cancelAria")}
             isDisabled={busy}
             onPress={handleCancel}
           >
             <IconArrowLeft size={20} />
           </Button>
         }
-        title="Reset Password"
-        description="Almost done! Let’s set a fresh new password."
+        title={t("auth.recovery.resetTitle")}
+        description={t("auth.recovery.resetBody")}
       />
 
       {error && (
@@ -156,7 +161,7 @@ export default function ResetPasswordClient() {
               onPress={handleRestart}
               isDisabled={restarting}
             >
-              Request a new code
+              {t("auth.recovery.requestNewCode")}
             </Button>
           )}
         </ErrorBanner>
@@ -187,7 +192,7 @@ export default function ResetPasswordClient() {
             isDisabled={busy}
             onPress={handleCancel}
           >
-            Cancel
+            {t("common.cancel")}
           </Button>
 
           <Button
@@ -197,7 +202,7 @@ export default function ResetPasswordClient() {
             isPending={saving}
             isDisabled={busy || sessionExpired}
           >
-            {saving ? "Saving..." : "Reset Password"}
+            {saving ? t("auth.recovery.saving") : t("auth.recovery.resetTitle")}
           </Button>
         </div>
       </Form>

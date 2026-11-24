@@ -24,41 +24,41 @@ it("keys both reads by account and rental and refreshes exact resources on focus
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
   const invalidate = jest.spyOn(client, "invalidateQueries");
   const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
-  const { result, unmount } = renderHook(() => useMaintenanceDashboard("apartment"), { wrapper });
+  const { result, unmount } = await renderHook(() => useMaintenanceDashboard("apartment"), { wrapper });
   await waitFor(() => expect(result.current.overview.isSuccess).toBe(true));
   expect(mockRequests).toHaveBeenCalledWith("apartment", "tenant");
   expect(mockOverview).toHaveBeenCalledWith("apartment", "tenant");
-  act(() => { mockFocus.mock.calls.at(-1)[0](); });
+  await act(() => { mockFocus.mock.calls.at(-1)[0](); });
   for (const resource of ["maintenance-dashboard", "maintenance-overview"]) {
     expect(invalidate).toHaveBeenCalledWith({ queryKey: [resource, "auth", "tenant", "apartment"], exact: true }, { cancelRefetch: false });
   }
-  unmount(); client.clear();
+  await unmount(); client.clear();
 });
 
 it("does not fetch unidentified rentals or display an old account's cached requests", async () => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
   const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
-  const { result, rerender, unmount } = renderHook(() => useMaintenanceDashboard("apartment"), { wrapper });
+  const { result, rerender, unmount } = await renderHook(() => useMaintenanceDashboard("apartment"), { wrapper });
   await waitFor(() => expect(result.current.requests.isSuccess).toBe(true));
   mockUser.mockReturnValue({ data: null, isPending: false });
-  rerender({});
+  await rerender({});
   expect(result.current.requests.data).toBeUndefined();
   expect(result.current.identityError).toMatch(/unavailable/);
   expect(mockRequests).toHaveBeenCalledTimes(1);
-  unmount(); client.clear();
+  await unmount(); client.clear();
 });
 
 it("reuses the history resource without loading or refreshing financial overview on the full history page", async () => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
   const invalidate = jest.spyOn(client, "invalidateQueries");
   const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
-  const { result, unmount } = renderHook(() => useMaintenanceDashboard("apartment", { includeOverview: false }), { wrapper });
+  const { result, unmount } = await renderHook(() => useMaintenanceDashboard("apartment", { includeOverview: false }), { wrapper });
   await waitFor(() => expect(result.current.requests.isSuccess).toBe(true));
   expect(mockOverview).not.toHaveBeenCalled();
-  act(() => { mockFocus.mock.calls.at(-1)[0](); });
+  await act(() => { mockFocus.mock.calls.at(-1)[0](); });
   expect(invalidate).toHaveBeenCalledTimes(1);
   expect(invalidate).toHaveBeenCalledWith({ queryKey: ["maintenance-dashboard", "auth", "tenant", "apartment"], exact: true }, { cancelRefetch: false });
   await act(async () => { await result.current.refresh(); });
   expect(mockOverview).not.toHaveBeenCalled();
-  unmount(); client.clear();
+  await unmount(); client.clear();
 });

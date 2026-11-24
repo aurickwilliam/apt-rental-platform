@@ -1,5 +1,7 @@
 import { Text, View } from "react-native";
 
+import { useTranslation } from "@/hooks/i18n";
+
 type StepProgressProps = {
   currentStep: number;
   totalSteps?: number;
@@ -11,11 +13,16 @@ export default function StepProgress({
   totalSteps = 5,
   stepName,
 }: StepProgressProps) {
+  const { t } = useTranslation();
+
   return (
     <View className="flex gap-2 mb-6">
       {/* Step counter */}
       <Text className="text-foreground text-sm font-nunitoSemiBold">
-        Step {currentStep} of {totalSteps}
+        {t("authMobile.verify.stepProgress", {
+          current: String(currentStep),
+          total: String(totalSteps),
+        })}
         {stepName ? ` — ${stepName}` : ""}
       </Text>
 

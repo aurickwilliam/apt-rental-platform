@@ -19,17 +19,17 @@ jest.mock("@/components/display/AcceptedPaymentMethods", () => {
 
 const props = { monthlyRent: 15000, securityDeposit: 30000, advanceRent: 15000, onApplyNow: jest.fn() };
 
-it("shows the accepted payment methods in the move-in cost modal, below the total", () => {
-  render(<MoveInCostFooterSection {...props} acceptedMethods={["GCash", "Cash"]} />);
+it("shows the accepted payment methods in the move-in cost modal, below the total", async () => {
+  await render(<MoveInCostFooterSection {...props} acceptedMethods={["GCash", "Cash"]} />);
   expect(screen.queryByText("methods:GCash,Cash")).toBeNull(); // not on the page, only in the modal
-  fireEvent.press(screen.getByText("Move-in cost breakdown"));
+  await fireEvent.press(screen.getByText("Move-in cost breakdown"));
   const texts = screen.getAllByText(/breakdown-total|methods:/).map((node) => node.props.children);
   expect(texts).toEqual(["breakdown-total", "methods:GCash,Cash"]);
 });
 
-it("leaves the modal as it was while the methods are unknown", () => {
-  render(<MoveInCostFooterSection {...props} acceptedMethods={null} />);
-  fireEvent.press(screen.getByText("Move-in cost breakdown"));
+it("leaves the modal as it was while the methods are unknown", async () => {
+  await render(<MoveInCostFooterSection {...props} acceptedMethods={null} />);
+  await fireEvent.press(screen.getByText("Move-in cost breakdown"));
   expect(screen.getByText("breakdown-total")).toBeTruthy();
   expect(screen.queryByText(/methods:/)).toBeNull();
 });

@@ -4,6 +4,7 @@ import { supabase } from '@repo/supabase'
 import { useProfile } from 'hooks/auth'
 import { useApplicationFormStore } from '@/stores/useApplicationFormStore'
 import { fetchPassportDocumentsWithVerification } from '@/service/passport/passportService'
+import { fetchHasActiveRentalAsTenant } from '@/service/applications/activeRentalService'
 import { evaluateApplicationReadiness } from '@repo/passport'
 import { normalizePHMobile } from '@repo/constants'
 import { buildDeclaredApplicationPreferenceSnapshot } from '@repo/utils'
@@ -76,6 +77,7 @@ export function useSubmitApplication() {
         // Authoritative passport read: links the approved ID first, so the
         // primary ID is present even if the passport screen was never opened.
         const passportDocs = await fetchPassportDocumentsWithVerification(tenantId)
+        const hasActiveTenancy = await fetchHasActiveRentalAsTenant(tenantId)
 
         const readiness = evaluateApplicationReadiness({
           accountStatus: profile?.account_status,
@@ -83,6 +85,7 @@ export function useSubmitApplication() {
           landlordId: apartment.landlord_id,
           // The unique index rejects a duplicate pending application below.
           hasActiveApplication: false,
+          hasActiveTenancy,
           passportDocs,
           employmentType: tenantInformation.employmentType,
         })

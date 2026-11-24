@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@repo/supabase";
+import { fetchEffectiveLeaseTermsWith } from '@repo/utils';
 import type { PresentationSeed } from "./presentation-seed";
 import type { TenantApplication } from "./tenantApplicationsService";
 
@@ -63,7 +64,7 @@ export interface InitialRentalContext {
 }
 
 /** Fresh caller-bound read; the internal tenant id is a filter, never authorization. */
-export async function fetchActiveTenancyWith(supabase: Pick<SupabaseClient<Database>, "from">, tenantId: string): Promise<ActiveTenancy | null> {
+export async function fetchActiveTenancyWith(supabase: Pick<SupabaseClient<Database>, "from"|"rpc">, tenantId: string): Promise<ActiveTenancy | null> {
   const { data, error } = await supabase
     .from("tenancies")
     .select(`
@@ -108,9 +109,15 @@ export async function fetchActiveTenancyWith(supabase: Pick<SupabaseClient<Datab
     `)
     .eq("tenant_id", tenantId)
     .eq("status", "active")
+    .order("lease_start", { ascending: false })
+    .limit(1)
     .maybeSingle();
   if (error) throw new Error(error.message);
   const tenancy = data as ActiveTenancy | null;
+  if(tenancy?.apartment) {
+    const terms=await fetchEffectiveLeaseTermsWith(supabase,tenancy.id);
+    if(terms){tenancy.lease_end=terms.leaseEnd;tenancy.monthly_rent=terms.monthlyRent;}
+  }
   // A hidden/unreadable apartment must never become usable rental context.
   return tenancy?.apartment ? tenancy : null;
 }

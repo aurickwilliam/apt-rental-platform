@@ -8,6 +8,7 @@ import { REGISTRATION_POLICIES } from "../../apps/web/lib/registration-policies.
 const migration = await readFile(new URL("../../supabase/migrations/20261031120000_mobile_registration_policy_acceptance.sql", import.meta.url), "utf8");
 const webMigration = await readFile(new URL("../../supabase/migrations/20261029120000_web_registration_policy_acceptance.sql", import.meta.url), "utf8");
 const privacyRevision = await readFile(new URL("../../supabase/migrations/20261106120000_privacy_policy_revision.sql", import.meta.url), "utf8");
+const privacyActivityEmailRevision = await readFile(new URL("../../supabase/migrations/20261107140000_privacy_policy_activity_emails.sql", import.meta.url), "utf8");
 const rolesMigration = await readFile(new URL("../../supabase/migrations/20260927000003_drop_legacy_role_column.sql", import.meta.url), "utf8");
 const valuesGuard = await readFile(new URL("../../supabase/migrations/20261026120000_allow_all_ph_mobile_blocks.sql", import.meta.url), "utf8");
 const suspensionFunction = await readFile(new URL("../../supabase/migrations/20261007000300_get_my_suspension_status.sql", import.meta.url), "utf8");
@@ -70,6 +71,7 @@ test("mobile acceptance is atomic, caller-bound and backward compatible", async 
   await db.exec(webMigration);
   await db.exec(migration);
   await db.exec(privacyRevision);
+  await db.exec(privacyActivityEmailRevision);
 
   async function person(options = {}) {
     const authId = randomUUID(), email = `${authId}@example.test`;

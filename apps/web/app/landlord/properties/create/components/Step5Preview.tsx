@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import dynamic from "next/dynamic";
 
 import { Card } from "@heroui/react";
+import { OWN_ELECTRICITY_METER_DETAIL } from "@repo/constants";
 
 import {
   IconArrowsMaximize,
@@ -16,6 +17,7 @@ import {
   IconStar,
   IconSquareCheck,
   IconUsers,
+  IconBolt,
 } from "@tabler/icons-react";
 
 import ImageHeader from "../../../../browse/[apartmentId]/components/ImageHeader";
@@ -80,6 +82,10 @@ export default function Step5Preview({ formData, landlord }: Props) {
     { icon: IconCalendar, label: formData.lease_duration || "—" },
     { icon: IconArmchair, label: formData.furnished_type || "—" },
   ];
+
+  if (formData.has_own_electricity_meter === true) {
+    stats.push({ icon: IconBolt, label: OWN_ELECTRICITY_METER_DETAIL });
+  }
 
   return (
     <div className="flex flex-col gap-4">

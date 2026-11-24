@@ -92,6 +92,7 @@ async function invokeRepeatable<T>(action: string, payload: Record<string, unkno
 }
 
 export async function createCheckoutSession(params: {
+  renewalProposalId?: string;
   referenceId: string;
   amount: number;
   description: string;

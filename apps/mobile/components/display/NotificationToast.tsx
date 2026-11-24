@@ -13,6 +13,7 @@ import {
   useNotificationTypeColor,
 } from '@/hooks/notifications/notificationVisuals';
 import { useColors } from '@/hooks/useTheme';
+import { useTranslation } from '@/hooks/i18n';
 
 import type { NotificationRow, NotificationType } from '@/service/notifications/notificationService';
 
@@ -69,6 +70,7 @@ function NotificationToastContent({
   ...toastProps
 }: NotificationToastContentProps) {
   const { colors } = useColors();
+  const { t } = useTranslation();
   const { getColor } = useNotificationTypeColor();
 
   const type = row.type as NotificationType;
@@ -121,7 +123,7 @@ function NotificationToastContent({
       <Button
         variant="ghost"
         isIconOnly
-        aria-label="View"
+        aria-label={t("notifications.mobile.view")}
         onPress={onOpen}
         className="self-center"
       >

@@ -7,6 +7,7 @@ import { parseDate } from "@internationalized/date";
 import { GENDERS } from "../../../packages/constants/src/user/gender.ts";
 import * as birthRules from "./birth-date.ts";
 import { compile, hookRuntime } from "./test-support/hook-runtime.mjs";
+import { GENDER_KEYS, enumLabel, translate } from "../../../packages/i18n/src/index.ts";
 import {
   addressRules,
   validAddress,
@@ -21,6 +22,8 @@ const rules = {
   validateBirthDate: (value) => birthRules.validateBirthDate(value, NOW),
 };
 const errors = birthRules.BIRTH_DATE_ERRORS;
+const locale = { useTranslation: () => ({ language: "en", t: (key, vars) => translate("en", key, vars) }) };
+const i18n = { GENDER_KEYS, enumLabel, translate };
 const adult = "2000-01-01",
   underage = "2016-01-01";
 const nodes = (value) =>
@@ -103,6 +106,7 @@ function fieldHarness(initial = "", native = false, environment = {}) {
       "@heroui/react": native ? HeroUI : ui,
       "@internationalized/date": { parseDate },
       "@/lib/birth-date": rules,
+      "@/app/components/i18n/LocaleProvider": locale,
     },
     environment,
   ).default;
@@ -343,6 +347,8 @@ function formHarness(kind, role, options = {}) {
     "@repo/constants": constants,
     "@/lib/birth-date": rules,
     "@/lib/registration-address": addressRules,
+    "@/app/components/i18n/LocaleProvider": locale,
+    "@repo/i18n": i18n,
     "@/lib/registration-policies": policyRules,
     "../../components/RegistrationPolicyAcceptance": { default: "RegistrationPolicyAcceptance" },
     "../../components/RegistrationAddressFields": {
@@ -660,6 +666,8 @@ function actionHarness(kind, options = {}) {
       "@repo/constants": constants,
       "@/lib/birth-date": rules,
       "@/lib/registration-address": addressRules,
+      "@/app/components/i18n/LocaleProvider": locale,
+      "@/lib/i18n/locale": { getServerLocale: async () => "en" },
       "@/lib/registration-policies": policyRules,
       "@/service/registrationService": {
         completeWebRegistration: async (client, details, role, acceptance, source) => {
@@ -669,7 +677,7 @@ function actionHarness(kind, options = {}) {
         },
       },
       "../sign-up-form/utils": { validateSignUpForm },
-      "@repo/utils": { getEmailCodeRequestError: (message) => message, isCaptchaError: () => false, CAPTCHA_FAILED_MESSAGE: "captcha" },
+      "@repo/utils": { emailCodeRequestErrorMessage: (_lang, message) => message, getEmailCodeRequestError: (message) => message, isCaptchaError: () => false, CAPTCHA_FAILED_MESSAGE: "captcha" }, "@repo/i18n": { translate: () => "" },
     },
     { process: { env: { NODE_ENV: "test" } } },
   );
@@ -848,7 +856,8 @@ test("OTP verification routes typed birth-date failures inline while preserving 
             },
           }),
         },
-        "@repo/utils": { getOtpAttemptError: () => "wrong code", AUTH_THROTTLE_MESSAGE: "blocked", checkAuthThrottle: async () => 0, clearAuthThrottle: async () => {}, recordAuthFailure: async () => 0, isInvalidOtpError: () => true },
+        "@repo/utils": { emailCodeRequestErrorMessage: (_lang, message) => message, otpAttemptErrorMessage: () => "wrong code", AUTH_THROTTLE_MESSAGE: "blocked", checkAuthThrottle: async () => 0, clearAuthThrottle: async () => {}, recordAuthFailure: async () => 0, isInvalidOtpError: () => true },
+        "@/app/components/i18n/LocaleProvider": locale,
         "@/lib/registration-policies": policyRules,
         "../../actions/sign-up": {
           signUp: async () =>

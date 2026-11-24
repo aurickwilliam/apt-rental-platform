@@ -12,10 +12,12 @@ import { VALID_IDS, SECONDARY_IDS } from '@repo/constants'
 
 import { useColors } from '@/hooks/useTheme'
 import { useVerificationStore } from '@/stores/useVerificationStore'
+import { useTranslation } from '@/hooks/i18n'
 
 export default function SelectId() {
   const router = useRouter();
   const { colors } = useColors();
+  const { t } = useTranslation();
 
   const setSelectedId = useVerificationStore((state) => state.setSelectedId);
   const reset = useVerificationStore((state) => state.reset);
@@ -65,15 +67,19 @@ export default function SelectId() {
       </CloseButton>
 
       <View className='flex gap-3'>
-        <StepProgress currentStep={1} totalSteps={5} stepName="Select a Valid ID" />
+        <StepProgress
+          currentStep={1}
+          totalSteps={5}
+          stepName={t("authMobile.verify.selectId.step")}
+        />
 
         <Text className='text-foreground text-base font-nunitoSemiBold'>
-          List of Valid IDs:
+          {t("authMobile.verify.selectId.valid")}
         </Text>
         {renderListGroup(VALID_IDS)}
 
         <Text className='text-foreground text-base font-nunitoSemiBold'>
-          List of Secondary IDs:
+          {t("authMobile.verify.selectId.secondary")}
         </Text>
         {renderListGroup(SECONDARY_IDS)}
       </View>

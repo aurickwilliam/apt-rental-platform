@@ -5,6 +5,7 @@ import { jsx, jsxs, Fragment } from "react/jsx-runtime";
 import { renderToStaticMarkup } from "react-dom/server";
 import * as HeroUI from "@heroui/react";
 import NextLink from "next/link.js";
+import { translate } from "../../../packages/i18n/src/translate.ts";
 import { compile, deferred, hookRuntime } from "./test-support/hook-runtime.mjs";
 
 const conflictMessage = "This email is already registered.";
@@ -19,7 +20,7 @@ const text = value => {
 
 function harness(options = {}) {
   const runtime = hookRuntime();
-  const requests = [], navigation = [], logs = [];
+  const requests = [], navigation = [], logs = [], dispatched = [];
   const context = {
     type: options.type ?? "sign-up", role: options.role ?? "tenant", email: options.email ?? "existing@example.com",
     setEmail: value => { context.email = value; },
@@ -27,10 +28,18 @@ function harness(options = {}) {
   const router = { push: value => navigation.push(value) };
   const ui = options.realUI ? HeroUI : Object.fromEntries(["Form", "Input", "Link", "Button", "TextField", "FieldError", "Label"].map(name => [name, name]));
   const component = compile(file, {
-    react: { ...runtime.react, useActionState: () => [options.signInState ?? { error: null }, () => {}, options.pending ?? false] },
+    react: { ...runtime.react, startTransition: callback => callback(), useActionState: () => [options.signInState ?? { error: null }, formData => dispatched.push(formData), options.pending ?? false] },
     "react/jsx-runtime": options.realUI ? { jsx, jsxs, Fragment } : { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }), Fragment: "Fragment" },
     "next/navigation": { useRouter: () => router },
     "next/link": { default: options.realUI ? NextLink : "NextLink" },
+    "@/app/components/i18n/LocaleProvider": {
+      useTranslation: () => ({
+        language: "en",
+        pending: false,
+        setLanguage: () => {},
+        t: (key, vars) => translate("en", key, vars),
+      }),
+    },
     "@/app/components/inputs/PasswordField": { default: "PasswordField" },
     "@/app/components/inputs/TurnstileWidget": { default: "TurnstileWidget" }, "@/hooks/use-captcha": { useCaptcha: () => ({ attach() {}, take: () => ({ pending: false }) }) }, "@repo/utils": { CAPTCHA_PENDING_MESSAGE: "pending", formatLockoutClock: seconds => String(seconds) },
     "@/hooks/use-auth-lockout": { useAuthLockout: () => options.lockout ?? { secondsLeft: 0, isLocked: false, lock() {}, modalOpen: false, setModalOpen() {} } },
@@ -51,7 +60,7 @@ function harness(options = {}) {
   const render = () => runtime.render(() => component({ next: options.next }));
   const field = () => nodes(render()).find(node => node.props?.name === "email");
   const error = details => nodes(field()).find(node => node.type === "FieldError").props.children({ validationDetails: { valueMissing: false, typeMismatch: false, ...details } });
-  return { render, field, error, requests, navigation, logs,
+  return { render, field, error, requests, navigation, logs, dispatched,
     change(value) { field().props.onChange(value); },
     async submit() {
       let prevented = false;
@@ -139,11 +148,13 @@ test("pending availability check disables Email and Sign Up until the response s
 
 test("sign-in still uses its server action, provider errors, password and supported verification next", async () => {
   const h = harness({ type: "sign-in", signInState: { error: "Invalid login or provider failure", needsEmailConfirmation: true }, next: "/verify/mobile?token=opaque" });
-  assert.equal(await h.submit(), false);
+  // The form dispatches the server action itself (no form `action`, so React never resets the fields).
+  assert.equal(await h.submit(), true);
+  assert.equal(h.dispatched.length, 1);
   assert.equal(h.requests.length, 0);
   const root = h.render();
   assert.equal(nodes(root).filter(node => node.type === "PasswordField").length, 1);
-  assert.ok(nodes(root).find(node => node.type === "Form").props.action);
+  assert.equal(nodes(root).find(node => node.type === "Form").props.action, undefined);
   assert.equal(nodes(root).find(node => node.props?.name === "next").props.value, "/verify/mobile?token=opaque");
   assert.match(text(nodes(root).find(node => node.props?.className?.includes("bg-red-200"))), /Invalid login or provider failure.*Send me a new code/);
 });
@@ -197,7 +208,8 @@ test("server duplicate detection still normalizes once, trusts only an explicit 
 
 test("the existing auth footer remains a separate sign-in link", () => {
   const source = readFileSync(new URL("../app/(auth)/components/BottomLinks.tsx", import.meta.url), "utf8");
-  assert.match(source, /Already have an account/);
+  assert.equal(translate("en", "auth.alreadyHaveAccount"), "Already have an account?");
+  assert.match(source, /auth\.alreadyHaveAccount/);
   assert.match(source, /\/sign-in/);
 });
 
@@ -242,4 +254,28 @@ test("the sign-up lock never touches the sign-up form", () => {
   const button = nodes(h.render()).find(node => node.type === "Button");
   assert.equal(text(button.props.children), "Sign Up");
   assert.equal(button.props.isDisabled, false);
+});
+
+test("sign-in: the form dispatches the action itself so React never resets the email or the lock", async () => {
+  const h = harness({ type: "sign-in" });
+  const form = nodes(h.render()).find(node => node.type === "Form");
+  // A form `action` makes React reset the form after every attempt: that wiped the email, and the
+  // lock is keyed by the email, so the modal closed and the button re-enabled right after the lock.
+  assert.equal(form.props.action, undefined);
+
+  let prevented = false;
+  await form.props.onSubmit({ currentTarget: { email: "ana@example.com", password: "secret", role: "tenant" }, preventDefault() { prevented = true; } });
+
+  assert.equal(prevented, true, "the browser's own submit is stopped");
+  assert.equal(h.dispatched.length, 1, "the sign-in action runs exactly once");
+  assert.equal(h.dispatched[0].get("email"), "ana@example.com");
+  assert.equal(h.dispatched[0].get("password"), "secret");
+  assert.equal(h.requests.length, 0, "sign-in never goes through the sign-up email check");
+});
+
+test("sign-up: the submit is still intercepted and never dispatches the sign-in action", async () => {
+  const h = harness({ type: "sign-up", check: async () => ({ exists: false, error: null }) });
+  const prevented = await h.submit();
+  assert.equal(prevented, true);
+  assert.equal(h.dispatched.length, 0);
 });

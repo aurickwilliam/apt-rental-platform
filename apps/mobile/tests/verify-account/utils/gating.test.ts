@@ -15,7 +15,7 @@ const idCaptureResultArbitrary: fc.Arbitrary<IdCaptureResult> = fc.record({
 const sequenceArbitrary: fc.Arbitrary<CaptureStepConfig[]> = fc
   .uniqueArray(fc.string({ minLength: 1 }), { minLength: 0, maxLength: 6 })
   .map((ids) =>
-    ids.map((id, index) => ({ id, label: `Step ${index}`, aspectRatio: 1 })),
+    ids.map((id, index) => ({ id, labelKey: 'authMobile.capture.front', aspectRatio: 1 })),
   );
 
 /**
@@ -53,8 +53,8 @@ describe('getCaptureProgress', () => {
 
   it('reports every step as incomplete when captures is empty', () => {
     const sequence: CaptureStepConfig[] = [
-      { id: 'front', label: 'Front', aspectRatio: 1 },
-      { id: 'back', label: 'Back', aspectRatio: 1 },
+      { id: 'front', labelKey: 'authMobile.capture.front', aspectRatio: 1 },
+      { id: 'back', labelKey: 'authMobile.capture.back', aspectRatio: 1 },
     ];
     const progress = getCaptureProgress(sequence, {});
 
@@ -67,8 +67,8 @@ describe('getCaptureProgress', () => {
 
   it('reports per-step completion correctly for a partially-completed sequence', () => {
     const sequence: CaptureStepConfig[] = [
-      { id: 'front', label: 'Front', aspectRatio: 1 },
-      { id: 'back', label: 'Back', aspectRatio: 1 },
+      { id: 'front', labelKey: 'authMobile.capture.front', aspectRatio: 1 },
+      { id: 'back', labelKey: 'authMobile.capture.back', aspectRatio: 1 },
     ];
     const frontResult: IdCaptureResult = { uri: 'file://front.jpg', width: 10, height: 10 };
     const progress = getCaptureProgress(sequence, { front: frontResult });
@@ -81,7 +81,7 @@ describe('getCaptureProgress', () => {
   });
 
   it('reports isComplete=true when every step has a result, ignoring unrelated extra keys', () => {
-    const sequence: CaptureStepConfig[] = [{ id: 'identity-page', label: 'Identity Page', aspectRatio: 1.42 }];
+    const sequence: CaptureStepConfig[] = [{ id: 'identity-page', labelKey: 'authMobile.capture.identityPage', aspectRatio: 1.42 }];
     const result: IdCaptureResult = { uri: 'file://id.jpg', width: 10, height: 10 };
     const progress = getCaptureProgress(sequence, { 'identity-page': result, unrelated: result });
 
@@ -112,15 +112,15 @@ describe('computeCanContinue', () => {
   );
 
   it('returns false when isConfirmed is false even if every step is present', () => {
-    const sequence: CaptureStepConfig[] = [{ id: 'front', label: 'Front', aspectRatio: 1 }];
+    const sequence: CaptureStepConfig[] = [{ id: 'front', labelKey: 'authMobile.capture.front', aspectRatio: 1 }];
     const result: IdCaptureResult = { uri: 'file://front.jpg', width: 10, height: 10 };
     expect(computeCanContinue(sequence, { front: result }, false)).toBe(false);
   });
 
   it('returns false when any step is missing, regardless of isConfirmed', () => {
     const sequence: CaptureStepConfig[] = [
-      { id: 'front', label: 'Front', aspectRatio: 1 },
-      { id: 'back', label: 'Back', aspectRatio: 1 },
+      { id: 'front', labelKey: 'authMobile.capture.front', aspectRatio: 1 },
+      { id: 'back', labelKey: 'authMobile.capture.back', aspectRatio: 1 },
     ];
     const result: IdCaptureResult = { uri: 'file://front.jpg', width: 10, height: 10 };
     expect(computeCanContinue(sequence, { front: result }, true)).toBe(false);

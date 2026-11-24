@@ -6,6 +6,8 @@
 // applying, whatever the tenant edits later. Web and mobile build, read and
 // word it here.
 
+import { translate, type LanguageCode } from "@repo/i18n";
+
 export const APPLICATION_PREFERENCES_VERSION = 1;
 
 /** The saved-preference fields a snapshot is built from (structural). */
@@ -129,38 +131,56 @@ export interface ApplicationPreferenceLine {
   value: string;
 }
 
-const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
-
 /** The wording both platforms show, one line per topic (pets, parking, smoking, disability). */
 export function describeApplicationPreferences(
   snapshot: ApplicationPreferenceSnapshot,
+  language: LanguageCode = "en",
 ): ApplicationPreferenceLine[] {
   const petDetails: string[] = [];
   if (snapshot.pets.kinds?.length) petDetails.push(snapshot.pets.kinds.join(", "));
-  if (snapshot.pets.count) petDetails.push(plural(snapshot.pets.count, "pet", "pets"));
-  if (snapshot.pets.names) petDetails.push(`named ${snapshot.pets.names}`);
+  if (snapshot.pets.count) {
+    petDetails.push(
+      translate(language, snapshot.pets.count === 1 ? "apply.review.petOne" : "apply.review.petOther", { count: snapshot.pets.count }),
+    );
+  }
+  if (snapshot.pets.names) petDetails.push(translate(language, "apply.review.named", { names: snapshot.pets.names }));
 
   const parkingDetails: string[] = [];
-  if (snapshot.parking.spots) parkingDetails.push(plural(snapshot.parking.spots, "spot", "spots"));
+  if (snapshot.parking.spots) {
+    parkingDetails.push(
+      translate(language, snapshot.parking.spots === 1 ? "apply.review.spotOne" : "apply.review.spotOther", { count: snapshot.parking.spots }),
+    );
+  }
   if (snapshot.parking.vehicles?.length) parkingDetails.push(snapshot.parking.vehicles.join(", "));
 
   return [
     {
-      label: "Pets",
-      value: snapshot.pets.has ? (petDetails.length ? `Yes: ${petDetails.join(" · ")}` : "Yes") : "No",
+      label: translate(language, "apply.review.preferencePets"),
+      value: snapshot.pets.has
+        ? petDetails.length
+          ? `${translate(language, "apply.review.yes")}: ${petDetails.join(" · ")}`
+          : translate(language, "apply.review.yes")
+        : translate(language, "apply.review.no"),
     },
     {
-      label: "Parking",
+      label: translate(language, "apply.review.preferenceParking"),
       value: snapshot.parking.needed
         ? parkingDetails.length
-          ? `Needed: ${parkingDetails.join(" · ")}`
-          : "Needed"
-        : "Not needed",
+          ? `${translate(language, "apply.review.needed")}: ${parkingDetails.join(" · ")}`
+          : translate(language, "apply.review.needed")
+        : translate(language, "apply.review.notNeeded"),
     },
-    { label: "Smoking", value: snapshot.smoker ? "Smoker" : "Non-smoker" },
     {
-      label: "Household member with a disability",
-      value: snapshot.householdDisability ? "Yes" : "No",
+      label: translate(language, "apply.review.preferenceSmoking"),
+      value: snapshot.smoker
+        ? translate(language, "apply.review.smoker")
+        : translate(language, "apply.review.nonSmoker"),
+    },
+    {
+      label: translate(language, "apply.review.preferenceDisability"),
+      value: snapshot.householdDisability
+        ? translate(language, "apply.review.yes")
+        : translate(language, "apply.review.no"),
     },
   ];
 }

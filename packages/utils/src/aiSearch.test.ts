@@ -4,6 +4,8 @@ import {
   EMPTY_AI_SEARCH_FILTERS,
   aiFiltersToBrowseParams,
   countAiSearchFilters,
+  isBrowseExpressible,
+  mergeAiFilters,
   parseSearchKeywords,
   sanitizeAiFilters,
   sanitizeSearchKeyword,
@@ -167,5 +169,41 @@ describe('aiFiltersToBrowseParams', () => {
 
   it('returns no params for empty filters', () => {
     expect(aiFiltersToBrowseParams(EMPTY_AI_SEARCH_FILTERS)).toEqual({});
+  });
+});
+
+describe('bedroom ranges', () => {
+  it('reads "one or two bedrooms" as a range, not just two', () => {
+    const filters = parseSearchKeywords(
+      "Hi Ava! I'm looking for an apartment in Caloocan. My budget is ₱8,000 per month, preferably with one or two bedrooms.",
+    );
+    expect(filters).toMatchObject({ cities: ['Caloocan'], priceMax: 8000, bedrooms: '1', bedroomsMax: 2 });
+  });
+
+  it('reads other spellings of a range', () => {
+    expect(parseSearchKeywords('1-2BR in Malabon')).toMatchObject({ bedrooms: '1', bedroomsMax: 2 });
+    expect(parseSearchKeywords('2 to 3 bedrooms')).toMatchObject({ bedrooms: '2', bedroomsMax: 3 });
+    expect(parseSearchKeywords('isa o dalawang kwarto')).toMatchObject({ bedrooms: '1', bedroomsMax: 2 });
+    expect(parseSearchKeywords('2 bedrooms')).toMatchObject({ bedrooms: '2', bedroomsMax: null });
+  });
+
+  it('keeps the range out of the budget', () => {
+    expect(parseSearchKeywords('1 or 2 bedrooms')).toMatchObject({ priceMax: null, priceMin: null });
+  });
+
+  it('sanitizes the range from the model and orders a swapped pair', () => {
+    expect(sanitizeAiFilters({ bedrooms: '1', bedroomsMax: 2 })).toMatchObject({ bedrooms: '1', bedroomsMax: 2 });
+    expect(sanitizeAiFilters({ bedrooms: '2', bedroomsMax: 1 })).toMatchObject({ bedrooms: '1', bedroomsMax: 2 });
+    expect(sanitizeAiFilters({ bedrooms: '2', bedroomsMax: 2 })).toMatchObject({ bedrooms: '2', bedroomsMax: null });
+    expect(sanitizeAiFilters({ bedrooms: null, bedroomsMax: 3 })).toMatchObject({ bedrooms: null, bedroomsMax: null });
+  });
+
+  it('a new count replaces an old range when merged, and Browse cannot express a range', () => {
+    const range = parseSearchKeywords('1 or 2 bedrooms');
+    const merged = mergeAiFilters(range, parseSearchKeywords('3 bedrooms'), '3 bedrooms');
+    expect(merged).toMatchObject({ bedrooms: '3', bedroomsMax: null });
+    expect(isBrowseExpressible(range)).toBe(false);
+    expect(aiFiltersToBrowseParams(range)).toMatchObject({ ava_bedrooms_min: '1', ava_bedrooms_max: '2' });
+    expect(aiFiltersToBrowseParams(range).bedrooms).toBeUndefined();
   });
 });

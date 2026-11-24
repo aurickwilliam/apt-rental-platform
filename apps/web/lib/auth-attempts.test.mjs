@@ -120,3 +120,10 @@ test("code: empty input is refused before any request", async () => {
   assert.equal(result.kind, "error");
   assert.equal(h.calls.length, 0);
 });
+
+test("every lockout writes one subject-free log line, including from the password-reset action", () => {
+  const h = load();
+  h.logAuthLockout("recovery_otp");
+  assert.deepEqual(h.warnings, [["Auth lockout:", "recovery_otp"]]);
+  assert.ok(!JSON.stringify(h.warnings).includes("@"), "never the email");
+});

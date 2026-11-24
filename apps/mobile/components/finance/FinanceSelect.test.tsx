@@ -1,7 +1,7 @@
 import type { PropsWithChildren } from "react";
 import type { TextInputProps } from "react-native";
 import { fireEvent, render, within } from "@testing-library/react-native";
-import { ScrollView, Text, View } from "react-native";
+import { findAllInTree } from "../../tests/support/testTraversal";
 import FinanceSelect from "./FinanceSelect";
 
 const mockContentProps = jest.fn();
@@ -143,8 +143,8 @@ const options = [
 ];
 describe("searchable finance property picker", () => {
   beforeEach(() => jest.clearAllMocks());
-  test("opens at 90%, fixes search above the scroll area, and highlights the selected property", () => {
-    const screen = render(
+  test("opens at 90%, fixes search above the scroll area, and highlights the selected property", async () => {
+    const screen = await render(
       <FinanceSelect
         label="Property"
         value="villa"
@@ -153,7 +153,7 @@ describe("searchable finance property picker", () => {
         searchable
       />,
     );
-    fireEvent.press(screen.getByLabelText("Property"));
+    await fireEvent.press(screen.getByLabelText("Property"));
     expect(mockContentProps).toHaveBeenLastCalledWith(
       expect.objectContaining({
         snapPoints: ["90%"],
@@ -168,14 +168,14 @@ describe("searchable finance property picker", () => {
       "bg-primary-light",
     );
     expect(
-      within(screen.UNSAFE_getByType(ScrollView)).queryByLabelText(
+      within(findAllInTree(screen.root!, (n) => String(n.type) === "RCTScrollView")[0]).queryByLabelText(
         "Search properties",
       ),
     ).toBeNull();
   });
-  test("searches, clears, selects immediately, and resets search when reopened", () => {
+  test("searches, clears, selects immediately, and resets search when reopened", async () => {
     const onChange = jest.fn();
-    const screen = render(
+    const screen = await render(
       <FinanceSelect
         label="Property"
         value="villa"
@@ -184,24 +184,24 @@ describe("searchable finance property picker", () => {
         searchable
       />,
     );
-    fireEvent.press(screen.getByLabelText("Property"));
-    fireEvent.changeText(screen.getByLabelText("Search properties"), "nothing");
+    await fireEvent.press(screen.getByLabelText("Property"));
+    await fireEvent.changeText(screen.getByLabelText("Search properties"), "nothing");
     expect(screen.getByText("No matching properties.")).toBeTruthy();
-    fireEvent.press(screen.getByLabelText("Clear property search"));
+    await fireEvent.press(screen.getByLabelText("Clear property search"));
     expect(screen.getByLabelText("Villa")).toBeTruthy();
-    fireEvent.changeText(
+    await fireEvent.changeText(
       screen.getByLabelText("Search properties"),
       "  STUDIO ",
     );
     expect(screen.queryByLabelText("Villa")).toBeNull();
-    fireEvent.press(screen.getByLabelText("Studio"));
+    await fireEvent.press(screen.getByLabelText("Studio"));
     expect(onChange).toHaveBeenCalledWith("studio");
     expect(screen.queryByLabelText("Search properties")).toBeNull();
-    fireEvent.press(screen.getByLabelText("Property"));
+    await fireEvent.press(screen.getByLabelText("Property"));
     expect(screen.getByLabelText("Search properties").props.value).toBe("");
   });
-  test("ordinary selectors open tall enough for the whole option list without search", () => {
-    const screen = render(
+  test("ordinary selectors open tall enough for the whole option list without search", async () => {
+    const screen = await render(
       <FinanceSelect
         label="Category"
         value="villa"
@@ -209,7 +209,7 @@ describe("searchable finance property picker", () => {
         onChange={jest.fn()}
       />,
     );
-    fireEvent.press(screen.getByLabelText("Property"));
+    await fireEvent.press(screen.getByLabelText("Property"));
     const props = mockContentProps.mock.calls.at(-1)![0];
     // Fixed snap point: an open animation must target a detent that already
     // exists, otherwise the sheet settles short and clips its last option.
@@ -219,8 +219,8 @@ describe("searchable finance property picker", () => {
     expect(screen.getByLabelText("Studio")).toBeTruthy();
     expect(screen.queryByLabelText("Search properties")).toBeNull();
   });
-  test("category selection uses the soft blue row without adding property search", () => {
-    const screen = render(
+  test("category selection uses the soft blue row without adding property search", async () => {
+    const screen = await render(
       <FinanceSelect
         label="Category"
         value="villa"
@@ -229,7 +229,7 @@ describe("searchable finance property picker", () => {
         highlightSelection
       />,
     );
-    fireEvent.press(screen.getByLabelText("Property"));
+    await fireEvent.press(screen.getByLabelText("Property"));
     expect(screen.getByLabelText("Villa").props.className).toContain(
       "bg-primary-light",
     );
@@ -239,8 +239,8 @@ describe("searchable finance property picker", () => {
     expect(props.snapPoints).toEqual(["85%"]);
     expect(props.enableDynamicSizing).toBe(false);
   });
-  test("expense treatment can open at a fixed 50% without content resizing", () => {
-    const screen = render(
+  test("expense treatment can open at a fixed 50% without content resizing", async () => {
+    const screen = await render(
       <FinanceSelect
         label="Expense treatment"
         value="villa"
@@ -250,7 +250,7 @@ describe("searchable finance property picker", () => {
         highlightSelection
       />,
     );
-    fireEvent.press(screen.getByLabelText("Property"));
+    await fireEvent.press(screen.getByLabelText("Property"));
     expect(mockContentProps).toHaveBeenLastCalledWith(
       expect.objectContaining({
         snapPoints: ["50%"],
@@ -262,8 +262,8 @@ describe("searchable finance property picker", () => {
     );
     expect(screen.getByLabelText("Studio").props.className).toBeUndefined();
   });
-  test("required selectors show the marker and inline validation error", () => {
-    const screen = render(<FinanceSelect label="Category" value="" options={options} onChange={jest.fn()} required error="Choose an expense category." />);
+  test("required selectors show the marker and inline validation error", async () => {
+    const screen = await render(<FinanceSelect label="Category" value="" options={options} onChange={jest.fn()} required error="Choose an expense category." />);
     expect(screen.getByText("Category *")).toBeTruthy();
     expect(screen.getByText("Category *").props.className).toContain("font-nunitoSemiBold");
     expect(screen.getByText("Category *").props.className).toContain("text-base");
@@ -273,8 +273,8 @@ describe("searchable finance property picker", () => {
   // The sheet container already pads 20px; the option list adds 12px more so the
   // row pills clear the sheet edges, and the label, the search field and the
   // list share that one inset so they stay aligned.
-  test("the label, search field and option list share one horizontal inset", () => {
-    const screen = render(
+  test("the label, search field and option list share one horizontal inset", async () => {
+    const screen = await render(
       <FinanceSelect
         label="Category"
         value="villa"
@@ -284,24 +284,20 @@ describe("searchable finance property picker", () => {
         highlightSelection
       />,
     );
-    fireEvent.press(screen.getByLabelText("Property"));
+    await fireEvent.press(screen.getByLabelText("Property"));
     expect(
-      screen.UNSAFE_getByType(ScrollView).props.contentContainerStyle,
+      findAllInTree(screen.root!, (n) => String(n.type) === "RCTScrollView")[0].props.contentContainerStyle,
     ).toEqual(expect.objectContaining({ paddingHorizontal: 12 }));
     // The sheet's own label (not the field label above the trigger) shares the
     // list's inset.
-    const sheetLabel = screen
-      .UNSAFE_getAllByType(Text)
+    const sheetLabel = findAllInTree(screen.root!, (n) => String(n.type) === "Text")
       .find((node) => node.props.className?.includes("px-3"));
     expect(sheetLabel?.props.className).toContain("font-nunitoBold");
-    const searchWrapper = screen
-      .UNSAFE_getAllByType(View)
+    const searchWrapper = findAllInTree(screen.root!, (n) => String(n.type) === "View")
       .find((node) => node.props.className?.includes("px-3"));
     expect(searchWrapper?.props.className).toContain("px-3");
     expect(
-      searchWrapper?.findAllByProps({
-        accessibilityLabel: "Search properties",
-      }),
+      searchWrapper?.queryAll((n) => n.props.accessibilityLabel === "Search properties"),
     ).not.toHaveLength(0);
   });
 });

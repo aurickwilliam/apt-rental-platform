@@ -90,7 +90,9 @@ jest.mock('heroui-native', () => {
   }: {
     children: React.ReactNode;
   }) {
-    return React.createElement(View, null, children);
+    // Real Avatar.Fallback wraps its initials in a Text node — a raw string
+    // breaks RN's text-in-Text rule under the v14 test renderer.
+    return React.createElement(View, null, React.createElement(Text, null, children));
   };
 
   return {
@@ -146,7 +148,7 @@ function makeConversation(overrides: Partial<ConversationWithMeta> = {}): Conver
   };
 }
 
-function renderRow(
+async function renderRow(
   conversation: ConversationWithMeta,
   props: Partial<ComponentProps<typeof ConversationRow>> = {}
 ) {
@@ -156,7 +158,7 @@ function renderRow(
     onTogglePin: jest.fn(),
     onToggleArchive: jest.fn(),
   };
-  render(<ConversationRow conversation={conversation} {...handlers} {...props} />);
+  await render(<ConversationRow conversation={conversation} {...handlers} {...props} />);
   return handlers;
 }
 
@@ -166,21 +168,21 @@ beforeEach(() => {
 });
 
 describe('ConversationRow', () => {
-  it('opens the conversation on press', () => {
-    const { onOpen } = renderRow(makeConversation());
+  it('opens the conversation on press', async () => {
+    const { onOpen } = await renderRow(makeConversation());
 
-    fireEvent.press(screen.getByLabelText('Chat with Ben Cruz about Harbor View'));
+    await fireEvent.press(screen.getByLabelText('Chat with Ben Cruz about Harbor View'));
 
     expect(onOpen).toHaveBeenCalledTimes(1);
   });
 
-  it('shows More, Pin and Archive and closes the row after an action', () => {
+  it('shows More, Pin and Archive and closes the row after an action', async () => {
     const conversation = makeConversation();
-    const { onMore, onTogglePin, onToggleArchive } = renderRow(conversation);
+    const { onMore, onTogglePin, onToggleArchive } = await renderRow(conversation);
 
-    fireEvent.press(screen.getByLabelText('More'));
-    fireEvent.press(screen.getByLabelText('Pin'));
-    fireEvent.press(screen.getByLabelText('Archive'));
+    await fireEvent.press(screen.getByLabelText('More'));
+    await fireEvent.press(screen.getByLabelText('Pin'));
+    await fireEvent.press(screen.getByLabelText('Archive'));
 
     expect(onMore).toHaveBeenCalledWith(conversation, { isPinLocked: false });
     expect(onTogglePin).toHaveBeenCalledWith(conversation);
@@ -188,27 +190,27 @@ describe('ConversationRow', () => {
     expect(mockClose).toHaveBeenCalledTimes(3);
   });
 
-  it('opens the options on hold, with a light haptic', () => {
+  it('opens the options on hold, with a light haptic', async () => {
     const conversation = makeConversation();
-    const { onMore, onOpen } = renderRow(conversation, { isPinLocked: true });
+    const { onMore, onOpen } = await renderRow(conversation, { isPinLocked: true });
 
-    fireEvent(screen.getByLabelText('Chat with Ben Cruz about Harbor View, pinned'), 'onLongPress');
+    await fireEvent(screen.getByLabelText('Chat with Ben Cruz about Harbor View, pinned'), 'onLongPress');
 
     expect(onMore).toHaveBeenCalledWith(conversation, { isPinLocked: true });
     expect(mockImpactAsync).toHaveBeenCalledWith('light');
     expect(onOpen).not.toHaveBeenCalled();
   });
 
-  it('offers Unpin and Unarchive for pinned or archived chats', () => {
-    renderRow(makeConversation({ is_pinned: true }));
+  it('offers Unpin and Unarchive for pinned or archived chats', async () => {
+    await renderRow(makeConversation({ is_pinned: true }));
     expect(screen.getByLabelText('Unpin')).toBeTruthy();
 
-    renderRow(makeConversation({ is_archived: true }));
+    await renderRow(makeConversation({ is_archived: true }));
     expect(screen.getByLabelText('Unarchive')).toBeTruthy();
   });
 
-  it('disables Pin and Archive for the always-pinned landlord chat', () => {
-    const { onTogglePin, onToggleArchive } = renderRow(makeConversation(), { isPinLocked: true });
+  it('disables Pin and Archive for the always-pinned landlord chat', async () => {
+    const { onTogglePin, onToggleArchive } = await renderRow(makeConversation(), { isPinLocked: true });
 
     const unpin = screen.getByLabelText('Unpin');
     expect(unpin.props.accessibilityState).toEqual({ disabled: true });

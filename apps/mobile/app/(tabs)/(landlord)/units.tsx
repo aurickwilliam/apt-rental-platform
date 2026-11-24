@@ -28,6 +28,7 @@ import {
 
 import { useLandlordUnits, useLandlordActionBadges } from "@/hooks/apartments";
 import { CAMANAVA_CITIES, VALID_APARTMENT_STATUSES } from "@repo/constants";
+import { TUTORIAL_TARGETS } from "@repo/utils";
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from "@/components/layout/CustomTabBar";
 import LandlordVerificationGate from "@/components/landlord/LandlordVerificationGate";
 
@@ -146,6 +147,7 @@ function Units() {
           <QuickActionButton
             columns={5}
             label={"Tenant Applications"}
+            tourKey={TUTORIAL_TARGETS.mobileQuickTenantApplications}
             icon={IconFileText}
             badgeCount={counts.applications}
             onPress={() => router.push("/landlord/tenant-applications")}
@@ -153,6 +155,7 @@ function Units() {
           <QuickActionButton
             columns={5}
             label={"Payments"}
+            tourKey={TUTORIAL_TARGETS.mobileQuickPayments}
             icon={IconWallet}
             onPress={() => router.push("/landlord/payments")}
           />

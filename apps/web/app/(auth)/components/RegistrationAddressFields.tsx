@@ -21,6 +21,7 @@ import {
   type RegistrationAddress,
   type RegistrationAddressErrors,
 } from "@/lib/registration-address";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 interface RegistrationAddressFieldsProps {
   value: RegistrationAddress;
@@ -49,6 +50,7 @@ export default function RegistrationAddressFields({
   names = DEFAULT_NAMES,
   className = "w-full grid grid-cols-1 gap-5 md:grid-cols-2",
 }: RegistrationAddressFieldsProps) {
+  const { t } = useTranslation();
   const cities = PROVINCES.includes(value.province as Province)
     ? getCitiesByProvince(value.province as Province)
     : [];
@@ -64,27 +66,27 @@ export default function RegistrationAddressFields({
   const selectors = [
     {
       field: "province" as const,
-      label: "State/Province",
+      label: t("auth.address.province"),
       options: PROVINCES,
-      placeholder: "Search or select your state/province",
+      placeholder: t("auth.address.provincePlaceholder"),
       disabled: false,
     },
     {
       field: "city" as const,
-      label: "City",
+      label: t("auth.address.city"),
       options: cities,
       placeholder: value.province
-        ? "Search or select your city"
-        : "Select a province first",
+        ? t("auth.address.cityPlaceholder")
+        : t("auth.address.cityFirst"),
       disabled: !value.province,
     },
     {
       field: "barangay" as const,
-      label: "Barangay",
+      label: t("auth.address.barangay"),
       options: barangays,
       placeholder: value.city
-        ? "Search or select your barangay"
-        : "Select a city first",
+        ? t("auth.address.barangayPlaceholder")
+        : t("auth.address.barangayFirst"),
       disabled: !value.city,
     },
   ];
@@ -152,10 +154,10 @@ export default function RegistrationAddressFields({
         isDisabled={isDisabled}
         isInvalid={errors.streetAddress ? true : undefined}
       >
-        <Label>Street Address</Label>
+        <Label>{t("auth.address.street")}</Label>
         <Input
           className="bg-card! text-foreground!"
-          placeholder="Enter your street address"
+          placeholder={t("auth.address.streetPlaceholder")}
         />
         <FieldError className="text-xs">{errors.streetAddress}</FieldError>
       </TextField>
@@ -170,10 +172,10 @@ export default function RegistrationAddressFields({
         isDisabled={isDisabled}
         isInvalid={postalError ? true : undefined}
       >
-        <Label>Postal Code</Label>
+        <Label>{t("auth.address.postal")}</Label>
         <Input
           className="bg-card! text-foreground!"
-          placeholder="Enter your postal code"
+          placeholder={t("auth.address.postalPlaceholder")}
           inputMode="numeric"
           maxLength={4}
         />

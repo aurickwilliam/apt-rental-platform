@@ -65,12 +65,12 @@ test("My Rental splits rental context from fresh financial reads and localizes f
   assert.match(page, /financeLoading \? \(\s*<RentFinanceSkeleton \/>/);
   assert.match(page, /financeError \? \(\s*<RentFinanceError /);
   assert.match(page, /paymentError \? \(\s*<RentFinanceError/);
-  assert.match(page, /<PaymentHistorySkeleton \/>/);
+  assert.match(source("app/tenant/my-rental/components/PaymentHistoryCard.tsx"), /<PaymentHistorySkeleton \/>/);
   assert.match(page, /void retryFinance\(\)/);
-  // Pay Now remains inside the only branch that has authoritative finance.
-  assert.ok(page.indexOf("Pay now") > page.indexOf("financeError ?"), "payment actions must wait for finance data");
-  assert.ok(page.indexOf("Pay now") > page.indexOf("paymentError ? ("), "payment actions must wait for payment history");
-  assert.ok(page.indexOf("Pay now") > page.indexOf("<RentFinanceSkeleton />"));
+  // The payment card (Pay now) remains inside the only branch that has authoritative finance.
+  assert.ok(page.indexOf("<PaymentSummaryCard") > page.indexOf("financeError ?"), "payment actions must wait for finance data");
+  assert.ok(page.indexOf("<PaymentSummaryCard") > page.indexOf("paymentError ? ("), "payment actions must wait for payment history");
+  assert.ok(page.indexOf("<PaymentSummaryCard") > page.indexOf("<RentFinanceSkeleton />"));
 });
 
 test("Payment checkout waits for the same authoritative financial reads", () => {

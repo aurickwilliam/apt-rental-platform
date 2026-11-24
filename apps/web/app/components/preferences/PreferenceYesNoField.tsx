@@ -3,6 +3,8 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
 import PreferenceOptionCard from "./PreferenceOptionCard";
 
 interface PreferenceYesNoFieldProps {
@@ -29,6 +31,7 @@ export default function PreferenceYesNoField({
   required = false,
   error,
 }: PreferenceYesNoFieldProps) {
+  const { t } = useTranslation();
   const labelId = useId();
   const errorId = useId();
 
@@ -57,8 +60,8 @@ export default function PreferenceYesNoField({
         aria-describedby={error ? errorId : undefined}
       >
         {[
-          { option: true, text: "Yes" },
-          { option: false, text: "No" },
+          { option: true, text: t("common.yes") },
+          { option: false, text: t("common.no") },
         ].map(({ option, text }) => (
           <PreferenceOptionCard
             key={text}

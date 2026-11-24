@@ -16,6 +16,8 @@ interface AvaMessageProps {
   isFavorite: (apartmentId: string) => boolean;
   favoriteLoadingId: string | null;
   onToggleFavorite: (apartmentId: string) => void;
+  /** Listing columns: 2 in the drawer, 3 on the full page. */
+  columns?: 2 | 3;
 }
 
 // The tenant's messages sit in a soft bubble on the right; Ava's replies read
@@ -29,6 +31,7 @@ export default function AvaMessage({
   isFavorite,
   favoriteLoadingId,
   onToggleFavorite,
+  columns = 2,
 }: AvaMessageProps) {
   if (message.role === "user") {
     return (
@@ -48,7 +51,7 @@ export default function AvaMessage({
 
       {listings.length > 0 && (
         <>
-          <ul className="grid grid-cols-2 gap-3" aria-label="Matching apartments">
+          <ul className={`grid gap-3 ${columns === 3 ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-2"}`} aria-label="Matching apartments">
             {listings.map((listing) => (
               <li key={listing.id} className="min-w-0">
                 <ApartmentCard
@@ -64,6 +67,11 @@ export default function AvaMessage({
                   onPress={() => onOpenListing(listing.id)}
                   sizes="200px"
                 />
+                {message.notes?.[listing.id] && (
+                  <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
+                    {message.notes[listing.id]}
+                  </p>
+                )}
               </li>
             ))}
           </ul>

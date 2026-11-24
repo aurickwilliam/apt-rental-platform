@@ -87,12 +87,12 @@ beforeEach(() => {
 
 describe('RateTenantSheet', () => {
   it('submits a new rating, shows a toast and closes', async () => {
-    render(<RateTenantSheet {...baseProps} />)
+    await render(<RateTenantSheet {...baseProps} />)
 
     expect(screen.getByText('Rate Maria Santos')).toBeTruthy()
-    fireEvent.press(screen.getByLabelText('Rate 5 stars'))
-    fireEvent.changeText(screen.getByPlaceholderText(/Paid on time/), '  Tidy unit  ')
-    fireEvent.press(screen.getByText('Submit Rating'))
+    await fireEvent.press(screen.getByLabelText('Rate 5 stars'))
+    await fireEvent.changeText(screen.getByPlaceholderText(/Paid on time/), '  Tidy unit  ')
+    await fireEvent.press(screen.getByText('Submit Rating'))
 
     await waitFor(() =>
       expect(mockSubmit).toHaveBeenCalledWith({
@@ -106,52 +106,52 @@ describe('RateTenantSheet', () => {
     expect(baseProps.onClose).toHaveBeenCalled()
   })
 
-  it('asks for a rating before calling the database', () => {
-    render(<RateTenantSheet {...baseProps} />)
+  it('asks for a rating before calling the database', async () => {
+    await render(<RateTenantSheet {...baseProps} />)
 
-    fireEvent.press(screen.getByText('Submit Rating'))
+    await fireEvent.press(screen.getByText('Submit Rating'))
 
     expect(screen.getByText('Choose a rating from 1 to 5.')).toBeTruthy()
     expect(mockSubmit).not.toHaveBeenCalled()
   })
 
-  it("opens in edit mode seeded with the landlord's own saved rating", () => {
-    render(<RateTenantSheet {...baseProps} savedRating={{ rating: 4, comment: 'Paid on time' }} />)
+  it("opens in edit mode seeded with the landlord's own saved rating", async () => {
+    await render(<RateTenantSheet {...baseProps} savedRating={{ rating: 4, comment: 'Paid on time' }} />)
 
     expect(screen.getByText('Edit your rating')).toBeTruthy()
     expect(screen.getByDisplayValue('Paid on time')).toBeTruthy()
     expect(screen.getByText('Save Changes')).toBeTruthy()
   })
 
-  it('reseeds the draft from the saved rating every time it opens', () => {
-    const view = render(<RateTenantSheet {...baseProps} savedRating={{ rating: 4, comment: 'Paid on time' }} />)
+  it('reseeds the draft from the saved rating every time it opens', async () => {
+    const view = await render(<RateTenantSheet {...baseProps} savedRating={{ rating: 4, comment: 'Paid on time' }} />)
 
-    fireEvent.changeText(screen.getByDisplayValue('Paid on time'), 'Changed my mind')
-    view.rerender(<RateTenantSheet {...baseProps} isOpen={false} savedRating={{ rating: 4, comment: 'Paid on time' }} />)
-    view.rerender(<RateTenantSheet {...baseProps} isOpen savedRating={{ rating: 2, comment: 'Updated elsewhere' }} />)
+    await fireEvent.changeText(screen.getByDisplayValue('Paid on time'), 'Changed my mind')
+    await view.rerender(<RateTenantSheet {...baseProps} isOpen={false} savedRating={{ rating: 4, comment: 'Paid on time' }} />)
+    await view.rerender(<RateTenantSheet {...baseProps} isOpen savedRating={{ rating: 2, comment: 'Updated elsewhere' }} />)
 
     expect(screen.getByDisplayValue('Updated elsewhere')).toBeTruthy()
     expect(screen.queryByDisplayValue('Changed my mind')).toBeNull()
   })
 
-  it('pauses saving when the saved rating could not be loaded, and offers a retry', () => {
-    render(<RateTenantSheet {...baseProps} loadFailed />)
+  it('pauses saving when the saved rating could not be loaded, and offers a retry', async () => {
+    await render(<RateTenantSheet {...baseProps} loadFailed />)
 
     expect(screen.getByText(/saving is paused/)).toBeTruthy()
-    fireEvent.press(screen.getByLabelText('Rate 3 stars'))
-    fireEvent.press(screen.getByText('Submit Rating'))
+    await fireEvent.press(screen.getByLabelText('Rate 3 stars'))
+    await fireEvent.press(screen.getByText('Submit Rating'))
     expect(mockSubmit).not.toHaveBeenCalled()
 
-    fireEvent.press(screen.getByText('Try again'))
+    await fireEvent.press(screen.getByText('Try again'))
     expect(baseProps.onRetry).toHaveBeenCalled()
   })
 
   it('shows the database message when saving fails and stays open', async () => {
     mockSubmit.mockRejectedValue(new Error('You can rate a tenant once the lease has ended.'))
-    render(<RateTenantSheet {...baseProps} />)
+    await render(<RateTenantSheet {...baseProps} />)
 
-    fireEvent.press(screen.getByLabelText('Rate 2 stars'))
-    fireEvent.press(screen.getByText('Submit Rating'))
+    await fireEvent.press(screen.getByLabelText('Rate 2 stars'))
+    await fireEvent.press(screen.getByText('Submit Rating'))
 
     expect(await screen.findByText('You can rate a tenant once the lease has ended.')).toBeTruthy()
     expect(baseProps.onClose).not.toHaveBeenCalled()

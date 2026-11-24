@@ -23,6 +23,7 @@ export type Property = {
   furnished_type: string | null;
   floor_level: string | null;
   lease_duration: string | null;
+  has_own_electricity_meter: boolean;
   latitude: number | null;
   longitude: number | null;
   amenities: string[];

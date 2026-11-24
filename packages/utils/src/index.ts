@@ -1,4 +1,6 @@
 export { getRelativeTime } from './getRelativeTime';
+export * from './leaseRenewal';
+export {fetchEffectiveLeaseTermsWith,type EffectiveLeaseTerms} from './effectiveLeaseTerms';
 export { emptyHistoryFilters, filterMaintenanceHistory, historyFilterCount, HISTORY_DATE_OPTIONS } from './maintenanceHistoryFilters';
 export type { HistoryDateFilter, MaintenanceHistoryFilters } from './maintenanceHistoryFilters';
 export { isReviewStayEligible } from './reviewEligibility';
@@ -11,6 +13,8 @@ export {
   validateTenantReview,
   hasTenantReviewErrors,
   summarizeTenantReviews,
+  describeTenantRatingSummary,
+  APPLICANT_RATINGS_PREVIEW_LIMIT,
   prepareTenantReview,
   toTenantReviewRecords,
 } from './tenantReview';
@@ -74,7 +78,14 @@ export {
   parseLockoutReminder,
   type LockoutReminder,
 } from './authLockout';
-export { parseResendWaitSeconds, getEmailCodeRequestError, getOtpAttemptError, MAX_OTP_ATTEMPTS } from './otpErrors';
+export {
+  parseResendWaitSeconds,
+  emailCodeRequestErrorMessage,
+  otpAttemptErrorMessage,
+  getEmailCodeRequestError,
+  getOtpAttemptError,
+  MAX_OTP_ATTEMPTS,
+} from './otpErrors';
 export {
   MINIMUM_AGE,
   MAXIMUM_AGE,
@@ -118,6 +129,12 @@ export {
   extractRawNumber
 } from './formatCurrencyInput';
 export { formatPesoCompact } from './formatPesoCompact';
+export {
+  buildApartmentShareText,
+  buildApartmentShareMessage,
+  getApartmentSharePath,
+} from './apartmentShare';
+export type { ApartmentShareInput } from './apartmentShare';
 export {
   EMPTY_ATTENTION,
   TREND_TIMEFRAMES,
@@ -182,6 +199,8 @@ export {
   toPasswordErrorReason,
   describeAuthError,
   toPasswordError,
+  passwordErrorKey,
+  passwordErrorMessage,
 } from './passwordErrors';
 export { type AuthIdentityUser, hasEmailPasswordIdentity } from './authIdentity';
 export {
@@ -208,6 +227,8 @@ export {
   EmailChangeError,
   toEmailChangeErrorReason,
   toEmailChangeError,
+  emailChangeErrorKey,
+  emailChangeErrorMessage,
   EMAIL_CHANGE_CODE_LENGTH,
   EMAIL_CHANGE_RESEND_COOLDOWN_SECONDS,
   isEmailChangeCodeFormat,
@@ -311,6 +332,9 @@ export {
   countAiSearchFilters,
   parseSearchKeywords,
   aiFiltersToBrowseParams,
+  mergeAiFilters,
+  isBrowseExpressible,
+  wantsAnyArea,
 } from './aiSearch';
 export {
   AVA_RESULT_LIMIT,
@@ -323,6 +347,7 @@ export {
   AVA_LOOSEN_QUICK_REPLIES,
   type AvaSource,
   type AvaTurn,
+  type AvaSearchState,
   type AvaAnswer,
   type AvaReply,
   hasAvaQuestion,
@@ -330,7 +355,61 @@ export {
   readAvaResponse,
   shouldSearchForAva,
   composeAvaReply,
+  avaSourceNote,
+  shouldAskAvaModel,
+  wantsMoreResults,
+  avaConversationLanguage,
 } from './avaChat';
+export { detectMessageLanguage, detectReplyLanguage, detectConversationLanguage, type AvaLanguage } from './avaLanguage';
+export { AVA_STRINGS, type AvaStrings } from './avaStrings';
+export {
+  resolveLandmark,
+  targetFromKey,
+  type LandmarkResolution,
+  type LandmarkTarget,
+} from './avaLandmarks';
+export {
+  AVA_NEAR_KM,
+  AVA_NEARBY_KM,
+  haversineKm,
+  rankByProximity,
+  formatDistance,
+  type ProximityScenario,
+} from './avaProximity';
+export { smallTalkKind, type AvaSmallTalkKind } from './avaSmallTalk';
+export {
+  asksAboutPreferences,
+  describePreferences,
+  hasAvaPreferences,
+  preferencesToFilters,
+  type AvaPreferences,
+  type AvaPreferenceIntent,
+} from './avaPreferences';
+export {
+  AVA_PROXIMITY_POOL,
+  answerAva,
+  buildAvaRequest,
+  describeListing,
+  deriveAvaContext,
+  type AvaCandidate,
+  type AvaFound,
+  type AvaFetchRequest,
+  type AvaListingFetcher,
+  type AvaOutcome,
+} from './avaSearch';
+export {
+  AVA_MAX_SAVED_CHATS,
+  AVA_MAX_SAVED_MESSAGES,
+  avaChatTitle,
+  upsertAvaChat,
+  removeAvaChat,
+  parseSavedAvaChats,
+  groupAvaChatsByAge,
+  type AvaSavedChat,
+  type AvaSavedMessage,
+  type AvaHistoryGroup,
+  type AvaHistoryGroupLabel,
+} from './avaHistory';
 export * from './browseRows';
 export * from './rangeInput';
 export * from './applicationPreferences';
@@ -356,3 +435,18 @@ export {
   trimVehicles,
   spotsForVehicles,
 } from './preferenceLinking';
+export {
+  TUTORIAL_TARGETS,
+  getTutorialSteps,
+  hasFinishedTutorial,
+  shouldAutoStartTutorial,
+} from './tutorial';
+export type {
+  TutorialPortal,
+  TutorialPlatform,
+  TutorialStep,
+  TutorialStepId,
+  TutorialContext,
+  TutorialProgressRow,
+  AutoStartInput,
+} from './tutorial';

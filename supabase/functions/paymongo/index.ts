@@ -124,6 +124,7 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = {
 }
 
 type CheckoutSessionPayload = {
+  renewalProposalId?: string
   referenceId: string
   amount: number
   description: string
@@ -265,6 +266,7 @@ async function resolveTenancy(req: Request, tenancyId?: string): Promise<{ tenan
 }
 
 type PaymentRecord = {
+  renewalProposalId?: string
   tenantId: string
   tenancy: TenancyContext
   referenceId: string
@@ -280,6 +282,7 @@ type PaymentRecord = {
 // PayMongo call).
 async function recordPayment(params: PaymentRecord): Promise<string> {
   const { data, error } = await dbClient.from('payment').insert({
+    ...(params.renewalProposalId ? { renewal_proposal_id: params.renewalProposalId } : {}),
     tenant_id: params.tenantId,
     tenancy_id: params.tenancy.id,
     apartment_id: params.tenancy.apartment_id,
@@ -319,6 +322,7 @@ async function reservePayment(req: Request, payload: CheckoutSessionPayload, met
   await assertLandlordAcceptsMethod(tenancy.landlord_id, method)
   await closeUnfinishedOnlineAttempts(tenantId, tenancy.id, payload.periodStart)
   return recordPayment({ tenantId, tenancy, referenceId: payload.referenceId, method,
+    renewalProposalId: payload.renewalProposalId,
     amount: payload.amount, periodStart: payload.periodStart, periodEnd: payload.periodEnd, dueDate: payload.dueDate })
 }
 

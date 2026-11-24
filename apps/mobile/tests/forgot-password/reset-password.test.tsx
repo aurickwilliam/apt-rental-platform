@@ -65,13 +65,13 @@ const PASSWORD = "N3w!Passw0rd";
 
 async function renderWithSession(valid = true) {
   mockHasSession.mockResolvedValueOnce(valid);
-  render(<ResetPassword />);
+  await render(<ResetPassword />);
   await act(async () => {});
 }
 
-function fillPasswords(password = PASSWORD, confirm = password) {
-  fireEvent.changeText(screen.getByPlaceholderText("Create a password"), password);
-  fireEvent.changeText(screen.getByPlaceholderText("Confirm your password"), confirm);
+async function fillPasswords(password = PASSWORD, confirm = password) {
+  await fireEvent.changeText(screen.getByPlaceholderText("Create a password"), password);
+  await fireEvent.changeText(screen.getByPlaceholderText("Confirm your password"), confirm);
 }
 
 const submitButton = () => screen.getByRole("button", { name: /Submit|Saving/ });
@@ -110,8 +110,8 @@ describe("Reset password screen", () => {
     mockUpdatePassword.mockRejectedValueOnce(new Error(`server rejected ${PASSWORD}`));
     await renderWithSession();
 
-    fillPasswords();
-    fireEvent.press(submitButton());
+    await fillPasswords();
+    await fireEvent.press(submitButton());
 
     expect(await screen.findByText(/Error: Something went wrong/)).toBeTruthy();
   });
@@ -124,10 +124,10 @@ describe("Reset password screen", () => {
     expect(mockEndRecovery).not.toHaveBeenCalled();
   });
 
-  it("keeps submit disabled until the session is confirmed", () => {
+  it("keeps submit disabled until the session is confirmed", async () => {
     mockHasSession.mockReturnValueOnce(new Promise(() => {}));
-    render(<ResetPassword />);
-    fillPasswords();
+    await render(<ResetPassword />);
+    await fillPasswords();
     expect(submitButton().props.accessibilityState.disabled).toBe(true);
   });
 
@@ -135,8 +135,8 @@ describe("Reset password screen", () => {
     mockUpdatePassword.mockResolvedValueOnce(undefined);
     await renderWithSession();
 
-    fillPasswords();
-    fireEvent.press(submitButton());
+    await fillPasswords();
+    await fireEvent.press(submitButton());
 
     await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith("/forgot-password/updated"));
     expect(mockUpdatePassword).toHaveBeenCalledWith(PASSWORD);
@@ -153,8 +153,8 @@ describe("Reset password screen", () => {
   it("checks the password locally before calling the server", async () => {
     await renderWithSession();
 
-    fillPasswords("weak", "weak");
-    fireEvent.press(submitButton());
+    await fillPasswords("weak", "weak");
+    await fireEvent.press(submitButton());
 
     expect(mockUpdatePassword).not.toHaveBeenCalled();
   });
@@ -164,21 +164,23 @@ describe("Reset password screen", () => {
     mockUpdatePassword.mockReturnValueOnce(new Promise<void>((resolve) => { resolveUpdate = resolve; }));
     await renderWithSession();
 
-    fillPasswords();
-    fireEvent.press(submitButton());
+    await fillPasswords();
+    // fireEvent settles the handler's promise, which stays pending until we resolve it.
+    const firstPress = fireEvent.press(submitButton());
     expect(await screen.findByText("Saving...")).toBeTruthy();
-    fireEvent.press(submitButton());
+    await fireEvent.press(submitButton());
     expect(mockUpdatePassword).toHaveBeenCalledTimes(1);
 
     await act(async () => resolveUpdate());
+    await firstPress;
   });
 
   it("keeps the form and shows server password rules inline", async () => {
     mockUpdatePassword.mockRejectedValueOnce(new PasswordError("same_password"));
     await renderWithSession();
 
-    fillPasswords();
-    fireEvent.press(submitButton());
+    await fillPasswords();
+    await fireEvent.press(submitButton());
 
     expect(await screen.findByText(/must be different from your current password/)).toBeTruthy();
     expect(screen.getByPlaceholderText("Create a password").props.value).toBe(PASSWORD);
@@ -190,13 +192,13 @@ describe("Reset password screen", () => {
     mockUpdatePassword.mockRejectedValueOnce(new PasswordError("session_expired"));
     await renderWithSession();
 
-    fillPasswords();
-    fireEvent.press(submitButton());
+    await fillPasswords();
+    await fireEvent.press(submitButton());
 
     expect(await screen.findByText(/Your reset session has expired/)).toBeTruthy();
     expect(mockRouter.replace).not.toHaveBeenCalled();
 
-    fireEvent.press(screen.getByLabelText("Close error"));
+    await fireEvent.press(screen.getByLabelText("Close error"));
     await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith("/forgot-password"));
     expect(mockEndRecovery).toHaveBeenCalledWith();
   });

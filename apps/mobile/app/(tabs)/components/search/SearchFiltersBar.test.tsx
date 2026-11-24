@@ -36,47 +36,47 @@ const baseProps = {
 };
 
 describe("SearchFiltersBar", () => {
-  it("has no row under the field in the default view, so nothing pushes the first section down", () => {
-    render(<SearchFiltersBar {...baseProps} />);
+  it("has no row under the field in the default view, so nothing pushes the first section down", async () => {
+    await render(<SearchFiltersBar {...baseProps} />);
     expect(screen.queryByTestId("search-meta-row")).toBeNull();
   });
 
-  it("shows the result count once a search or filter has one", () => {
-    render(<SearchFiltersBar {...baseProps} resultCount={3} />);
+  it("shows the result count once a search or filter has one", async () => {
+    await render(<SearchFiltersBar {...baseProps} resultCount={3} />);
     expect(screen.getByTestId("search-meta-row")).toBeTruthy();
     expect(screen.getByText("3 apartments found")).toBeTruthy();
   });
 
-  it("uses the singular for one result and hides the count while loading", () => {
-    const { rerender } = render(<SearchFiltersBar {...baseProps} resultCount={1} />);
+  it("uses the singular for one result and hides the count while loading", async () => {
+    const { rerender } = await render(<SearchFiltersBar {...baseProps} resultCount={1} />);
     expect(screen.getByText("1 apartment found")).toBeTruthy();
-    rerender(<SearchFiltersBar {...baseProps} resultCount={1} loading />);
+    await rerender(<SearchFiltersBar {...baseProps} resultCount={1} loading />);
     expect(screen.queryByText("1 apartment found")).toBeNull();
     expect(screen.queryByTestId("search-meta-row")).toBeNull();
   });
 
-  it("offers Clear filters while filters are active", () => {
-    render(<SearchFiltersBar {...baseProps} activeFilterCount={2} />);
+  it("offers Clear filters while filters are active", async () => {
+    await render(<SearchFiltersBar {...baseProps} activeFilterCount={2} />);
     expect(screen.getByText("Clear filters")).toBeTruthy();
   });
 
-  it("keeps Filters inside the bar, with a count badge", () => {
+  it("keeps Filters inside the bar, with a count badge", async () => {
     const onFilterPress = jest.fn();
-    render(<SearchFiltersBar {...baseProps} onFilterPress={onFilterPress} activeFilterCount={12} />);
-    fireEvent.press(screen.getByLabelText("Filters"));
+    await render(<SearchFiltersBar {...baseProps} onFilterPress={onFilterPress} activeFilterCount={12} />);
+    await fireEvent.press(screen.getByLabelText("Filters"));
     expect(onFilterPress).toHaveBeenCalledTimes(1);
     expect(screen.getByText("9+")).toBeTruthy();
   });
 
-  it("holds no Ava entry, and no search button at the end of the bar", () => {
-    render(<SearchFiltersBar {...baseProps} />);
+  it("holds no Ava entry, and no search button at the end of the bar", async () => {
+    await render(<SearchFiltersBar {...baseProps} />);
     expect(screen.queryByLabelText("Ask Ava, the APT Virtual Assistant")).toBeNull();
     // The magnifier at the left is the only search control besides the keyboard.
     expect(screen.getAllByLabelText("Search")).toHaveLength(1);
   });
 
-  it("renders the city chips under the field, above the count row", () => {
-    render(<SearchFiltersBar {...baseProps} resultCount={3} belowField={<Text>CHIPS</Text>} />);
+  it("renders the city chips under the field, above the count row", async () => {
+    await render(<SearchFiltersBar {...baseProps} resultCount={3} belowField={<Text>CHIPS</Text>} />);
     expect(screen.getByText("CHIPS")).toBeTruthy();
     const order = JSON.stringify(screen.toJSON());
     expect(order.indexOf("CHIPS")).toBeGreaterThan(-1);

@@ -16,4 +16,5 @@ it("recognises only known method names and labels the card readably", () => {
   expect(isPaymentMethod("PayPal")).toBe(false);
   expect(paymentMethodLabel("Debit/Credit-Card")).toBe("Debit/Credit Card");
   expect(paymentMethodLabel("Bank Transfer")).toBe("Bank Transfer");
+  expect(paymentMethodLabel("Cash", "fil")).toBe("Cash");
 });

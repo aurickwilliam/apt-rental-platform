@@ -9,6 +9,7 @@ import { Card, Button } from "@heroui/react";
 import PhotoGalleryModal from "@/app/components/display/PhotoGalleryModal";
 import StarRating from "@/app/components/display/StarRating";
 import UserAvatar from "@/app/components/profile/UserAvatar";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 const REVIEW_CHAR_LIMIT = 150;
 const MAX_VISIBLE_THUMBNAILS = 4;
@@ -37,6 +38,7 @@ export default function ReviewCard({
   footer,
   className,
 }: ReviewCardProps) {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
 
@@ -97,7 +99,7 @@ export default function ReviewCard({
             onClick={() => setIsExpanded((prev) => !prev)}
             className="button--bare mt-1 text-sm font-medium text-brand"
           >
-            {isExpanded ? "Show less" : "Read more"}
+            {isExpanded ? t("reviews.card.showLess") : t("reviews.card.readMore")}
           </Button>
         )}
 
@@ -114,12 +116,12 @@ export default function ReviewCard({
                   onClick={() =>
                     openGalleryAt(showOverlay ? MAX_VISIBLE_THUMBNAILS : index)
                   }
-                  aria-label={`View review photo ${showOverlay ? MAX_VISIBLE_THUMBNAILS + 1 : index + 1}`}
+                  aria-label={t("reviews.card.photoAria", { index: showOverlay ? MAX_VISIBLE_THUMBNAILS + 1 : index + 1 })}
                   className="button--bare relative size-16 cursor-pointer overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-primary"
                 >
                   <Image
                     src={src}
-                    alt={`Review photo ${index + 1}`}
+                    alt={t("reviews.card.photoAlt", { index: index + 1 })}
                     width={64}
                     height={64}
                     className="size-full object-cover"

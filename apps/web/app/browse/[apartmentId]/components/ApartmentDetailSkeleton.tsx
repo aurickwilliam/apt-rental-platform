@@ -1,4 +1,8 @@
+"use client";
+
 import { Skeleton } from "@heroui/react";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 function SpecRowSkeleton() {
   return (
@@ -31,10 +35,12 @@ function MiniCardSkeleton() {
 // (top bar, gallery, content + price rail, related row) so the shimmer
 // resolves into the real layout instead of the browse card grid.
 export default function ApartmentDetailSkeleton() {
+  const { t } = useTranslation();
+
   return (
     <div
       role="status"
-      aria-label="Loading apartment details"
+      aria-label={t("apartment.loadingDetails")}
       aria-busy="true"
       className="max-w-7xl mx-auto p-4 sm:p-6 w-full min-w-0 overflow-x-clip"
     >

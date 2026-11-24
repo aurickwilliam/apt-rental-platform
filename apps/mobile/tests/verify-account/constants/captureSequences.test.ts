@@ -22,8 +22,8 @@ describe('getCaptureSequence', () => {
     for (const idType of NON_PASSPORT_ID_TYPES) {
       const sequence = getCaptureSequence(idType);
       expect(sequence).toEqual([
-        { id: 'front', label: 'Front', aspectRatio: CARD_ASPECT_RATIO, cameraFacing: 'back', guideShape: 'rectangle' },
-        { id: 'back', label: 'Back', aspectRatio: CARD_ASPECT_RATIO, cameraFacing: 'back', guideShape: 'rectangle' },
+        { id: 'front', labelKey: 'authMobile.capture.front', aspectRatio: CARD_ASPECT_RATIO, cameraFacing: 'back', guideShape: 'rectangle' },
+        { id: 'back', labelKey: 'authMobile.capture.back', aspectRatio: CARD_ASPECT_RATIO, cameraFacing: 'back', guideShape: 'rectangle' },
       ]);
     }
   });
@@ -33,7 +33,7 @@ describe('getCaptureSequence', () => {
     expect(sequence).toHaveLength(1);
     expect(sequence[0]).toMatchObject({
       id: 'identity-page',
-      label: 'Identity Page',
+      labelKey: 'authMobile.capture.identityPage',
       cameraFacing: 'back',
       guideShape: 'rectangle',
     });
@@ -55,8 +55,8 @@ describe('getCaptureSequence', () => {
   it('returns CARD_SEQUENCE (fallback behavior) for an arbitrary unrecognized string', () => {
     const sequence = getCaptureSequence('Some Unrecognized ID Type');
     expect(sequence).toEqual([
-      { id: 'front', label: 'Front', aspectRatio: CARD_ASPECT_RATIO, cameraFacing: 'back', guideShape: 'rectangle' },
-      { id: 'back', label: 'Back', aspectRatio: CARD_ASPECT_RATIO, cameraFacing: 'back', guideShape: 'rectangle' },
+      { id: 'front', labelKey: 'authMobile.capture.front', aspectRatio: CARD_ASPECT_RATIO, cameraFacing: 'back', guideShape: 'rectangle' },
+      { id: 'back', labelKey: 'authMobile.capture.back', aspectRatio: CARD_ASPECT_RATIO, cameraFacing: 'back', guideShape: 'rectangle' },
     ]);
   });
 

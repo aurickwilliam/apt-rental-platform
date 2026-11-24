@@ -6,12 +6,12 @@ describe('usePullToRefresh', () => {
   it('is refreshing only while a pull is in progress', async () => {
     let finish: () => void = () => {};
     const refresh = jest.fn(() => new Promise<void>((resolve) => { finish = resolve; }));
-    const { result } = renderHook(() => usePullToRefresh(refresh));
+    const { result } = await renderHook(() => usePullToRefresh(refresh));
 
     expect(result.current.refreshing).toBe(false);
 
     let pull: Promise<void> = Promise.resolve();
-    act(() => {
+    await act(() => {
       pull = result.current.onRefresh();
     });
     expect(result.current.refreshing).toBe(true);
@@ -26,7 +26,7 @@ describe('usePullToRefresh', () => {
 
   it('stops refreshing and logs when the refresh fails', async () => {
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       usePullToRefresh(() => Promise.reject(new Error('offline')))
     );
 

@@ -13,7 +13,7 @@ jest.mock('hooks/auth', () => ({
 }))
 
 it('rejects an own-property visit before inserting a request', async () => {
-  const { result } = renderHook(() => useSubmitVisitRequest())
+  const { result } = await renderHook(() => useSubmitVisitRequest())
   let response: { success: boolean } | undefined
 
   await act(async () => {

@@ -1,15 +1,13 @@
-import { formatPesoDisplay } from "@repo/utils";
+import {
+  buildApartmentShareMessage as buildShareMessage,
+  type ApartmentShareInput,
+} from "@repo/utils";
+
+export type { ApartmentShareInput };
 
 /** Public web address of the site (`EXPO_PUBLIC_WEB_URL`), if configured. */
 export function getShareWebBaseUrl(): string | undefined {
   return process.env.EXPO_PUBLIC_WEB_URL;
-}
-
-export interface ApartmentShareInput {
-  id: string;
-  name?: string | null;
-  city?: string | null;
-  monthly_rent?: number | null;
 }
 
 /**
@@ -21,20 +19,5 @@ export function buildApartmentShareMessage(
   apartment: ApartmentShareInput,
   webBaseUrl: string | null | undefined = getShareWebBaseUrl(),
 ): string {
-  const title = apartment.name?.trim() || "an apartment";
-  const details = [
-    apartment.city?.trim(),
-    apartment.monthly_rent != null
-      ? `${formatPesoDisplay(apartment.monthly_rent)}/month`
-      : null,
-  ].filter(Boolean);
-
-  const lines = [
-    `Check out ${title} on APT${details.length ? ` — ${details.join(" · ")}` : ""}`,
-  ];
-
-  const base = webBaseUrl?.trim().replace(/\/+$/, "");
-  if (base) lines.push(`${base}/browse/${apartment.id}`);
-
-  return lines.join("\n");
+  return buildShareMessage(apartment, webBaseUrl);
 }

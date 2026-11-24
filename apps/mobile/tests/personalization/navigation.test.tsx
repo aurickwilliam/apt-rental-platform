@@ -77,20 +77,20 @@ it.each([
   [StepTwo, "/personalization/step-three"],
   [StepThree, "/personalization/step-four"],
   [StepFour, "/personalization/step-five"],
-] as const)("offers Next even with unanswered questions (%#)", (Screen, nextRoute) => {
-  const screen = render(<Screen />);
+] as const)("offers Next even with unanswered questions (%#)", async (Screen, nextRoute) => {
+  const screen = await render(<Screen />);
   expect(screen.queryByText("Skip")).toBeNull();
-  fireEvent.press(screen.getByText("Next"));
+  await fireEvent.press(screen.getByText("Next"));
   expect(mockReplace).toHaveBeenCalledWith(nextRoute);
 });
 
-it("disables Back on the first step and gives both buttons equal width", () => {
-  const screen = render(<StepOne />);
+it("disables Back on the first step and gives both buttons equal width", async () => {
+  const screen = await render(<StepOne />);
   const buttons = screen.getAllByRole("button");
   expect(buttons).toHaveLength(2);
   expect(buttons[0].props.accessibilityState.disabled).toBe(true);
   expect(buttons.map((button) => button.props.className)).toEqual(["flex-1", "flex-1"]);
-  fireEvent.press(screen.getByText("Back"));
+  await fireEvent.press(screen.getByText("Back"));
   expect(mockReplace).not.toHaveBeenCalled();
 });
 
@@ -99,7 +99,7 @@ it.each([
   [StepThree, "/personalization/step-two"],
   [StepFour, "/personalization/step-three"],
   [StepFive, "/personalization/step-four"],
-] as const)("returns to the previous step without clearing answers (%#)", (Screen, previousRoute) => {
+] as const)("returns to the previous step without clearing answers (%#)", async (Screen, previousRoute) => {
   const store = usePersonalizationStore.getState();
   store.toggleCity("Caloocan");
   store.setBudgetRange(10_000, 20_000);
@@ -107,8 +107,8 @@ it.each([
   store.setHouseholdSize("Single");
   store.setHasSmoker(true);
   const before = usePersonalizationStore.getState();
-  const screen = render(<Screen />);
-  fireEvent.press(screen.getByText("Back"));
+  const screen = await render(<Screen />);
+  await fireEvent.press(screen.getByText("Back"));
   expect(mockReplace).toHaveBeenCalledWith(previousRoute);
   expect(usePersonalizationStore.getState()).toBe(before);
 });
@@ -116,69 +116,69 @@ it.each([
 it("opens Rentals after saving and shows the welcome there until Continue", async () => {
   mockProfile = { user_id: "new-account" };
   usePersonalizationStore.getState().toggleCity("Caloocan");
-  const screen = render(<StepFive />);
+  const screen = await render(<StepFive />);
   expect(screen.queryByText("Welcome to APT!")).toBeNull();
-  fireEvent.press(screen.getByText("Let's find your place!"));
+  await fireEvent.press(screen.getByText("Let's find your place!"));
   await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/(tabs)/(tenant)/rentals"));
   expect(mockSave).toHaveBeenCalledWith("user_id", "new-account");
   expect(screen.queryByText("Welcome to APT!")).toBeNull();
   expect(usePersonalizationStore.getState().selectedCities).toEqual([]);
-  screen.unmount();
-  const rentals = render(<RentalsWelcomeGate />);
+  await screen.unmount();
+  const rentals = await render(<RentalsWelcomeGate />);
   expect(rentals.getByText("Your account is ready. Let’s start your rental journey!")).toBeTruthy();
   expect(rentals.getByText("Change your preferences anytime in Settings.").props.className).toContain("text-xs");
   expect(rentals.getByTestId("welcome-dialog").props.accessibilityState.disabled).toBe(true);
-  fireEvent.press(rentals.getByTestId("dismiss-attempt"));
+  await fireEvent.press(rentals.getByTestId("dismiss-attempt"));
   expect(rentals.getByText("Welcome to APT!")).toBeTruthy();
-  fireEvent.press(rentals.getByText("Continue"));
+  await fireEvent.press(rentals.getByText("Continue"));
   expect(rentals.queryByText("Welcome to APT!")).toBeNull();
   expect(mockReplace).toHaveBeenCalledTimes(1);
-  rentals.unmount();
-  expect(render(<RentalsWelcomeGate />).queryByText("Welcome to APT!")).toBeNull();
+  await rentals.unmount();
+  expect((await render(<RentalsWelcomeGate />)).queryByText("Welcome to APT!")).toBeNull();
 });
 
-it("does not show the welcome on an unfocused tab or for a different account", () => {
+it("does not show the welcome on an unfocused tab or for a different account", async () => {
   useWelcomeStore.getState().request("new-account");
   mockProfile = { user_id: "other-account" };
-  const screen = render(<RentalsWelcomeGate />);
+  const screen = await render(<RentalsWelcomeGate />);
   expect(screen.queryByText("Welcome to APT!")).toBeNull();
   mockProfile = { user_id: "new-account" };
   mockFocused = false;
-  screen.rerender(<RentalsWelcomeGate />);
+  await screen.rerender(<RentalsWelcomeGate />);
   expect(screen.queryByText("Welcome to APT!")).toBeNull();
   mockFocused = true;
-  screen.rerender(<RentalsWelcomeGate />);
+  await screen.rerender(<RentalsWelcomeGate />);
   expect(screen.getByText("Welcome to APT!")).toBeTruthy();
 });
 
 it("waits for the profile and shows the Rentals welcome when all options are unanswered", async () => {
   mockProfileLoading = true;
-  const screen = render(<StepFive />);
-  fireEvent.press(screen.getByText("Loading account..."));
+  const screen = await render(<StepFive />);
+  await fireEvent.press(screen.getByText("Loading account..."));
   expect(mockSave).not.toHaveBeenCalled();
   expect(mockReplace).not.toHaveBeenCalled();
   mockProfileLoading = false;
   mockProfile = { user_id: "new-account" };
-  screen.rerender(<StepFive />);
-  fireEvent.press(screen.getByText("Let's find your place!"));
+  await screen.rerender(<StepFive />);
+  await fireEvent.press(screen.getByText("Let's find your place!"));
   await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/(tabs)/(tenant)/rentals"));
   expect(mockSave).toHaveBeenCalledWith("user_id", "new-account");
-  screen.unmount();
-  expect(render(<RentalsWelcomeGate />).getByText("Welcome to APT!")).toBeTruthy();
+  await screen.unmount();
+  expect((await render(<RentalsWelcomeGate />)).getByText("Welcome to APT!")).toBeTruthy();
 });
 
 it("retries an unavailable profile rather than bypassing the welcome", async () => {
   mockRefetchProfile.mockResolvedValue({ data: { user_id: "new-account" } });
-  const screen = render(<StepFive />);
-  fireEvent.press(screen.getByText("Let's find your place!"));
+  const screen = await render(<StepFive />);
+  await fireEvent.press(screen.getByText("Let's find your place!"));
   await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/(tabs)/(tenant)/rentals"));
   expect(mockRefetchProfile).toHaveBeenCalledTimes(1);
   expect(useWelcomeStore.getState().pendingAuthId).toBe("new-account");
 });
 
 it("stays on personalization with a retry notice if the profile is still unavailable", async () => {
-  const screen = render(<StepFive />);
-  fireEvent.press(screen.getByText("Let's find your place!"));
+  const screen = await render(<StepFive />);
+  await fireEvent.press(screen.getByText("Let's find your place!"));
   await waitFor(() => expect(mockToast).toHaveBeenCalledWith(expect.objectContaining({ label: "Couldn't load your account" })));
   expect(mockReplace).not.toHaveBeenCalled();
   expect(mockSave).not.toHaveBeenCalled();
@@ -190,8 +190,8 @@ it("keeps the draft and does not welcome the user when saving fails", async () =
   mockSave.mockResolvedValue({ error: { code: "TEST_FAILURE" } });
   const log = jest.spyOn(console, "error").mockImplementation(() => {});
   usePersonalizationStore.getState().toggleCity("Caloocan");
-  const screen = render(<StepFive />);
-  fireEvent.press(screen.getByText("Let's find your place!"));
+  const screen = await render(<StepFive />);
+  await fireEvent.press(screen.getByText("Let's find your place!"));
   await waitFor(() => expect(mockToast).toHaveBeenCalled());
   expect(screen.queryByText("Welcome to APT!")).toBeNull();
   expect(mockReplace).not.toHaveBeenCalled();

@@ -51,8 +51,8 @@ jest.mock("@/components/display/ErrorDialog", () => {
 const EMAIL = "tenant@example.com";
 const CODE = "123456";
 
-function enterCode(value: string) {
-  fireEvent.changeText(screen.getByLabelText("Recovery code"), value);
+async function enterCode(value: string) {
+  await fireEvent.changeText(screen.getByLabelText("Recovery code"), value);
 }
 
 // JSON.stringify drops Error messages; include them so leaks are caught.
@@ -83,23 +83,23 @@ describe("Recovery code screen", () => {
     consoleSpies.splice(0).forEach((spy) => spy.mockRestore());
   });
 
-  it("starts the flow again when there is no email in memory", () => {
+  it("starts the flow again when there is no email in memory", async () => {
     usePasswordRecoveryStore.getState().reset();
-    render(<RecoveryCodeVerification />);
+    await render(<RecoveryCodeVerification />);
     expect(mockRedirect).toHaveBeenCalledWith("/forgot-password");
   });
 
-  it("shows a neutral message with the email the code was sent to", () => {
-    render(<RecoveryCodeVerification />);
+  it("shows a neutral message with the email the code was sent to", async () => {
+    await render(<RecoveryCodeVerification />);
     expect(screen.getByText(/If an account exists for/)).toBeTruthy();
     expect(screen.getByText(EMAIL)).toBeTruthy();
   });
 
   it("verifies a complete code and opens the reset screen", async () => {
     mockVerify.mockResolvedValueOnce("ready");
-    render(<RecoveryCodeVerification />);
+    await render(<RecoveryCodeVerification />);
 
-    enterCode(CODE);
+    await enterCode(CODE);
 
     await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith("/forgot-password/reset-password"));
     expect(mockVerify).toHaveBeenCalledWith(EMAIL, CODE);
@@ -110,9 +110,9 @@ describe("Recovery code screen", () => {
 
   it("shows invalid or expired codes inline and clears the input", async () => {
     mockVerify.mockRejectedValueOnce(new PasswordError("invalid_or_expired_code"));
-    render(<RecoveryCodeVerification />);
+    await render(<RecoveryCodeVerification />);
 
-    enterCode(CODE);
+    await enterCode(CODE);
 
     expect(await screen.findByText(/That code is incorrect or has expired/)).toBeTruthy();
     expect(screen.getByLabelText("Recovery code").props.value).toBe("");
@@ -121,32 +121,32 @@ describe("Recovery code screen", () => {
 
   it("opens the error dialog for unexpected failures", async () => {
     mockVerify.mockRejectedValueOnce(new PasswordError("network"));
-    render(<RecoveryCodeVerification />);
+    await render(<RecoveryCodeVerification />);
 
-    enterCode(CODE);
+    await enterCode(CODE);
 
     expect(await screen.findByText(/Error: Can't connect right now/)).toBeTruthy();
   });
 
   it("tells Google-only accounts to use Google and returns to sign-in", async () => {
     mockVerify.mockResolvedValueOnce("google_only");
-    render(<RecoveryCodeVerification />);
+    await render(<RecoveryCodeVerification />);
 
-    enterCode(CODE);
+    await enterCode(CODE);
 
     expect(await screen.findByText("This account uses Google")).toBeTruthy();
     expect(mockRouter.replace).not.toHaveBeenCalled();
 
-    fireEvent.press(screen.getByText("Back to Sign In"));
+    await fireEvent.press(screen.getByText("Back to Sign In"));
     expect(mockRouter.dismissTo).toHaveBeenCalledWith("/sign-in");
     expect(usePasswordRecoveryStore.getState().email).toBe("");
   });
 
   it("shows a lock the server reports with its countdown", async () => {
     mockVerify.mockRejectedValueOnce(new RecoveryRateLimitedError(600));
-    render(<RecoveryCodeVerification />);
+    await render(<RecoveryCodeVerification />);
 
-    enterCode(CODE);
+    await enterCode(CODE);
 
     expect(await screen.findByText("Too many attempts")).toBeTruthy();
     expect(screen.getByRole("button", { name: /Try again in (9|10):/ })).toBeTruthy();
@@ -159,27 +159,27 @@ describe("Recovery code screen", () => {
       "@/service/auth/authLockoutStore",
     );
     await saveServerLockout("recovery_otp", EMAIL, 300);
-    render(<RecoveryCodeVerification />);
+    await render(<RecoveryCodeVerification />);
 
     expect(await screen.findByRole("button", { name: /Try again in (4|5):/ })).toBeTruthy();
-    enterCode(CODE);
+    await enterCode(CODE);
     expect(mockVerify).not.toHaveBeenCalled();
   });
 
-  it("keeps verify disabled until the code is complete", () => {
-    render(<RecoveryCodeVerification />);
+  it("keeps verify disabled until the code is complete", async () => {
+    await render(<RecoveryCodeVerification />);
     const verify = () => screen.getByRole("button", { name: "Verify Code" });
 
-    expect(verify().props.accessibilityState.disabled).toBe(true);
-    enterCode("123");
-    fireEvent.press(verify());
+    expect(await verify().props.accessibilityState.disabled).toBe(true);
+    await enterCode("123");
+    await fireEvent.press(await verify());
     expect(mockVerify).not.toHaveBeenCalled();
   });
 
   it("resends a real code only after the cooldown", async () => {
     jest.useFakeTimers();
     mockRequest.mockResolvedValueOnce(undefined);
-    render(<RecoveryCodeVerification />);
+    await render(<RecoveryCodeVerification />);
 
     expect(screen.getByText(`Resend in ${RECOVERY_RESEND_COOLDOWN_SECONDS}s`)).toBeTruthy();
     expect(screen.queryByText("Resend")).toBeNull();
@@ -190,7 +190,7 @@ describe("Recovery code screen", () => {
       });
     }
 
-    fireEvent.press(screen.getByText("Resend"));
+    await fireEvent.press(screen.getByText("Resend"));
 
     expect(await screen.findByText(/A new code is on its way/)).toBeTruthy();
     expect(mockRequest).toHaveBeenCalledWith(EMAIL, undefined);
@@ -200,14 +200,14 @@ describe("Recovery code screen", () => {
   it("shows the server's rate limit when resending", async () => {
     jest.useFakeTimers();
     mockRequest.mockRejectedValueOnce(new PasswordError("rate_limited"));
-    render(<RecoveryCodeVerification />);
+    await render(<RecoveryCodeVerification />);
 
     for (let second = 0; second < RECOVERY_RESEND_COOLDOWN_SECONDS; second += 1) {
       await act(async () => {
         jest.advanceTimersByTime(1000);
       });
     }
-    fireEvent.press(screen.getByText("Resend"));
+    await fireEvent.press(screen.getByText("Resend"));
 
     expect(await screen.findByText(/Too many attempts/)).toBeTruthy();
   });

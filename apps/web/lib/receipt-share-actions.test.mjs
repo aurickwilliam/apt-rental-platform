@@ -51,8 +51,8 @@ function load({ env = {}, states = {} } = {}) {
     "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" }, react,
     "@heroui/react": { Button: "Button" }, "@tabler/icons-react": icons,
     "@/hooks/use-hydrated": { useHydrated: () => env.hydrated !== false },
-    "../lib/receiptData": { receiptData: () => data },
-    "../lib/receiptImage": { renderReceiptImage: async (receipt, fonts) => { log.rendered.push(fonts); return { type: "image/png", size: 10 }; } },
+    "@/lib/receipt-data": { receiptData: () => data },
+    "@/lib/receipt-image": { renderReceiptImage: async (receipt, fonts) => { log.rendered.push(fonts); return { type: "image/png", size: 10 }; } },
   };
   const context = { exports: {}, ...globals, require: name => { assert.ok(name in dependencies, `Unexpected dependency: ${name}`); return dependencies[name]; } };
   vm.runInNewContext(compiled, context);

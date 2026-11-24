@@ -23,6 +23,8 @@ interface SignedLeaseCardProps {
   viewing: boolean;
   /** Re-reads the tenancy after the confirmation is saved. */
   onAcknowledged: () => Promise<boolean>;
+  /** Drawn as a section of the lease card instead of a card of its own. */
+  embedded?: boolean;
 }
 
 function leaseSummary(
@@ -50,6 +52,7 @@ export default function SignedLeaseCard({
   onView,
   viewing,
   onAcknowledged,
+  embedded = false,
 }: SignedLeaseCardProps) {
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,12 +90,12 @@ export default function SignedLeaseCard({
     }
   };
 
-  return (
-    <DashboardCard>
+  const body = (
+    <>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 flex-1 basis-64 items-start gap-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-teal-100 dark:bg-teal-900/50">
-            <FileText size={20} className="text-teal-600 dark:text-teal-300" aria-hidden="true" />
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <FileText size={20} aria-hidden="true" />
           </span>
           <div className="min-w-0">
             <h2 className="font-nunito text-sm font-semibold text-card-foreground">Signed lease</h2>
@@ -110,10 +113,10 @@ export default function SignedLeaseCard({
         )}
       </div>
 
-      <div className="mt-4 flex flex-col gap-2 @min-[32rem]/dashboard:flex-row @min-[32rem]/dashboard:flex-wrap">
+      <div className="mt-4 flex flex-wrap gap-2">
         <Button
           variant="outline"
-          className="rounded-full"
+          className="min-w-40 flex-1 rounded-full"
           isDisabled={!path || viewing}
           onPress={onView}
         >
@@ -122,7 +125,7 @@ export default function SignedLeaseCard({
         </Button>
         {status === "pending" && !saved && (
           <Button
-            className="rounded-full"
+            className="min-w-40 flex-1 rounded-full"
             isPending={confirming}
             isDisabled={confirming}
             onPress={() => void handleConfirm()}
@@ -148,6 +151,10 @@ export default function SignedLeaseCard({
           });
         }}>Refresh lease details</Button>
       ) : null}
-    </DashboardCard>
+    </>
   );
+
+  return embedded
+    ? <div className="mt-4 border-t border-border pt-4">{body}</div>
+    : <DashboardCard>{body}</DashboardCard>;
 }

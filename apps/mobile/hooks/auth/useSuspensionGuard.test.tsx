@@ -40,7 +40,7 @@ describe("useSuspensionGuard", () => {
   it("signs out a suspended account and leaves the reason for the sign-in screen", async () => {
     mockGetStatus.mockResolvedValue({ suspended: true, reason: "Spam" });
 
-    renderHook(() => useSuspensionGuard());
+    await renderHook(() => useSuspensionGuard());
 
     await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/(auth)/sign-in"));
     expect(mockSignOut).toHaveBeenCalled();
@@ -51,7 +51,7 @@ describe("useSuspensionGuard", () => {
   it("does nothing for an active account", async () => {
     mockGetStatus.mockResolvedValue({ suspended: false, reason: null });
 
-    renderHook(() => useSuspensionGuard());
+    await renderHook(() => useSuspensionGuard());
 
     await waitFor(() => expect(mockGetStatus).toHaveBeenCalledTimes(1));
     expect(mockSignOut).not.toHaveBeenCalled();
@@ -61,7 +61,7 @@ describe("useSuspensionGuard", () => {
   it("skips the check when nobody is signed in", async () => {
     mockGetSession.mockResolvedValue({ data: { session: null } });
 
-    renderHook(() => useSuspensionGuard());
+    await renderHook(() => useSuspensionGuard());
 
     await waitFor(() => expect(mockGetSession).toHaveBeenCalled());
     expect(mockGetStatus).not.toHaveBeenCalled();
@@ -70,7 +70,7 @@ describe("useSuspensionGuard", () => {
   it("checks again when the app returns to the foreground", async () => {
     mockGetStatus.mockResolvedValue({ suspended: false, reason: null });
 
-    renderHook(() => useSuspensionGuard());
+    await renderHook(() => useSuspensionGuard());
     await waitFor(() => expect(mockGetStatus).toHaveBeenCalledTimes(1));
 
     appStateListener?.("active");

@@ -38,8 +38,8 @@ afterEach(() => { clients.splice(0).forEach((client) => client.clear()); });
 
 it("flips the payment in the unit list and the all-units list together, leaving others alone, and marks both stale", async () => {
   mockUpdate.mockResolvedValue({ success: true });
-  const { client, wrapper } = setup();
-  const { result } = renderHook(() => useLandlordPaymentConfirmation("unit-a"), { wrapper });
+  const { client, wrapper } = await setup();
+  const { result } = await renderHook(() => useLandlordPaymentConfirmation("unit-a"), { wrapper });
 
   await act(async () => { result.current.mutate("cash"); });
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -51,8 +51,8 @@ it("flips the payment in the unit list and the all-units list together, leaving 
 
 it("restores the all-units list when the confirmation fails", async () => {
   mockUpdate.mockResolvedValue({ success: false, error: "Could not update payment status." });
-  const { client, wrapper } = setup();
-  const { result } = renderHook(() => useLandlordPaymentConfirmation("unit-a"), { wrapper });
+  const { client, wrapper } = await setup();
+  const { result } = await renderHook(() => useLandlordPaymentConfirmation("unit-a"), { wrapper });
 
   await act(async () => { result.current.mutate("cash"); });
   await waitFor(() => expect(result.current.isError || result.current.isSuccess).toBe(true));
@@ -62,13 +62,13 @@ it("restores the all-units list when the confirmation fails", async () => {
 
 it("sends the decision to the service: paid to confirm, rejected to decline", async () => {
   mockUpdate.mockResolvedValue({ success: true });
-  const { wrapper } = setup();
-  const confirm = renderHook(() => useLandlordPaymentConfirmation("unit-a"), { wrapper });
+  const { wrapper } = await setup();
+  const confirm = await renderHook(() => useLandlordPaymentConfirmation("unit-a"), { wrapper });
   await act(async () => { confirm.result.current.mutate("cash"); });
   await waitFor(() => expect(confirm.result.current.isSuccess).toBe(true));
   expect(mockUpdate).toHaveBeenLastCalledWith("cash", "paid");
 
-  const decline = renderHook(() => useLandlordPaymentDecline("unit-a"), { wrapper });
+  const decline = await renderHook(() => useLandlordPaymentDecline("unit-a"), { wrapper });
   await act(async () => { decline.result.current.mutate("cash"); });
   await waitFor(() => expect(decline.result.current.isSuccess).toBe(true));
   expect(mockUpdate).toHaveBeenLastCalledWith("cash", "rejected");
@@ -76,16 +76,16 @@ it("sends the decision to the service: paid to confirm, rejected to decline", as
 
 it("shows a declined payment as rejected in the unit list and the all-units list, and restores both on failure", async () => {
   mockUpdate.mockResolvedValueOnce({ success: true });
-  const { client, wrapper } = setup();
-  const { result } = renderHook(() => useLandlordPaymentDecline("unit-a"), { wrapper });
+  const { client, wrapper } = await setup();
+  const { result } = await renderHook(() => useLandlordPaymentDecline("unit-a"), { wrapper });
   await act(async () => { result.current.mutate("cash"); });
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
   expect(statuses(client)).toEqual(["cash:rejected", "other:pending"]);
   expect((client.getQueryData(getLandlordPaymentsQueryKey("unit-a")) as { status: string }[])[0].status).toBe("rejected");
 
-  const failing = setup();
+  const failing = await setup();
   mockUpdate.mockResolvedValueOnce({ success: false, error: "Could not update payment status." });
-  const again = renderHook(() => useLandlordPaymentDecline("unit-a"), { wrapper: failing.wrapper });
+  const again = await renderHook(() => useLandlordPaymentDecline("unit-a"), { wrapper: failing.wrapper });
   await act(async () => { again.result.current.mutate("cash"); });
   await waitFor(() => expect(again.result.current.isError).toBe(true));
   expect(statuses(failing.client)).toEqual(["cash:pending", "other:pending"]);

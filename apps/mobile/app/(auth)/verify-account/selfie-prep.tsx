@@ -9,28 +9,33 @@ import { IconBulb, IconChevronLeft, IconEyeOff, IconFaceId, IconIdBadge } from '
 import ScreenWrapper from '@/components/layout/ScreenWrapper'
 import StepProgress from '@/components/display/StepProgress'
 
+import type { TranslationKey } from '@repo/i18n'
+
 import { useColors } from '@/hooks/useTheme'
 import { useVerificationStore } from '@/stores/useVerificationStore'
 import { getCaptureSequence } from '@/constants/verification/captureSequences'
 import { getCaptureProgress } from '@/utils/verification/gating'
+import { useTranslation } from '@/hooks/i18n'
 
 type GuidelineIcon = typeof IconBulb;
 
 interface SelfieGuideline {
   icon: GuidelineIcon
   text: string
+  textKey?: TranslationKey
 }
 
 const SELFIE_GUIDELINES: SelfieGuideline[] = [
-  { icon: IconBulb, text: 'Use bright, even lighting.' },
-  { icon: IconIdBadge, text: 'Hold the same ID beside your face.' },
-  { icon: IconFaceId, text: 'Keep your full face visible in the frame.' },
+  { icon: IconBulb, text: 'Use bright, even lighting.', textKey: 'authMobile.verify.selfiePrep.lighting' },
+  { icon: IconIdBadge, text: 'Hold the same ID beside your face.', textKey: 'authMobile.verify.selfiePrep.holdId' },
+  { icon: IconFaceId, text: 'Keep your full face visible in the frame.', textKey: 'authMobile.verify.selfiePrep.face' },
   { icon: IconEyeOff, text: 'Remove glasses, hats, and other face accessories.' },
 ];
 
 export default function SelfiePrep() {
   const router = useRouter();
   const { colors } = useColors();
+  const { t } = useTranslation();
 
   const selectedId = useVerificationStore((state) => state.selectedId);
   const captures = useVerificationStore((state) => state.captures);
@@ -49,7 +54,7 @@ export default function SelfiePrep() {
       className='p-5'
       footer={
         <Button onPress={() => router.push('/(auth)/verify-account/upload-selfie')} className='mx-5'>
-          <Button.Label>I&apos;m Ready</Button.Label>
+          <Button.Label>{t("authMobile.verify.selfiePrep.ready")}</Button.Label>
         </Button>
       }
     >
@@ -61,13 +66,17 @@ export default function SelfiePrep() {
         <IconChevronLeft size={26} color={colors.textPrimary} />
       </CloseButton>
 
-      <StepProgress currentStep={3} totalSteps={5} stepName="Prepare for a Selfie" />
+      <StepProgress
+        currentStep={3}
+        totalSteps={5}
+        stepName={t("authMobile.verify.selfiePrep.step")}
+      />
 
       <View className='flex-1 items-center justify-center gap-6 px-2'>
         <View
           accessible
           accessibilityRole="image"
-          accessibilityLabel="Selfie preparation illustration"
+          accessibilityLabel={t("authMobile.verify.selfiePrep.illustration")}
           className='size-48 items-center justify-center rounded-full border-4 border-success bg-success-light'
         >
           <IconFaceId size={96} color={colors.success} strokeWidth={1.5} />
@@ -75,21 +84,21 @@ export default function SelfiePrep() {
 
         <View className='items-center gap-3'>
           <Text className='text-center text-2xl font-nunitoMedium text-accent'>
-            Get ready for your selfie
+            {t("authMobile.verify.selfiePrep.title")}
           </Text>
           <Text className='text-center text-base font-inter text-gray-500'>
-            A clear photo helps us verify that your ID belongs to you.
+            {t("authMobile.verify.selfiePrep.body")}
           </Text>
         </View>
 
         <View className='w-full gap-3'>
-          {SELFIE_GUIDELINES.map(({ icon: GuidelineIcon, text }) => (
+          {SELFIE_GUIDELINES.map(({ icon: GuidelineIcon, text, textKey }) => (
             <View key={text} className='flex-row items-center gap-3 rounded-2xl border border-border bg-surface p-3'>
               <View className='rounded-full bg-primary-light p-2'>
                 <GuidelineIcon size={22} color={colors.primaryLightForeground} />
               </View>
               <Text className='flex-1 text-sm font-nunitoSemiBold text-foreground'>
-                {text}
+                {textKey ? t(textKey) : text}
               </Text>
             </View>
           ))}

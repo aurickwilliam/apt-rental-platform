@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
 import UploadId from '@/app/(auth)/verify-account/upload-id';
+import { findAllInTree } from '../support/testTraversal';
 import { useVerificationStore, initialVerificationState } from '@/stores/useVerificationStore';
 
 jest.mock('@/hooks/useTheme', () => ({
@@ -95,68 +96,68 @@ describe('UploadId', () => {
   });
 
   describe('focus-aware automatic progression', () => {
-    it('on first focused entry, opens the first card capture step', () => {
+    it('on first focused entry, opens the first card capture step', async () => {
       useVerificationStore.setState({ selectedId: 'National ID (PhilSys/PhilID)', captures: {} });
-      render(<UploadId />);
+      await render(<UploadId />);
 
       expect(mockPush).toHaveBeenCalledWith(
         '/(auth)/verify-account/live-capture?idType=National%20ID%20(PhilSys%2FPhilID)&stepId=front',
       );
     });
 
-    it('on first focused entry, opens Passport identity-page capture', () => {
+    it('on first focused entry, opens Passport identity-page capture', async () => {
       useVerificationStore.setState({ selectedId: 'Passport', captures: {} });
-      render(<UploadId />);
+      await render(<UploadId />);
 
       expect(mockPush).toHaveBeenCalledWith(
         '/(auth)/verify-account/live-capture?idType=Passport&stepId=identity-page',
       );
     });
 
-    it('when focused with Front already complete, resumes at Back capture', () => {
+    it('when focused with Front already complete, resumes at Back capture', async () => {
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
         captures: { front: FRONT_CAPTURE },
       });
-      render(<UploadId />);
+      await render(<UploadId />);
 
       expect(mockPush).toHaveBeenCalledWith(
         '/(auth)/verify-account/live-capture?idType=National%20ID%20(PhilSys%2FPhilID)&stepId=back',
       );
     });
 
-    it('does not route from an inactive summary screen until it receives focus', () => {
+    it('does not route from an inactive summary screen until it receives focus', async () => {
       mockUseFocusEffect.mockImplementation(() => undefined);
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
         captures: { front: FRONT_CAPTURE },
       });
-      render(<UploadId />);
+      await render(<UploadId />);
 
       expect(mockPush).not.toHaveBeenCalled();
 
       const latestFocusCallback = mockUseFocusEffect.mock.calls.at(-1)?.[0] as (() => void) | undefined;
-      act(() => latestFocusCallback?.());
+      await act(() => latestFocusCallback?.());
 
       expect(mockPush).toHaveBeenCalledWith(
         '/(auth)/verify-account/live-capture?idType=National%20ID%20(PhilSys%2FPhilID)&stepId=back',
       );
     });
 
-    it('does not open another camera route after every ID capture is complete', () => {
+    it('does not open another camera route after every ID capture is complete', async () => {
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
         captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
       });
-      render(<UploadId />);
+      await render(<UploadId />);
 
       expect(mockPush).not.toHaveBeenCalled();
     });
   });
 
   describe('null selectedId guard', () => {
-    it('redirects to select-id and does not open live capture', () => {
-      render(<UploadId />);
+    it('redirects to select-id and does not open live capture', async () => {
+      await render(<UploadId />);
 
       expect(mockReplace).toHaveBeenCalledWith('/(auth)/verify-account/select-id');
       expect(mockPush).not.toHaveBeenCalled();
@@ -164,12 +165,12 @@ describe('UploadId', () => {
   });
 
   describe('completed ID summary', () => {
-    it('renders read-only labeled previews and no manual capture or row-retake actions', () => {
+    it('renders read-only labeled previews and no manual capture or row-retake actions', async () => {
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
         captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
       });
-      render(<UploadId />);
+      await render(<UploadId />);
 
       expect(screen.getByText('Front:')).toBeTruthy();
       expect(screen.getByText('Back:')).toBeTruthy();
@@ -179,12 +180,12 @@ describe('UploadId', () => {
       expect(screen.queryByText('Retake photo')).toBeNull();
     });
 
-    it('renders the single Passport identity-page preview', () => {
+    it('renders the single Passport identity-page preview', async () => {
       useVerificationStore.setState({
         selectedId: 'Passport',
         captures: { 'identity-page': FRONT_CAPTURE },
       });
-      render(<UploadId />);
+      await render(<UploadId />);
 
       expect(screen.getByText('Identity Page:')).toBeTruthy();
       expect(screen.getByLabelText('Identity Page ID photo')).toBeTruthy();
@@ -192,12 +193,12 @@ describe('UploadId', () => {
       expect(screen.queryByText('Back:')).toBeNull();
     });
 
-    it('renders card images with explicit style sizing (not className-only)', () => {
+    it('renders card images with explicit style sizing (not className-only)', async () => {
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
         captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
       });
-      render(<UploadId />);
+      await render(<UploadId />);
 
       for (const label of ['Front ID photo', 'Back ID photo']) {
         const image = screen.getByLabelText(label);
@@ -207,21 +208,21 @@ describe('UploadId', () => {
       }
     });
 
-    it('only shows the authenticity declaration after the complete summary is available', () => {      useVerificationStore.setState({
+    it('only shows the authenticity declaration after the complete summary is available', async () => {      useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
         captures: { front: FRONT_CAPTURE },
       });
-      const { rerender } = render(<UploadId />);
+      const { rerender } = await render(<UploadId />);
 
       expect(screen.queryByText(AUTHENTICITY_DECLARATION)).toBeNull();
       expect(screen.queryByText('Retake ID Photos')).toBeNull();
 
-      act(() => {
+      await act(() => {
         useVerificationStore.setState({
           captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
         });
       });
-      rerender(<UploadId />);
+      await rerender(<UploadId />);
 
       expect(screen.getByText(AUTHENTICITY_DECLARATION)).toBeTruthy();
       expect(screen.getByText('Retake ID Photos')).toBeTruthy();
@@ -229,16 +230,16 @@ describe('UploadId', () => {
   });
 
   describe('fullscreen photo viewer', () => {
-    it('tapping a captured photo opens the viewer on that photo', () => {
+    it('tapping a captured photo opens the viewer on that photo', async () => {
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
         captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
       });
-      render(<UploadId />);
+      await render(<UploadId />);
 
       expect(screen.queryByTestId('image-viewer')).toBeNull();
 
-      fireEvent.press(screen.getByLabelText('View Back ID photo fullscreen'));
+      await fireEvent.press(screen.getByLabelText('View Back ID photo fullscreen'));
 
       expect(latestImageViewingProps.visible).toBe(true);
       expect(latestImageViewingProps.imageIndex).toBe(1);
@@ -250,54 +251,54 @@ describe('UploadId', () => {
       expect(screen.getByTestId('image-viewer-count')).toBeTruthy();
     });
 
-    it('tapping the first captured photo opens the viewer on the first photo', () => {
+    it('tapping the first captured photo opens the viewer on the first photo', async () => {
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
         captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
       });
-      render(<UploadId />);
+      await render(<UploadId />);
 
-      fireEvent.press(screen.getByLabelText('View Front ID photo fullscreen'));
+      await fireEvent.press(screen.getByLabelText('View Front ID photo fullscreen'));
 
       expect(latestImageViewingProps.visible).toBe(true);
       expect(latestImageViewingProps.imageIndex).toBe(0);
     });
 
-    it('closing the viewer dismisses it', () => {
+    it('closing the viewer dismisses it', async () => {
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
         captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
       });
-      render(<UploadId />);
+      await render(<UploadId />);
 
-      fireEvent.press(screen.getByLabelText('View Front ID photo fullscreen'));
+      await fireEvent.press(screen.getByLabelText('View Front ID photo fullscreen'));
       expect(screen.getByTestId('image-viewer')).toBeTruthy();
 
-      fireEvent.press(screen.getByTestId('image-viewer-close'));
+      await fireEvent.press(screen.getByTestId('image-viewer-close'));
       expect(screen.queryByTestId('image-viewer')).toBeNull();
     });
 
-    it('shows the single Passport photo in the viewer', () => {
+    it('shows the single Passport photo in the viewer', async () => {
       useVerificationStore.setState({
         selectedId: 'Passport',
         captures: { 'identity-page': FRONT_CAPTURE },
       });
-      render(<UploadId />);
+      await render(<UploadId />);
 
-      fireEvent.press(screen.getByLabelText('View Identity Page ID photo fullscreen'));
+      await fireEvent.press(screen.getByLabelText('View Identity Page ID photo fullscreen'));
 
       expect(latestImageViewingProps.visible).toBe(true);
       expect(latestImageViewingProps.images).toEqual([{ uri: 'file://front.jpg' }]);
     });
 
-    it('shows a retake hint instead of a blank card when a photo fails to load', () => {
+    it('shows a retake hint instead of a blank card when a photo fails to load', async () => {
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
         captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
       });
-      render(<UploadId />);
+      await render(<UploadId />);
 
-      fireEvent(screen.getByLabelText('Front ID photo'), 'error');
+      await fireEvent(screen.getByLabelText('Front ID photo'), 'error');
 
       expect(screen.getByText(/Photo couldn't load/i)).toBeTruthy();
       expect(screen.queryByLabelText('View Front ID photo fullscreen')).toBeNull();
@@ -307,34 +308,35 @@ describe('UploadId', () => {
   });
 
   describe('authenticity declaration and retake', () => {
-    it('enables Continue to Selfie only after the completed summary declaration is selected', () => {
+    it('enables Continue to Selfie only after the completed summary declaration is selected', async () => {
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
         captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
       });
-      const { UNSAFE_getAllByProps, UNSAFE_queryAllByProps } = render(<UploadId />);
+      await render(<UploadId />);
+      const disabledNodes = () => findAllInTree(screen.root!, (node) => node.props.disabled === true || node.props.accessibilityState?.disabled === true);
 
-      expect(UNSAFE_getAllByProps({ disabled: true }).length).toBeGreaterThan(0);
+      expect(disabledNodes().length).toBeGreaterThan(0);
 
-      fireEvent.press(screen.getByText(AUTHENTICITY_DECLARATION));
+      await fireEvent.press(screen.getByText(AUTHENTICITY_DECLARATION));
 
-      expect(UNSAFE_queryAllByProps({ disabled: true })).toHaveLength(0);
+      expect(disabledNodes()).toHaveLength(0);
     });
 
-    it('routes completed and confirmed ID submissions to selfie preparation', () => {
+    it('routes completed and confirmed ID submissions to selfie preparation', async () => {
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
         captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
       });
-      render(<UploadId />);
+      await render(<UploadId />);
 
-      fireEvent.press(screen.getByText(AUTHENTICITY_DECLARATION));
-      fireEvent.press(screen.getByText('Continue to Selfie'));
+      await fireEvent.press(screen.getByText(AUTHENTICITY_DECLARATION));
+      await fireEvent.press(screen.getByText('Continue to Selfie'));
 
       expect(mockPush).toHaveBeenCalledWith('/(auth)/verify-account/selfie-prep');
     });
 
-    it('retakes the complete ID sequence by clearing ID captures, resetting confirmation, and reopening Front', () => {
+    it('retakes the complete ID sequence by clearing ID captures, resetting confirmation, and reopening Front', async () => {
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
         captures: {
@@ -343,10 +345,10 @@ describe('UploadId', () => {
           selfie: SELFIE_CAPTURE,
         },
       });
-      render(<UploadId />);
+      await render(<UploadId />);
 
-      fireEvent.press(screen.getByText(AUTHENTICITY_DECLARATION));
-      fireEvent.press(screen.getByText('Retake ID Photos'));
+      await fireEvent.press(screen.getByText(AUTHENTICITY_DECLARATION));
+      await fireEvent.press(screen.getByText('Retake ID Photos'));
 
       expect(useVerificationStore.getState().selectedId).toBe('National ID (PhilSys/PhilID)');
       expect(useVerificationStore.getState().captures).toEqual({ selfie: SELFIE_CAPTURE });
@@ -358,12 +360,12 @@ describe('UploadId', () => {
   });
 
   describe('absence of removed format/picker UI', () => {
-    it('renders no format selector, document uploader, gallery, or file picker affordance', () => {
+    it('renders no format selector, document uploader, gallery, or file picker affordance', async () => {
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
         captures: { front: FRONT_CAPTURE, back: BACK_CAPTURE },
       });
-      render(<UploadId />);
+      await render(<UploadId />);
 
       expect(screen.queryByText('Physical ID')).toBeNull();
       expect(screen.queryByText('Digital Document')).toBeNull();

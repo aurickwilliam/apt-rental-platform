@@ -55,7 +55,7 @@ export default async function AdminUserDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdmin();
+  const viewer = await requireAdmin();
   const { id } = await params;
   const supabase = await createClient();
 
@@ -528,7 +528,7 @@ export default async function AdminUserDetailPage({
           <UserProfileHeader
             user={{ ...user, roles }}
             suspensionSupported={suspensionSupported}
-            settings={{ verifications: verificationItems, activityEvents }}
+            settings={{ verifications: verificationItems, activityEvents, viewerId: viewer.id }}
           />
           <UserPersonalInfo user={{ ...user, roles }} />
           <UserRentalActivity

@@ -3,6 +3,8 @@
 import { IconStarFilled } from "@tabler/icons-react";
 import { Button } from "@heroui/react";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
 const STAR_SIZE = 40;
 
 interface StarRatingInputProps {
@@ -11,6 +13,8 @@ interface StarRatingInputProps {
 }
 
 export default function StarRatingInput({ value, onChange }: StarRatingInputProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex items-center gap-2">
       {[1, 2, 3, 4, 5].map((i) => {
@@ -21,7 +25,7 @@ export default function StarRatingInput({ value, onChange }: StarRatingInputProp
           <Button
             variant="ghost"
             key={i}
-            aria-label={`Rate ${i} star${i !== 1 ? "s" : ""}`}
+            aria-label={i === 1 ? t("reviews.form.starAria", { count: i }) : t("reviews.form.starAriaPlural", { count: i })}
             onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               const x = e.clientX - rect.left;

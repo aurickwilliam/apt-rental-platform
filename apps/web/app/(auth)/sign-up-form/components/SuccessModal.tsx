@@ -1,6 +1,10 @@
+"use client";
+
 import { Modal, Button } from "@heroui/react";
 import { IconCircleCheck as CircleCheck } from "@tabler/icons-react";
 import Link from "next/link";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 interface SuccessModalProps {
   isOpen: boolean;
@@ -19,6 +23,7 @@ export default function SuccessModal({
   onOpenChange,
   role,
 }: SuccessModalProps) {
+  const { t } = useTranslation();
   const isTenant = role === "tenant";
 
   return (
@@ -38,12 +43,12 @@ export default function SuccessModal({
                 <CircleCheck size={48} className="text-green-600" />
               </div>
               <h2 className="font-nunitoSemiBold text-foreground text-center text-2xl font-semibold">
-                Account Created!
+                {t("auth.success.title")}
               </h2>
               <p className="max-w-xs text-center text-sm text-foreground">
                 {isTenant
-                  ? "Your account has been created. Tell us what you're looking for and we'll tailor your apartment search."
-                  : "Your account has been created successfully. You can now manage your properties from your dashboard."}
+                  ? t("auth.success.tenantBody")
+                  : t("auth.success.landlordBody")}
               </p>
             </Modal.Body>
 
@@ -54,7 +59,9 @@ export default function SuccessModal({
                   variant="primary"
                   className="w-full"
                 >
-                  {isTenant ? "Personalize my experience" : "Continue to Dashboard"}
+                  {isTenant
+                    ? t("auth.success.personalize")
+                    : t("auth.success.dashboard")}
                 </Button>
               </Link>
             </Modal.Footer>

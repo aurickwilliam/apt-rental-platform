@@ -94,7 +94,7 @@ afterEach(async () => {
 describe("useTenancy", () => {
   it("reports failed confirmation refreshes without dropping loaded rental details", async () => {
     const { client, QueryWrapper } = createWrapper();
-    const { result, unmount } = renderHook(() => useTenancy(), { wrapper: QueryWrapper });
+    const { result, unmount } = await renderHook(() => useTenancy(), { wrapper: QueryWrapper });
     await waitFor(() => expect(result.current.tenancy?.id).toBe(TENANCY_ID));
     mockFetchTenancy.mockRejectedValueOnce(new Error("Offline"));
     let ok: boolean | undefined;
@@ -106,7 +106,7 @@ describe("useTenancy", () => {
     await act(async () => { ok = await result.current.revalidate(); });
     expect(ok).toBe(true);
     await waitFor(() => expect(result.current.tenancy?.tenant_acknowledged_at).toBe("2026-11-05"));
-    unmount();
+    await unmount();
     client.clear();
   });
 
@@ -114,7 +114,7 @@ describe("useTenancy", () => {
     mockFetchTenancy.mockResolvedValueOnce({ id: TENANCY_ID, currentPayment: null, bill: { rentPaid: false, totalDue: 45000 } });
     mockFetchTenancy.mockResolvedValue({ id: TENANCY_ID, currentPayment: null, bill: { rentPaid: true, totalDue: 0 } });
     const { client, QueryWrapper } = createWrapper();
-    const { result, unmount } = renderHook(() => useTenancy(), { wrapper: QueryWrapper });
+    const { result, unmount } = await renderHook(() => useTenancy(), { wrapper: QueryWrapper });
     await waitFor(() => expect(result.current.tenancy?.bill?.totalDue).toBe(45000));
     await waitFor(() => expect(paymentChangeCallback).toBeDefined());
     const before = mockFetchTenancy.mock.calls.length;
@@ -126,7 +126,7 @@ describe("useTenancy", () => {
     await waitFor(() => expect(result.current.tenancy?.bill?.rentPaid).toBe(true));
     expect(result.current.tenancy?.bill?.totalDue).toBe(0);
     expect(mockFetchTenancy).toHaveBeenCalledTimes(before + 1);
-    unmount();
+    await unmount();
     client.clear();
   });
 
@@ -134,7 +134,7 @@ describe("useTenancy", () => {
   it("refetches a null tenancy query when a matching active tenancy is created", async () => {
     mockFetchTenancy.mockResolvedValueOnce(null);
     const { client, QueryWrapper } = createWrapper();
-    const { result, unmount } = renderHook(() => useTenancy(), { wrapper: QueryWrapper });
+    const { result, unmount } = await renderHook(() => useTenancy(), { wrapper: QueryWrapper });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     await waitFor(() => expect(tenancyChangeCallback).toBeDefined());
@@ -150,14 +150,14 @@ describe("useTenancy", () => {
     await waitFor(() => expect(result.current.tenancy?.id).toBe(TENANCY_ID));
     expect(mockFetchTenancy).toHaveBeenCalledTimes(fetchesBeforeEvent + 1);
 
-    unmount();
+    await unmount();
     client.clear();
   });
 
   /** Validates: Requirements 2.8, 2.17 */
   it("does not refetch the active tenancy for an unrelated tenancy event", async () => {
     const { client, QueryWrapper } = createWrapper();
-    const { result, unmount } = renderHook(() => useTenancy(), { wrapper: QueryWrapper });
+    const { result, unmount } = await renderHook(() => useTenancy(), { wrapper: QueryWrapper });
 
     await waitFor(() => expect(result.current.tenancy?.id).toBe(TENANCY_ID));
     await waitFor(() => expect(tenancyChangeCallback).toBeDefined());
@@ -168,7 +168,7 @@ describe("useTenancy", () => {
     });
 
     expect(mockFetchTenancy).toHaveBeenCalledTimes(fetchesBeforeEvent);
-    unmount();
+    await unmount();
     client.clear();
   });
 
@@ -180,7 +180,7 @@ describe("useTenancy", () => {
         async (unrelatedTenancyId) => {
           const { client, QueryWrapper } = createWrapper();
           mockFetchTenancy.mockClear();
-          const { result, unmount } = renderHook(() => useTenancy(), {
+          const { result, unmount } = await renderHook(() => useTenancy(), {
             wrapper: QueryWrapper,
           });
 
@@ -193,7 +193,7 @@ describe("useTenancy", () => {
           });
 
           expect(mockFetchTenancy).toHaveBeenCalledTimes(fetchesBeforeEvent);
-          unmount();
+          await unmount();
           client.clear();
         },
       ),
@@ -204,7 +204,7 @@ describe("useTenancy", () => {
   /** Validates: Gap 5 — payment INSERT merges via setQueryData without refetch */
   it("merges a newer payment event into the cached tenancy without refetching", async () => {
     const { client, QueryWrapper } = createWrapper();
-    const { result, unmount } = renderHook(() => useTenancy(), { wrapper: QueryWrapper });
+    const { result, unmount } = await renderHook(() => useTenancy(), { wrapper: QueryWrapper });
 
     await waitFor(() => expect(result.current.tenancy?.id).toBe(TENANCY_ID));
     await waitFor(() => expect(paymentChangeCallback).toBeDefined());
@@ -231,14 +231,14 @@ describe("useTenancy", () => {
       expect(result.current.tenancy?.currentPayment?.period_start).toBe("2026-08-01"),
     );
     expect(mockFetchTenancy).toHaveBeenCalledTimes(fetchesBeforeEvent);
-    unmount();
+    await unmount();
     client.clear();
   });
 
   /** Validates: Gap 5 — recency gate ignores older-period payment events */
   it("ignores a payment event with an older period_start than the cached current payment", async () => {
     const { client, QueryWrapper } = createWrapper();
-    const { result, unmount } = renderHook(() => useTenancy(), { wrapper: QueryWrapper });
+    const { result, unmount } = await renderHook(() => useTenancy(), { wrapper: QueryWrapper });
 
     await waitFor(() => expect(result.current.tenancy?.id).toBe(TENANCY_ID));
     await waitFor(() => expect(paymentChangeCallback).toBeDefined());
@@ -277,14 +277,14 @@ describe("useTenancy", () => {
     // Recency gate: the older period must not overwrite the cached value.
     expect(result.current.tenancy?.currentPayment?.period_start).toBe("2026-08-01");
     expect(result.current.tenancy?.currentPayment?.amount).toBe(10000);
-    unmount();
+    await unmount();
     client.clear();
   });
 
   /** Validates: Gap 5 — payment DELETE still invalidates (shape change) */
   it("refetches on a payment DELETE event", async () => {
     const { client, QueryWrapper } = createWrapper();
-    const { result, unmount } = renderHook(() => useTenancy(), { wrapper: QueryWrapper });
+    const { result, unmount } = await renderHook(() => useTenancy(), { wrapper: QueryWrapper });
 
     await waitFor(() => expect(result.current.tenancy?.id).toBe(TENANCY_ID));
     await waitFor(() => expect(paymentChangeCallback).toBeDefined());
@@ -301,7 +301,7 @@ describe("useTenancy", () => {
     await waitFor(() =>
       expect(mockFetchTenancy.mock.calls.length).toBe(fetchesBeforeEvent + 1),
     );
-    unmount();
+    await unmount();
     client.clear();
   });
 });

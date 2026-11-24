@@ -105,10 +105,12 @@ describe('fetchLandlordTenancy', () => {
       .mockReturnValueOnce(tenancyChain)
       .mockReturnValueOnce(maintenanceChain)
       .mockReturnValueOnce(paymentChain)
+    mockRpc.mockResolvedValueOnce({data:{leaseEnd:'2027-06-01',monthlyRent:15000,renewalAgreementPath:null},error:null})
 
     const result = await fetchLandlordTenancy('apartment-1')
 
     expect(result.tenant?.fullName).toBe('Case Oh')
+    expect(result.tenant?.leaseEnd).toBe('2027-06-01')
     expect(result.paymentHistory.map((p) => p.status)).toEqual(['pending', 'paid'])
   })
 })

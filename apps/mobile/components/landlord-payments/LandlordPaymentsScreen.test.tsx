@@ -137,152 +137,152 @@ const rows = () => [
 ];
 
 describe("landlord Payments screen", () => {
-  it("shows loading, an error with Try Again, and an empty state for a landlord without units", () => {
+  it("shows loading, an error with Try Again, and an empty state for a landlord without units", async () => {
     mockData.isLoading = true;
-    const loading = render(<LandlordPaymentsScreen />);
+    const loading = await render(<LandlordPaymentsScreen />);
     // The skeleton stands in for the whole body; no figures or spinner.
     expect(loading.getByText("payments skeleton")).toBeTruthy();
     expect(loading.getByText("Payments")).toBeTruthy();
     expect(loading.queryByText(/Collected/)).toBeNull();
-    loading.unmount();
+    await loading.unmount();
 
     mockData.isLoading = false;
     mockData.error = new Error("boom");
-    const failed = render(<LandlordPaymentsScreen />);
-    fireEvent.press(failed.getByText("Try Again"));
+    const failed = await render(<LandlordPaymentsScreen />);
+    await fireEvent.press(failed.getByText("Try Again"));
     expect(mockData.refetch).toHaveBeenCalled();
-    failed.unmount();
+    await failed.unmount();
 
     mockData.error = null;
     mockData = { ...mockData, units: [] };
-    render(<LandlordPaymentsScreen />);
+    await render(<LandlordPaymentsScreen />);
     expect(screen.getByText("No units yet")).toBeTruthy();
     mockData = { ...mockData, units: [{ id: "unit-a", name: "Unit A" }, { id: "unit-b", name: "Unit B" }] };
   });
 
-  it("lists every unit's payments by default, naming the unit, with a searchable All apartments picker", () => {
+  it("lists every unit's payments by default, naming the unit, with a searchable All apartments picker", async () => {
     mockData.payments = rows();
-    render(<LandlordPaymentsScreen />);
+    await render(<LandlordPaymentsScreen />);
     expect(screen.getByText("Apartment: All apartments (searchable)")).toBeTruthy();
     expect(screen.getByText("April 2026|Unit B|Ryan")).toBeTruthy();
     expect(screen.getByText("March 2026|Unit A|Ryan")).toBeTruthy();
     expect(screen.getByText(/^status menu: All payments \(start, trigger\)/)).toBeTruthy();
   });
 
-  it("totals only paid money and shows the cash waiting for the landlord", () => {
+  it("totals only paid money and shows the cash waiting for the landlord", async () => {
     mockData.payments = rows();
-    render(<LandlordPaymentsScreen />);
+    await render(<LandlordPaymentsScreen />);
     expect(screen.getByText(/^Collected: ₱\s?10,000/)).toBeTruthy();
     expect(screen.getByText(/^Cash to confirm: ₱\s?7,000 \(1 payment waiting\)/)).toBeTruthy();
     expect(screen.getByText(/^Declined or failed: 1/)).toBeTruthy();
     expect(screen.getByLabelText(/Needs attention: 1 cash payment to confirm/)).toBeTruthy();
   });
 
-  it("narrows to one unit, hides the unit line, and its figures follow", () => {
+  it("narrows to one unit, hides the unit line, and its figures follow", async () => {
     mockData.payments = rows();
-    render(<LandlordPaymentsScreen />);
-    fireEvent.press(screen.getByLabelText("Apartment option Unit B"));
+    await render(<LandlordPaymentsScreen />);
+    await fireEvent.press(screen.getByLabelText("Apartment option Unit B"));
     expect(screen.getByText("Apartment: Unit B (searchable)")).toBeTruthy();
     expect(screen.getByText("April 2026|no-unit|Ryan")).toBeTruthy();
     expect(screen.queryByText(/March 2026/)).toBeNull();
     expect(screen.getByText(/^Collected: ₱\s?0\b/)).toBeTruthy();
   });
 
-  it("filters by status through the menu, opens on the status from the Dashboard link, and the cash card jumps to Pending", () => {
+  it("filters by status through the menu, opens on the status from the Dashboard link, and the cash card jumps to Pending", async () => {
     mockData.payments = rows();
     mockParams = { status: "pending" };
-    const first = render(<LandlordPaymentsScreen />);
+    const first = await render(<LandlordPaymentsScreen />);
     expect(screen.getByText(/^status menu: Pending/)).toBeTruthy();
     expect(screen.getByText("April 2026|Unit B|Ryan")).toBeTruthy();
     expect(screen.queryByText(/March 2026/)).toBeNull();
-    first.unmount();
+    await first.unmount();
 
     mockParams = { status: "not-a-status" };
-    render(<LandlordPaymentsScreen />);
+    await render(<LandlordPaymentsScreen />);
     expect(screen.getByText(/^status menu: All payments/)).toBeTruthy();
-    fireEvent.press(screen.getByLabelText(/Needs attention/));
+    await fireEvent.press(screen.getByLabelText(/Needs attention/));
     expect(screen.getByText(/^status menu: Pending/)).toBeTruthy();
-    fireEvent.press(screen.getByLabelText("status option Declined"));
+    await fireEvent.press(screen.getByLabelText("status option Declined"));
     expect(screen.getByText("February 2026|Unit A|Ryan")).toBeTruthy();
     expect(screen.queryByText(/April 2026/)).toBeNull();
   });
 
-  it("has no tabs and no year or sort selects on the screen itself", () => {
+  it("has no tabs and no year or sort selects on the screen itself", async () => {
     mockData.payments = rows();
-    render(<LandlordPaymentsScreen />);
+    await render(<LandlordPaymentsScreen />);
     expect(screen.queryByText(/^tab:/)).toBeNull();
     expect(screen.queryByTestId("select-Year")).toBeNull();
     expect(screen.queryByTestId("select-Sort")).toBeNull();
   });
 
-  it("opens the filter sheet from the filter icon, with year and sort inside it", () => {
+  it("opens the filter sheet from the filter icon, with year and sort inside it", async () => {
     mockData.payments = rows();
-    render(<LandlordPaymentsScreen />);
+    await render(<LandlordPaymentsScreen />);
     expect(screen.getByText(/^sheet: closed year=All years sort=Newest changed=false/)).toBeTruthy();
-    fireEvent.press(screen.getByLabelText("Filters"));
+    await fireEvent.press(screen.getByLabelText("Filters"));
     expect(screen.getByText(/^sheet: open/)).toBeTruthy();
-    fireEvent.press(screen.getByLabelText("sheet close"));
+    await fireEvent.press(screen.getByLabelText("sheet close"));
     expect(screen.getByText(/^sheet: closed/)).toBeTruthy();
   });
 
-  it("filters by year through the sheet, badges the icon, and Reset puts it back", () => {
+  it("filters by year through the sheet, badges the icon, and Reset puts it back", async () => {
     mockData.payments = rows();
-    render(<LandlordPaymentsScreen />);
-    fireEvent.press(screen.getByLabelText("sheet year 2025"));
+    await render(<LandlordPaymentsScreen />);
+    await fireEvent.press(screen.getByLabelText("sheet year 2025"));
     expect(screen.getByText("January 2025|Unit A|Ryan")).toBeTruthy();
     expect(screen.queryByText(/March 2026/)).toBeNull();
     expect(screen.getByText(/year=2025 sort=Newest changed=true/)).toBeTruthy();
     expect(screen.getByLabelText("Filters, 1 active")).toBeTruthy();
 
-    fireEvent.press(screen.getByLabelText("sheet sort Oldest"));
+    await fireEvent.press(screen.getByLabelText("sheet sort Oldest"));
     expect(screen.getByLabelText("Filters, 2 active")).toBeTruthy();
 
-    fireEvent.press(screen.getByLabelText("sheet reset"));
+    await fireEvent.press(screen.getByLabelText("sheet reset"));
     expect(screen.getByLabelText("Filters")).toBeTruthy();
     expect(screen.getByText(/year=All years sort=Newest changed=false/)).toBeTruthy();
     expect(screen.getByText("March 2026|Unit A|Ryan")).toBeTruthy();
   });
 
-  it("sorts the list oldest first through the sheet", () => {
+  it("sorts the list oldest first through the sheet", async () => {
     mockData.payments = rows();
-    render(<LandlordPaymentsScreen />);
+    await render(<LandlordPaymentsScreen />);
     const order = () => screen.getAllByLabelText(/^payment /).map((node) => node.props.accessibilityLabel);
-    expect(order()[0]).toBe("payment April 2026 7000");
-    fireEvent.press(screen.getByLabelText("sheet sort Oldest"));
-    expect(order()[0]).toBe("payment January 2025 4000");
+    expect(await order()[0]).toBe("payment April 2026 7000");
+    await fireEvent.press(screen.getByLabelText("sheet sort Oldest"));
+    expect(await order()[0]).toBe("payment January 2025 4000");
   });
 
-  it("offers Clear filters when the status and year match nothing", () => {
+  it("offers Clear filters when the status and year match nothing", async () => {
     mockData.payments = rows();
-    render(<LandlordPaymentsScreen />);
-    fireEvent.press(screen.getByLabelText("sheet year 2025"));
-    fireEvent.press(screen.getByLabelText("status option Pending"));
+    await render(<LandlordPaymentsScreen />);
+    await fireEvent.press(screen.getByLabelText("sheet year 2025"));
+    await fireEvent.press(screen.getByLabelText("status option Pending"));
     expect(screen.getByText("No payments found")).toBeTruthy();
-    fireEvent.press(screen.getByText("Clear filters"));
+    await fireEvent.press(screen.getByText("Clear filters"));
     expect(screen.getByText("January 2025|Unit A|Ryan")).toBeTruthy();
     expect(screen.getByText(/^status menu: All payments/)).toBeTruthy();
   });
 
-  it("opens that payment's receipt for its own unit", () => {
+  it("opens that payment's receipt for its own unit", async () => {
     mockData.payments = rows();
-    render(<LandlordPaymentsScreen />);
-    fireEvent.press(screen.getByLabelText("payment April 2026 7000"));
+    await render(<LandlordPaymentsScreen />);
+    await fireEvent.press(screen.getByLabelText("payment April 2026 7000"));
     expect(mockPush).toHaveBeenCalledWith({
       pathname: "/landlord/manage-apartment/[apartmentId]/payment-history/[paymentId]",
       params: { apartmentId: "unit-b", paymentId: "cash" },
     });
   });
 
-  it("shows a bounded page and loads more on demand", () => {
+  it("shows a bounded page and loads more on demand", async () => {
     mockData.payments = Array.from({ length: 35 }, (_, i) => payment(`p${i}`, { date: `2026-03-${String((i % 28) + 1).padStart(2, "0")}`, amount: 1000 + i }));
-    render(<LandlordPaymentsScreen />);
+    await render(<LandlordPaymentsScreen />);
     expect(screen.getAllByLabelText(/^payment /)).toHaveLength(30);
-    fireEvent.press(screen.getByText("Show more (5 left)"));
+    await fireEvent.press(screen.getByText("Show more (5 left)"));
     expect(screen.getAllByLabelText(/^payment /)).toHaveLength(35);
   });
 
-  it("says so when there are no payments yet", () => {
-    render(<LandlordPaymentsScreen />);
+  it("says so when there are no payments yet", async () => {
+    await render(<LandlordPaymentsScreen />);
     expect(screen.getByText("No payments yet")).toBeTruthy();
     expect(screen.queryByText("Clear filters")).toBeNull();
   });

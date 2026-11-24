@@ -1,6 +1,9 @@
 import type { Href } from "expo-router";
 
+import { translate, type LanguageCode } from "@repo/i18n";
+
 export interface NotificationData {
+  tenancyId?: string;
   screen?: string;
   apartmentId?: string;
   dueDate?: string;
@@ -34,13 +37,14 @@ export interface WebOnlyNotificationNotice {
  */
 export function getWebOnlyNotificationNotice(
   data: unknown,
+  language: LanguageCode = "en",
 ): WebOnlyNotificationNotice | null {
   if (!data || typeof data !== "object") return null;
 
   if ((data as NotificationData).screen === "passportReview") {
     return {
-      label: "Review on the web",
-      description: "Passport documents are reviewed in the admin portal on the web.",
+      label: translate(language, "notifications.mobile.webOnlyLabel"),
+      description: translate(language, "notifications.mobile.webOnlyBody"),
     };
   }
   return null;
@@ -61,6 +65,10 @@ export function buildNotificationDeepLink(
   const payload = data as NotificationData;
 
   switch (payload.screen) {
+    case "leaseRenewal":
+      return payload.tenancyId && (role === "tenant" || role === "landlord")
+        ? { pathname: "/lease-renewal/[tenancyId]", params: { tenancyId: payload.tenancyId } }
+        : null;
     case "chat": {
       const key = payload.conversationKey;
       if (!key || !currentUserId) return null;

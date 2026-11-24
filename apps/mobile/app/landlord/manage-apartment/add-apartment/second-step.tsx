@@ -11,6 +11,7 @@ import {
   ADD_APARTMENT_TOTAL_STEPS,
 } from "constants/addApartmentSteps";
 import DropdownField from "components/inputs/DropdownField";
+import ElectricityMeterConfirmation from "components/inputs/ElectricityMeterConfirmation";
 import MapViewSwitcher from "@/components/maps/MapViewSwitcher";
 
 import {
@@ -36,6 +37,7 @@ import {
   isCamanavaCity,
   isCamanavaZipForCity,
   getBarangaysByCity,
+  getOwnElectricityMeterError,
 } from "@repo/constants";
 
 import { IconCirclePlus, IconCircleMinus } from '@tabler/icons-react-native';
@@ -61,6 +63,7 @@ interface FormErrors {
   mapConfirmed?: string;
   floorLevel?: string;
   leaseDuration?: string;
+  hasOwnElectricityMeter?: string;
 }
 
 const DEFAULT_ROOM_LIMITS = {
@@ -106,6 +109,7 @@ export default function SecondStep() {
     latitude,
     floorLevel,
     leaseDuration,
+    hasOwnElectricityMeter,
   } = useApartmentFormStore();
 
   // An error belongs to the value it was raised for. Once that value changes
@@ -125,6 +129,7 @@ export default function SecondStep() {
     mapConfirmed: `${mapConfirmed}|${latitude}|${longitude}|${city}`,
     floorLevel: floorLevel ?? "",
     leaseDuration,
+    hasOwnElectricityMeter: String(hasOwnElectricityMeter),
   };
   const [errorValues, setErrorValues] = useState(fieldValues);
   const visibleErrors: FormErrors = Object.fromEntries(
@@ -302,6 +307,8 @@ export default function SecondStep() {
     if (!isFloorLevelDisabled && !floorLevel)
       errs.floorLevel = "Floor level is required";
     if (!leaseDuration) errs.leaseDuration = "Lease duration is required";
+    const meterError = getOwnElectricityMeterError(hasOwnElectricityMeter);
+    if (meterError) errs.hasOwnElectricityMeter = meterError;
 
     return errs;
   };
@@ -467,6 +474,15 @@ export default function SecondStep() {
                 setField("leaseDuration", value || "");
                 clearError("leaseDuration");
               }}
+            />
+            <ElectricityMeterConfirmation
+              isSelected={hasOwnElectricityMeter}
+              onSelectedChange={(selected) => {
+                setField("hasOwnElectricityMeter", selected);
+                clearError("hasOwnElectricityMeter");
+              }}
+              error={visibleErrors.hasOwnElectricityMeter}
+              isDisabled={checkingPin}
             />
           </View>
 

@@ -70,6 +70,7 @@ export function useSubmitApplication() {
         tenantId: context.tenantId,
         landlordId: context.landlordId,
         hasActiveApplication: context.hasActiveApplication,
+        hasActiveTenancy: context.hasActiveTenancy,
         passportDocs,
         employmentType: form.employmentType,
       });

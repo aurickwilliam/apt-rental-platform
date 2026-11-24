@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { translate } from "../../../packages/i18n/src/index.ts";
 
 function loadBreakdown() {
   const source = readFileSync(new URL("../app/browse/[apartmentId]/components/RatingBreakdown.tsx", import.meta.url), "utf8");
@@ -15,6 +16,12 @@ function loadBreakdown() {
     "@heroui/react": { Meter: Object.assign(() => {}, { Track: "Track", Fill: "Fill" }) },
     "@tabler/icons-react": { IconStarFilled: "StarFilled" },
     "@/app/components/display/StarRating": { __esModule: true, default: "StarRating" },
+    "@/app/components/i18n/LocaleProvider": {
+      useTranslation: () => ({
+        language: "en",
+        t: (key, vars) => translate("en", key, vars),
+      }),
+    },
   };
   const context = { exports: {}, require: name => modules[name] };
   vm.runInNewContext(compiled, context);

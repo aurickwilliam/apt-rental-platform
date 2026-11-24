@@ -54,34 +54,34 @@ describe("Add expense route", () => {
   });
   afterEach(() => jest.useRealTimers());
 
-  test("preselects the property and month from analytics", () => {
+  test("preselects the property and month from analytics", async () => {
     Object.assign(mockParams, { apartmentId: "villa", month: "2026-09" });
-    render(<AddExpenseScreen />);
+    await render(<AddExpenseScreen />);
     expect(mockPage).toHaveBeenLastCalledWith(expect.objectContaining({ apartmentId: "villa", month: "2026-09" }));
   });
 
-  test("unowned property and invalid month params do not seed the form", () => {
+  test("unowned property and invalid month params do not seed the form", async () => {
     Object.assign(mockParams, { apartmentId: "someone-elses", month: "2027-13" });
-    render(<AddExpenseScreen />);
+    await render(<AddExpenseScreen />);
     expect(mockPage).toHaveBeenLastCalledWith(expect.objectContaining({ apartmentId: null, month: "2026-10" }));
   });
 
-  test("shows form-shaped placeholders while loading properties", () => {
+  test("shows form-shaped placeholders while loading properties", async () => {
     mockFinance.report.isLoading = true;
-    render(<AddExpenseScreen />);
+    await render(<AddExpenseScreen />);
     expect(mockExpenseEntrySkeleton).toHaveBeenCalledTimes(1);
     expect(mockExpenseEntryFooterSkeleton).toHaveBeenCalledTimes(1);
     expect(mockPage).not.toHaveBeenCalled();
   });
 
   test("saving uses the existing finance mutation and closing returns to analytics", async () => {
-    render(<AddExpenseScreen />);
+    await render(<AddExpenseScreen />);
     const props = mockPage.mock.calls.at(-1)![0];
     const draft = { id: "stable-id", apartment_id: "villa", category: "maintenance" as const, treatment: "operating" as const, amount: 2500, spent_on: "2026-10-17", description: "AC repair" };
     await act(async () => { await props.onSave(draft, false); });
     expect(mockSave).toHaveBeenCalledWith({ draft, editing: false });
     expect(mockToast).toHaveBeenCalledWith({ label: "Expense saved", variant: "success" });
-    act(() => props.onClose());
+    await act(() => props.onClose());
     expect(mockBack).toHaveBeenCalled();
   });
 });

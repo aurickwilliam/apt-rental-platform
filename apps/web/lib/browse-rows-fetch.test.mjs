@@ -41,7 +41,7 @@ const defaults = {
 };
 const prefs = (overrides = {}) => ({ ...defaults, ...overrides });
 
-const POOL_COLUMNS = "id, city, monthly_rent, no_bedrooms, amenities, is_verified, average_rating";
+const POOL_COLUMNS = "id, city, monthly_rent, no_bedrooms, max_occupants, amenities, is_verified, average_rating";
 
 function card(id) {
   return {
@@ -116,7 +116,7 @@ const oneRowPerQuery = () => [card(`row-${counter++}`)];
 const poolRow = (id, overrides = {}) => ({
   id,
   city: "Caloocan",
-  monthly_rent: 10000,
+  monthly_rent: 20000,
   no_bedrooms: 2,
   amenities: [],
   is_verified: true,
@@ -187,14 +187,15 @@ test("Recommended scores light columns, then fetches only the winners with photo
     prefs({ selectedCities: ["Caloocan"], budgetMin: 5000, budgetMax: 20000 }),
   );
   const forYou = result.find((section) => section.id === "for_you");
-  assert.deepEqual(plain(forYou.apartments.map((apt) => apt.id)).slice(0, 2), ["best", "mid"]);
+  // "low" rents far above the chosen budget, so it is not recommended at all.
+  assert.deepEqual(plain(forYou.apartments.map((apt) => apt.id)), ["best", "mid"]);
   const poolCall = client.calls.find((call) => call.select === POOL_COLUMNS);
   assert.ok(client.has(poolCall, "in", "city", ["Caloocan"]), "the pool is limited to chosen cities");
   assert.ok(client.has(poolCall, "limit", 1000), "the pool is bounded");
   assert.ok(!poolCall.select.includes("apartment_images"), "the pool reads no photos");
   const winners = client.calls.find((call) => call.select !== POOL_COLUMNS && call.ops.some((op) => op[0] === "in" && op[1] === "id"));
   assert.ok(winners, "the winners are fetched by id");
-  assert.deepEqual(plain(winners.ops.find((op) => op[0] === "in" && op[1] === "id")[2]), ["best", "mid", "low"]);
+  assert.deepEqual(plain(winners.ops.find((op) => op[0] === "in" && op[1] === "id")[2]), ["best", "mid"]);
 });
 
 test("a failed row is dropped without hiding the others", async () => {

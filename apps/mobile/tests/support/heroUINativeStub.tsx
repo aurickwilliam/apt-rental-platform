@@ -16,14 +16,22 @@ interface PressableStubProps extends ChildrenProps {
 }
 
 const Passthrough = ({ children }: ChildrenProps) => <View>{children}</View>;
+// `stub*` props mirror the composite HeroUI props that tests assert on. The
+// installed RNTL v14 renders host elements only, so a composite's own props are
+// unreachable; these carry them onto the host node without changing queries.
 const TextStub = ({
   children,
   className,
-}: ChildrenProps & { className?: string }) => (
-  <Text className={className}>{children}</Text>
+  isRequired,
+}: ChildrenProps & { className?: string; isRequired?: boolean }) => (
+  <Text className={className} {...({ stubIsRequired: isRequired } as object)}>{children}</Text>
 );
 
-function PressableStub({ children, onPress, isDisabled, accessibilityLabel, className }: PressableStubProps) {
+interface ManagedPressableProps extends PressableStubProps, Record<string, unknown> {}
+
+// Forward the stub-managed props explicitly and pass everything else through,
+// so shapes queries read off the host node (variant, testID, ...) stay visible.
+function PressableStub({ children, onPress, isDisabled, accessibilityLabel, className, ...props }: ManagedPressableProps) {
   return (
     <Pressable
       onPress={onPress}
@@ -32,6 +40,7 @@ function PressableStub({ children, onPress, isDisabled, accessibilityLabel, clas
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled: !!isDisabled }}
       className={className}
+      {...props}
     >
       {children}
     </Pressable>
@@ -45,21 +54,27 @@ export const LinkButton = Object.assign(PressableStub, { Label: TextStub });
 export const TextField = Passthrough;
 export const Label = Object.assign(TextStub, { Text: TextStub });
 export const Description = TextStub;
-export const Card = Object.assign(Passthrough, { Body: Passthrough, Header: Passthrough, Footer: Passthrough });
+// Card parts and Chip keep their className/style on the host node so layout assertions can read them.
+const StyledPassthrough = ({ children, className, style }: ChildrenProps & { className?: string; style?: unknown }) => (
+  <View className={className} style={style as never}>{children}</View>
+);
+export const Card = Object.assign(StyledPassthrough, { Body: StyledPassthrough, Header: Passthrough, Footer: Passthrough });
 export const FieldError = TextStub;
 export const Input = (props: TextInputProps) => <TextInput {...props} />;
 export const InputGroup = Object.assign(Passthrough, { Input, Prefix: Passthrough, Suffix: Passthrough });
 export const Spinner = () => null;
 export const useThemeColor = () => "#FFFFFF";
 
-function ControlFieldStub({ children, isSelected, onSelectedChange, isDisabled, accessibilityLabel }: ChildrenProps & {
+function ControlFieldStub({ children, isSelected, onSelectedChange, isDisabled, isRequired, accessibilityLabel }: ChildrenProps & {
   isSelected?: boolean;
+  isRequired?: boolean;
   onSelectedChange?: (selected: boolean) => void;
   isDisabled?: boolean;
   accessibilityLabel?: string;
 }) {
   return <Pressable accessibilityRole="checkbox" accessibilityLabel={accessibilityLabel}
     accessibilityState={{ checked: !!isSelected, disabled: !!isDisabled }} disabled={isDisabled}
+    {...({ stubIsRequired: isRequired } as object)}
     onPress={() => onSelectedChange?.(!isSelected)}>{children}</Pressable>;
 }
 export const ControlField = Object.assign(ControlFieldStub, { Indicator: Passthrough });
@@ -162,7 +177,12 @@ export const ListGroup = Object.assign(Passthrough, {
   ItemSuffix: Passthrough,
 });
 export const Separator = () => null;
-export const Chip = Object.assign(Passthrough, { Label: TextStub });
+export const Chip = Object.assign(
+  ({ children, style }: ChildrenProps & { style?: unknown }) => (
+    <View {...({ stubIsChip: true } as object)} style={style as never}>{children}</View>
+  ),
+  { Label: TextStub },
+);
 
 // Accordion: questions render always; the installed component owns the
 // expand/collapse state, so the stub leaves every panel open.
@@ -179,16 +199,25 @@ export const Accordion = Object.assign(
 // Dialogs: only mounted while open, like the installed HeroUI Portal.
 interface DialogStubProps extends ChildrenProps {
   isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-function DialogStub({ children, isOpen = false }: DialogStubProps) {
-  return isOpen ? <View>{children}</View> : null;
+function DialogStub({ children, isOpen = false, onOpenChange }: DialogStubProps) {
+  return isOpen ? <View {...({ stubOnOpenChange: onOpenChange } as object)}>{children}</View> : null;
+}
+
+function DialogOverlayStub({ children, isCloseOnPress }: ChildrenProps & { isCloseOnPress?: boolean }) {
+  return <View {...({ stubIsCloseOnPress: isCloseOnPress } as object)}>{children}</View>;
+}
+
+function DialogContentStub({ children, isSwipeable, style }: ChildrenProps & { isSwipeable?: boolean; style?: unknown }) {
+  return <View {...({ stubIsSwipeable: isSwipeable, stubStyle: style } as object)}>{children}</View>;
 }
 
 export const Dialog = Object.assign(DialogStub, {
   Portal: Passthrough,
-  Overlay: Passthrough,
-  Content: Passthrough,
+  Overlay: DialogOverlayStub,
+  Content: DialogContentStub,
   Title: TextStub,
   Description: TextStub,
   Close: PressableStub,

@@ -45,7 +45,7 @@ function createWrapper() {
 describe("useSearchSections", () => {
   it("loads the six fixed rows in one RPC and pads the page to nine", async () => {
     const r = useRecorder();
-    const { result } = renderHook(
+    const { result } = await renderHook(
       () => useSearchSections({ selectedCity: "CAMANAVA", committedSearch: "" }),
       { wrapper: createWrapper() },
     );
@@ -58,14 +58,14 @@ describe("useSearchSections", () => {
 
   it("refetches when the city changes, showing only the fixed rows for a city", async () => {
     const r = useRecorder();
-    const { result, rerender } = renderHook(
+    const { result, rerender } = await renderHook(
       (props: { city: string }) =>
         useSearchSections({ selectedCity: props.city, committedSearch: "" }),
       { wrapper: createWrapper(), initialProps: { city: "CAMANAVA" } },
     );
 
     await waitFor(() => expect(result.current.sections).toHaveLength(9));
-    rerender({ city: "Caloocan" });
+    await rerender({ city: "Caloocan" });
 
     await waitFor(() => expect(r.rpcCalls).toHaveLength(2));
     expect(r.rpcCalls[1]).toEqual(["get_search_sections", expect.objectContaining({ p_city: "Caloocan" })]);
@@ -85,7 +85,7 @@ describe("useSearchSections", () => {
       selectedCities: ["Caloocan"], budgetMin: 5000, budgetMax: 100000, bedroomCount: null,
       householdSize: null, hasPets: false, hasParking: false, hasSmoker: false, hasDisability: false,
     } as never;
-    const { result, rerender } = renderHook(
+    const { result, rerender } = await renderHook(
       (props: { prefs: never }) =>
         useSearchSections({ selectedCity: "CAMANAVA", committedSearch: "", preferences: props.prefs }),
       { wrapper: createWrapper(), initialProps: { prefs: preferences } },
@@ -95,14 +95,14 @@ describe("useSearchSections", () => {
     expect(result.current.sections.slice(0, 2).map((section) => section.id)).toEqual(["for_you", "city:Caloocan"]);
     expect(r.rpcCalls).toHaveLength(0);
 
-    rerender({ prefs: { ...(preferences as object), hasPets: true } as never });
+    await rerender({ prefs: { ...(preferences as object), hasPets: true } as never });
     await waitFor(() => expect(result.current.sections.some((section) => section.id === "pets")).toBe(true));
   });
 
   it("exposes the error message when the RPC fails", async () => {
     useRecorder({ rpcError: new Error("rpc failed") });
 
-    const { result } = renderHook(
+    const { result } = await renderHook(
       () => useSearchSections({ selectedCity: "CAMANAVA", committedSearch: "" }),
       { wrapper: createWrapper() },
     );

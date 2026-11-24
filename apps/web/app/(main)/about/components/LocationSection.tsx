@@ -2,7 +2,7 @@
 
 import { Card } from "@heroui/react";
 import { IconMapPin as MapPin } from "@tabler/icons-react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { ABOUT_COVERAGE, ABOUT_OFFICE_ADDRESS } from "@repo/constants";
 
 const fadeUp = {

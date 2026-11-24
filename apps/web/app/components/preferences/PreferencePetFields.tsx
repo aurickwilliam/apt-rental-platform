@@ -4,6 +4,8 @@ import { Input, Label, ListBox, Select } from "@heroui/react";
 import { OTHER_PET, PETS } from "@repo/constants";
 import { trimPetKinds } from "@repo/utils";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
+
 import {
   PET_COUNT_OPTIONS,
   minimumPetCount,
@@ -34,11 +36,12 @@ export default function PreferencePetFields({
   error,
   idPrefix = "pet",
 }: PreferencePetFieldsProps) {
+  const { t } = useTranslation();
   return (
     <>
       <div className="flex flex-col gap-1.5">
         <Select
-          placeholder="Select the number of pets you have"
+          placeholder={t("apply.prefs.petCountPlaceholder")}
           value={petCountToOption(noOfPets)}
           onChange={(key) => {
             const count = key ? optionToPetCount(String(key)) : 1;
@@ -52,7 +55,7 @@ export default function PreferencePetFields({
           }}
           isInvalid={kindOfPets.length > 0 && error !== null}
         >
-          <Label>How many pets do you have? <span className="text-danger" aria-hidden="true">*</span></Label>
+          <Label>{t("apply.prefs.petCountQuestion")} <span className="text-danger" aria-hidden="true">*</span></Label>
           <Select.Trigger>
             <Select.Value />
             <Select.Indicator />
@@ -76,7 +79,7 @@ export default function PreferencePetFields({
       </div>
       <Select
         selectionMode="multiple"
-        placeholder="Select the kinds of pets you have"
+        placeholder={t("apply.prefs.petKindsPlaceholder")}
         value={kindOfPets}
         onChange={(keys) => {
           const picked = keys.map(String);
@@ -89,7 +92,7 @@ export default function PreferencePetFields({
           });
         }}
       >
-        <Label>If yes, what kinds of pets do you have? <span className="text-danger" aria-hidden="true">*</span></Label>
+        <Label>{t("apply.prefs.petKindsQuestion")} <span className="text-danger" aria-hidden="true">*</span></Label>
         <Select.Trigger>
           <Select.Value />
           <Select.Indicator />
@@ -107,10 +110,10 @@ export default function PreferencePetFields({
       </Select>
       {kindOfPets.includes(OTHER_PET) && (
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor={`${idPrefix}-name`}>Please specify the kind of pet you have</Label>
+          <Label htmlFor={`${idPrefix}-name`}>{t("apply.prefs.petSpecify")}</Label>
           <Input
             id={`${idPrefix}-name`}
-            placeholder="e.g., Poodle, Siamese"
+            placeholder={t("apply.prefs.petTypePlaceholder")}
             value={nameOfPets ?? ""}
             onChange={(e) => onChange({ nameOfPets: e.target.value || null })}
           />

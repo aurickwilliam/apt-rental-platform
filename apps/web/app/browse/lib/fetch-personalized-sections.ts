@@ -5,6 +5,7 @@ import {
   buildPersonalizedRowSpecs,
   hasMeaningfulPreferences,
   rankCandidates,
+  recommendationReasons,
   type BrowseRowSpec,
 } from "@repo/utils";
 
@@ -33,7 +34,7 @@ export const RECOMMENDED_SECTION_SUBTITLE = "Based on your rental preferences.";
  * rating cut; only the winners are fetched with photos.
  */
 const RECOMMENDATION_POOL_SIZE = 1000;
-const POOL_COLUMNS = "id, city, monthly_rent, no_bedrooms, amenities, is_verified, average_rating";
+const POOL_COLUMNS = "id, city, monthly_rent, no_bedrooms, max_occupants, amenities, is_verified, average_rating";
 
 function cardQuery(supabase: ServerSupabaseClient) {
   return applyCoverImageOrder(
@@ -130,10 +131,17 @@ async function fetchRecommendedRow(
 
   // The card read has no order: restore the ranking.
   const byId = new Map((cards ?? []).map((card) => [card.id, card]));
+  const poolById = new Map((pool ?? []).map((candidate) => [candidate.id, candidate]));
   const apartments = ids
     .map((id) => byId.get(id))
     .filter((card): card is NonNullable<typeof card> => card !== undefined)
-    .map(toBrowseApartment);
+    .map((card) => {
+      const candidate = poolById.get(card.id);
+      return {
+        ...toBrowseApartment(card),
+        reasons: candidate ? recommendationReasons(candidate, prefs) : [],
+      };
+    });
   if (apartments.length === 0) return null;
 
   return toSection(

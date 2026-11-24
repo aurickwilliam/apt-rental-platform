@@ -96,31 +96,31 @@ describe("Edit expense route", () => {
   });
   afterEach(() => jest.useRealTimers());
 
-  test("reads the expense again by id and seeds the form with it", () => {
-    render(<EditExpenseScreen />);
+  test("reads the expense again by id and seeds the form with it", async () => {
+    await render(<EditExpenseScreen />);
     expect(mockUseFinanceExpense).toHaveBeenCalledWith("owner", "exp-1");
     expect(mockPage).toHaveBeenLastCalledWith(
       expect.objectContaining({ initial: expense, month: "2026-10" }),
     );
   });
 
-  test("shows form-shaped placeholders while the expense loads", () => {
+  test("shows form-shaped placeholders while the expense loads", async () => {
     mockExpenseQuery.isLoading = true;
     mockExpenseQuery.data = undefined;
-    render(<EditExpenseScreen />);
+    await render(<EditExpenseScreen />);
     expect(mockSkeleton).toHaveBeenCalledTimes(1);
     expect(mockPage).not.toHaveBeenCalled();
   });
 
-  test("a missing expense shows a not-found state instead of an empty form", () => {
+  test("a missing expense shows a not-found state instead of an empty form", async () => {
     mockExpenseQuery.data = null;
-    const screen = render(<EditExpenseScreen />);
+    const screen = await render(<EditExpenseScreen />);
     expect(screen.getByText("Expense not found")).toBeTruthy();
     expect(mockPage).not.toHaveBeenCalled();
   });
 
   test("saving and deleting use the existing finance mutations", async () => {
-    render(<EditExpenseScreen />);
+    await render(<EditExpenseScreen />);
     const props = mockPage.mock.calls.at(-1)![0];
     const draft = { id: "exp-1", apartment_id: "villa", category: "maintenance" as const, treatment: "operating" as const, amount: 3000, spent_on: "2026-10-05", description: "AC repair" };
     await act(async () => { await props.onSave(draft, true); });
@@ -128,7 +128,7 @@ describe("Edit expense route", () => {
     expect(mockToast).toHaveBeenCalledWith({ label: "Expense saved", variant: "success" });
     await act(async () => { await props.onDelete?.("exp-1"); });
     expect(mockRemove).toHaveBeenCalledWith("exp-1");
-    act(() => props.onClose());
+    await act(() => props.onClose());
     expect(mockBack).toHaveBeenCalled();
   });
 });

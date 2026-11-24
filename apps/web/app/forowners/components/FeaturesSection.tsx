@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button, Card, Separator } from "@heroui/react";
 import { IconCircleCheck as CheckCircle2, IconChevronDown as ChevronDown } from "@tabler/icons-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { features } from "./Data";
 
 const fadeUp = {

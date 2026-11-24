@@ -27,16 +27,16 @@ const options = (): BudgetEntryFormOptions => ({
 });
 
 describe("budget entry draft lifecycle", () => {
-  test("a refreshed budget and suggestion do not overwrite an in-progress draft", () => {
+  test("a refreshed budget and suggestion do not overwrite an in-progress draft", async () => {
     const props = options();
-    const { result, rerender } = renderHook(useBudgetEntryForm, {
+    const { result, rerender } = await renderHook(useBudgetEntryForm, {
       initialProps: props,
     });
-    act(() => {
+    await act(() => {
       result.current.setAmount("800");
       result.current.applyGoal({ target: "18000", months: "18" });
     });
-    rerender({
+    await rerender({
       ...props,
       initial: { ...props.initial!, amount: 700 },
       suggestedAmount: 900,
@@ -54,10 +54,10 @@ describe("budget entry draft lifecycle", () => {
       .mockResolvedValueOnce(undefined);
     const log = jest.spyOn(console, "error").mockImplementation(() => {});
     try {
-      const { result } = renderHook(() =>
+      const { result } = await renderHook(() =>
         useBudgetEntryForm({ ...props, onSave }),
       );
-      act(() => {
+      await act(() => {
         result.current.applyGoal({ target: "24000", months: "12" }, 2000);
       });
       expect(onSave).not.toHaveBeenCalled();

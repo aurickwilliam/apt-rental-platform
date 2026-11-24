@@ -1,4 +1,6 @@
-// Moderation emails (listing hidden, account suspended, warning, report reviewed).
+// Moderation emails (listing hidden, account suspended, warning, report reviewed)
+// and account-activity emails (rent dues, payments, verification, applications,
+// maintenance).
 //
 // Called from the DB via pg_net by app_private.queue_email(), which first
 // writes a row to public.email_outbox. The request carries only that row's id:

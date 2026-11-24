@@ -8,7 +8,7 @@ import { CATEGORIES } from "../data/maintenance-data";
 import ActiveMaintenanceRequestCard from "./ActiveMaintenanceRequestCard";
 import ActiveMaintenanceRequestsModal from "./ActiveMaintenanceRequestsModal";
 import MaintenanceHistoryRow from "./MaintenanceHistoryRow";
-import MaintenanceHistoryModal from "./MaintenanceHistoryModal";
+import MaintenanceHistoryDrawer from "./MaintenanceHistoryDrawer";
 import { sortActiveMaintenanceRequests } from "@/lib/maintenance-featured-request";
 import { MAINTENANCE_HISTORY_PREVIEW_LIMIT, sortMaintenanceHistoryRequests } from "@/lib/maintenance-history-preview";
 import { MAINTENANCE_HISTORY_LIMIT } from "@/service/maintenanceService";
@@ -132,7 +132,7 @@ export default function MaintenanceHistory({ requests, loading, error, cancellin
           <div className="mt-4 flex justify-end"><Button variant="secondary" onPress={() => { setExpandedIds(new Set()); setHistoryOpen(true); }}>See more<IconChevronRight size={18} aria-hidden="true" /></Button></div>
         ) : null}
         {isHistory ? (
-          <MaintenanceHistoryModal isOpen={historyOpen} onOpenChange={(open) => { setHistoryOpen(open); if (!open) setExpandedIds(new Set()); }} requests={historyRequests} filters={filters} onApplyFilters={applyFilters} loading={loading} error={error} photoLoading={photos.loading} photoError={photos.error} limitReached={allHistoryRequests.length >= MAINTENANCE_HISTORY_LIMIT} onRetry={onRetry} renderRequest={renderHistoryRequest} />
+          <MaintenanceHistoryDrawer isOpen={historyOpen} onOpenChange={(open) => { setHistoryOpen(open); if (!open) setExpandedIds(new Set()); }} requests={historyRequests} filters={filters} onApplyFilters={applyFilters} loading={loading} error={error} photoLoading={photos.loading} photoError={photos.error} limitReached={allHistoryRequests.length >= MAINTENANCE_HISTORY_LIMIT} onRetry={onRetry} renderRequest={renderHistoryRequest} />
         ) : (
           <ActiveMaintenanceRequestsModal isOpen={allOpen} onOpenChange={setAllOpen} requests={activeRequests} loading={loading} error={error} photoLoading={photos.loading} photoError={photos.error} onRetry={onRetry} onCancel={onCancel} renderRequest={renderActiveRequest} />
         )}

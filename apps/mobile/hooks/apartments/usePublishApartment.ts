@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '@repo/supabase'
-import { PUBLIC_IMAGE_CACHE_CONTROL } from '@repo/constants'
+import { PUBLIC_IMAGE_CACHE_CONTROL, getOwnElectricityMeterError } from '@repo/constants'
 import { useApartmentFormStore } from '@/stores/useApartmentFormStore'
 import { ImagePickerAsset } from 'expo-image-picker'
 import { File } from 'expo-file-system'
@@ -73,6 +73,8 @@ export function usePublishApartment() {
 
     try {
       if (!profile) throw new Error('User profile not found.')
+      const meterError = getOwnElectricityMeterError(store.hasOwnElectricityMeter)
+      if (meterError) throw new Error(meterError)
       if (!store.thumbnail) throw new Error('Thumbnail is required.')
 
       const monthlyRent = Number(store.monthlyRent)
@@ -105,6 +107,7 @@ export function usePublishApartment() {
           longitude: store.longitude,
           amenities: store.amenities,
           lease_duration: store.leaseDuration || null,
+          has_own_electricity_meter: store.hasOwnElectricityMeter,
           lease_agreement_url: null,
           landlord_id: profile.id,
         })

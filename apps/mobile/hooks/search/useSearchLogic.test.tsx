@@ -70,7 +70,7 @@ describe("useSearchLogic", () => {
     });
     mockFrom.mockReturnValue(query);
 
-    const { result, unmount } = renderHook(() => useSearchLogic());
+    const { result, unmount } = await renderHook(() => useSearchLogic());
 
     await waitFor(() => expect(result.current.resultCount).toBe(1));
 
@@ -79,7 +79,7 @@ describe("useSearchLogic", () => {
     expect(query.range).toHaveBeenCalledWith(0, 9);
     expect(result.current.apartments).toHaveLength(1);
 
-    unmount();
+    await unmount();
   });
 
   it("only fetches with the committed search term after commitSearch is called", async () => {
@@ -109,11 +109,11 @@ describe("useSearchLogic", () => {
     };
     mockFrom.mockReturnValue(query);
 
-    const { result, unmount } = renderHook(() => useSearchLogic());
+    const { result, unmount } = await renderHook(() => useSearchLogic());
 
     await waitFor(() => expect(result.current.resultCount).toBe(0));
 
-    act(() => {
+    await act(() => {
       result.current.setSearchDraft("studio");
     });
 
@@ -121,7 +121,7 @@ describe("useSearchLogic", () => {
     expect(result.current.committedSearch).toBe("");
     expect(query.or).not.toHaveBeenCalled();
 
-    act(() => {
+    await act(() => {
       result.current.commitSearch("studio");
     });
 
@@ -132,7 +132,7 @@ describe("useSearchLogic", () => {
       ),
     );
 
-    unmount();
+    await unmount();
   });
 
   it("clears both the draft and the committed search, reverting to the default browse state", async () => {
@@ -162,28 +162,28 @@ describe("useSearchLogic", () => {
     };
     mockFrom.mockReturnValue(query);
 
-    const { result, unmount } = renderHook(() => useSearchLogic());
+    const { result, unmount } = await renderHook(() => useSearchLogic());
 
     await waitFor(() => expect(result.current.resultCount).toBe(0));
 
-    act(() => {
+    await act(() => {
       result.current.commitSearch("studio");
     });
     await waitFor(() => expect(result.current.committedSearch).toBe("studio"));
 
-    act(() => {
+    await act(() => {
       result.current.setSearchDraft("studio apartment");
     });
     expect(result.current.searchDraft).toBe("studio apartment");
 
-    act(() => {
+    await act(() => {
       result.current.clearSearch();
     });
 
     expect(result.current.searchDraft).toBe("");
     expect(result.current.committedSearch).toBe("");
 
-    unmount();
+    await unmount();
   });
 
   it("restores the account's saved browse inputs on mount and queries with them", async () => {
@@ -236,7 +236,7 @@ describe("useSearchLogic", () => {
     };
     mockFrom.mockReturnValue(query);
 
-    const { result, unmount } = renderHook(() => useSearchLogic());
+    const { result, unmount } = await renderHook(() => useSearchLogic());
 
     await waitFor(() => expect(result.current.committedSearch).toBe("studio"));
     expect(result.current.selectedCity).toBe("Caloocan");
@@ -252,7 +252,101 @@ describe("useSearchLogic", () => {
       expect(query.eq).toHaveBeenCalledWith("city", "Caloocan"),
     );
 
-    unmount();
+    await unmount();
+  });
+
+  it("filters by the cities picked in the sheet instead of the city chip", async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: "account-a" } } });
+    await AsyncStorage.setItem(
+      "apt-search:account-a",
+      JSON.stringify({
+        city: "Caloocan",
+        committedSearch: "",
+        filters: { locations: ["Malabon", "Navotas"] },
+        isGridView: true,
+      }),
+    );
+
+    let query: Record<string, jest.Mock>;
+    let orderCallCount = 0;
+    query = {
+      select: jest.fn(() => query),
+      is: jest.fn(() => query),
+      eq: jest.fn(() => query),
+      in: jest.fn(() => query),
+      or: jest.fn(() => query),
+      range: jest.fn(() => query),
+      order: jest.fn(() => {
+        orderCallCount += 1;
+        return orderCallCount % 2 === 1
+          ? query
+          : Promise.resolve({ data: [], error: null, count: 0 });
+      }),
+    };
+    mockFrom.mockReturnValue(query);
+
+    const { result, unmount } = await renderHook(() => useSearchLogic());
+
+    await waitFor(() =>
+      expect(query.in).toHaveBeenCalledWith("city", ["Malabon", "Navotas"]),
+    );
+    expect(query.eq).not.toHaveBeenCalledWith("city", "Caloocan");
+    expect(result.current.activeFilterCount).toBe(1);
+
+    await unmount();
+  });
+
+  it("keeps the city chips and the sheet's cities in step", async () => {
+    let query: Record<string, jest.Mock>;
+    let orderCallCount = 0;
+    query = {
+      select: jest.fn(() => query),
+      is: jest.fn(() => query),
+      eq: jest.fn(() => query),
+      in: jest.fn(() => query),
+      or: jest.fn(() => query),
+      range: jest.fn(() => query),
+      order: jest.fn(() => {
+        orderCallCount += 1;
+        return orderCallCount % 2 === 1
+          ? query
+          : Promise.resolve({ data: [], error: null, count: 0 });
+      }),
+    };
+    mockFrom.mockReturnValue(query);
+
+    const { result, unmount } = await renderHook(() => useSearchLogic());
+    await waitFor(() => expect(result.current.resultCount).toBe(0));
+
+    // A chip tap shows up in the sheet.
+    await act(() => result.current.selectCity("Malabon"));
+    expect(result.current.sheetFilters.locations).toEqual(["Malabon"]);
+
+    // Several cities in the sheet leave no chip highlighted.
+    await act(() =>
+      result.current.handleApplyFilters({
+        ...result.current.sheetFilters,
+        locations: ["Malabon", "Navotas"],
+      }),
+    );
+    expect(result.current.chipCity).toBe("");
+    expect(result.current.selectedCity).toBe("CAMANAVA");
+
+    // One city in the sheet selects that chip.
+    await act(() =>
+      result.current.handleApplyFilters({
+        ...result.current.sheetFilters,
+        locations: ["Navotas"],
+      }),
+    );
+    expect(result.current.chipCity).toBe("Navotas");
+
+    // Clearing the sheet goes back to all cities.
+    await act(() => result.current.handleClearFilters());
+    expect(result.current.chipCity).toBe("CAMANAVA");
+    expect(result.current.sheetFilters.locations).toHaveLength(4);
+
+    await unmount();
   });
 
   it("persists committed browse inputs under the account key", async () => {
@@ -283,10 +377,10 @@ describe("useSearchLogic", () => {
     };
     mockFrom.mockReturnValue(query);
 
-    const { result, unmount } = renderHook(() => useSearchLogic());
+    const { result, unmount } = await renderHook(() => useSearchLogic());
     await waitFor(() => expect(result.current.resultCount).toBe(0));
 
-    act(() => {
+    await act(() => {
       result.current.commitSearch("loft");
     });
 
@@ -297,7 +391,7 @@ describe("useSearchLogic", () => {
       ),
     );
 
-    unmount();
+    await unmount();
   });
 
   it("falls back to defaults when the stored preference is corrupted", async () => {
@@ -327,14 +421,14 @@ describe("useSearchLogic", () => {
     };
     mockFrom.mockReturnValue(query);
 
-    const { result, unmount } = renderHook(() => useSearchLogic());
+    const { result, unmount } = await renderHook(() => useSearchLogic());
 
     await waitFor(() => expect(result.current.resultCount).toBe(0));
     expect(result.current.committedSearch).toBe("");
     expect(result.current.selectedCity).toBe("CAMANAVA");
     expect(result.current.filters).toBeNull();
 
-    unmount();
+    await unmount();
   });
 
   it("does not page past an empty result list", async () => {
@@ -361,7 +455,7 @@ describe("useSearchLogic", () => {
       resolve({ data: [], error: null, count: 0 });
     mockFrom.mockReturnValue(query);
 
-    const { result, unmount } = renderHook(() => useSearchLogic());
+    const { result, unmount } = await renderHook(() => useSearchLogic());
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -373,6 +467,6 @@ describe("useSearchLogic", () => {
     expect(consoleError).not.toHaveBeenCalled();
 
     consoleError.mockRestore();
-    unmount();
+    await unmount();
   });
 });

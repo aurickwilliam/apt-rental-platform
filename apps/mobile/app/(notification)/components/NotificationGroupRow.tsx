@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 import { IconChevronDown } from '@tabler/icons-react-native';
+import { translate, type LanguageCode } from '@repo/i18n';
 import {
   composeNotificationGroupLabel,
   formatMessageGroupCount,
@@ -18,6 +19,8 @@ interface NotificationGroupRowProps {
   onToggle: () => void;
   onOpenGroup: () => void;
   onOpenMember: (notification: NotificationItem) => void;
+  /** Active UI language for the summary line, labels and member timestamps. */
+  language?: LanguageCode;
 }
 
 /**
@@ -32,16 +35,17 @@ export default function NotificationGroupRow({
   onToggle,
   onOpenGroup,
   onOpenMember,
+  language = 'en',
 }: NotificationGroupRowProps) {
   const { colors } = useColors();
-  const timestamp = getRelativeTime(new Date(unit.latest.created_at));
+  const timestamp = getRelativeTime(new Date(unit.latest.created_at), language);
   const accessibleLabel = composeNotificationGroupLabel({
     senderName: unit.latest.title,
     count: unit.count,
     // Expanded members already show the content, so the summary drops it.
     latest: expanded ? null : unit.latest.message,
     isUnread: unit.hasUnread,
-  });
+  }, language);
 
   return (
     <View>
@@ -58,12 +62,14 @@ export default function NotificationGroupRow({
           <View className="flex-1 pr-8">
             <Text className="text-foreground text-base leading-6 font-nunito" numberOfLines={2}>
               <Text className="font-nunitoBold">{unit.latest.title}</Text>
-              {` ${formatMessageGroupCount(unit.count).toLowerCase()}`}
+              {` ${formatMessageGroupCount(unit.count, language).toLowerCase()}`}
             </Text>
 
             {!expanded && unit.latest.message ? (
               <Text className="text-muted text-sm leading-5 font-inter" numberOfLines={1}>
-                {`Latest: “${unit.latest.message}”`}
+                {translate(language, "notifications.group.latest", {
+                  preview: `“${unit.latest.message}”`,
+                })}
               </Text>
             ) : null}
 
@@ -80,7 +86,11 @@ export default function NotificationGroupRow({
           onPress={onToggle}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel={`${expanded ? 'Collapse' : 'Expand'} messages from ${unit.latest.title}`}
+          accessibilityLabel={translate(
+            language,
+            expanded ? 'notifications.collapseFrom' : 'notifications.expandFrom',
+            { name: unit.latest.title },
+          )}
           accessibilityState={{ expanded }}
           className="absolute bottom-1 right-1 h-10 w-10 items-center justify-center"
         >
@@ -93,12 +103,18 @@ export default function NotificationGroupRow({
       </View>
 
       {expanded ? (
-        <View className="ml-[72px]" accessibilityLabel={`Messages from ${unit.latest.title}`}>
+        <View
+          className="ml-[72px]"
+          accessibilityLabel={translate(language, "notifications.messagesFrom", {
+            name: unit.latest.title,
+          })}
+        >
           {unit.members.map((member) => (
             <NotificationRow
               key={member.id}
               notification={member}
               compact
+              language={language}
               onPress={() => onOpenMember(member)}
             />
           ))}

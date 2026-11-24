@@ -9,6 +9,7 @@ import type { MessageGroupUnit } from '@repo/utils'
 import { useNotifications, useNotificationActions, useNotificationPortal } from '@/hooks/notifications'
 import type { NotificationItem } from '@/hooks/notifications'
 import { useCurrentUser } from '@/hooks/auth'
+import { useTranslation } from '@/hooks/i18n'
 import EmptyState from '@/components/display/EmptyState'
 import { buildNotificationDeepLink, getWebOnlyNotificationNotice } from '@/utils/notificationDeepLink'
 import NotificationRow from '@/app/(notification)/components/NotificationRow';
@@ -24,6 +25,7 @@ interface NotificationListProps {
 }
 
 export default function NotificationList({ filter, onShowAll }: NotificationListProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const { toast } = useToast();
   const currentUserQuery = useCurrentUser();
@@ -101,11 +103,11 @@ export default function NotificationList({ filter, onShowAll }: NotificationList
       <EmptyState
         className="mt-6"
         icon={IconBellCheck}
-        title="You're all caught up"
-        description="No unread notifications. New messages, payments and updates will show up here."
+        title={t("notifications.mobile.caughtUpTitle")}
+        description={t("notifications.mobile.caughtUpBody")}
         action={onShowAll ? (
           <Button size="sm" variant="secondary" onPress={onShowAll}>
-            <Button.Label>View all notifications</Button.Label>
+            <Button.Label>{t("notifications.mobile.viewAll")}</Button.Label>
           </Button>
         ) : undefined}
       />
@@ -113,8 +115,8 @@ export default function NotificationList({ filter, onShowAll }: NotificationList
       <EmptyState
         className="mt-6"
         icon={IconBellOff}
-        title="No notifications yet"
-        description="When something happens with your messages, payments or listings, you'll see it here."
+        title={t("notifications.mobile.emptyTitle")}
+        description={t("notifications.mobile.emptyBody")}
       />
     );
   }

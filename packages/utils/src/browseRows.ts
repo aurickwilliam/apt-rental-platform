@@ -4,8 +4,11 @@
 // Pure and dependency-free: each platform turns a row's criteria into its own
 // query and owns the UI.
 //
-// Scoring is ported from the mobile app's soft-ranking rules. Preferences rank
-// listings; they never filter, except chosen cities, which gate every row.
+// "Recommended for You" is two stages. Eligibility is strict: a listing outside
+// the chosen cities or the saved budget, provably too small for the household,
+// or explicitly non-smoking for a smoker is never shown. Ranking is soft: the
+// remaining preferences only order the eligible listings. Unknown data never
+// excludes: a missing capacity or smoking policy stays eligible.
 
 /** Every Browse row, fixed or personalized, holds up to this many apartments. */
 export const BROWSE_ROW_LIMIT = 15;
@@ -57,9 +60,110 @@ export interface BrowseRowCandidate {
   city?: string | null;
   monthly_rent?: number | null;
   no_bedrooms?: number | null;
+  max_occupants?: number | null;
   amenities?: string[] | null;
   is_verified?: boolean | null;
   average_rating?: number | null;
+}
+
+/**
+ * Fewest people a saved household option can represent. The options are
+ * ranges, so only a capacity provably below this bound excludes a listing.
+ */
+export function minimumHouseholdSize(value: string | null | undefined): number | null {
+  switch (value) {
+    case "Single":
+      return 1;
+    case "Family of 2":
+      return 2;
+    case "3 - 4 Persons":
+      return 3;
+    case "5 - 6 Persons":
+      return 5;
+    case "7+ Persons":
+      return 7;
+    default:
+      return value && /^[1-9]\d*$/.test(value) ? Number(value) : null;
+  }
+}
+
+/** A budget the tenant actually chose: finite, ordered and not the default range. */
+function configuredBudget(prefs: BrowseRowPreferences): { min: number; max: number } | null {
+  const { budgetMin: min, budgetMax: max } = prefs;
+  if (!Number.isFinite(min) || !Number.isFinite(max) || min < 0 || min > max) return null;
+  if (isDefaultBudget(prefs)) return null;
+  return { min, max };
+}
+
+/**
+ * Stage 1 of "Recommended for You": whether a listing may be recommended at
+ * all. City and a chosen budget gate it, as do a household provably larger
+ * than the listing's capacity and an explicit non-smoking listing for a smoker.
+ */
+export function isListingEligible(raw: BrowseRowCandidate, prefs: BrowseRowPreferences): boolean {
+  if (prefs.selectedCities.length > 0 && !(raw.city != null && prefs.selectedCities.includes(raw.city))) {
+    return false;
+  }
+
+  const budget = configuredBudget(prefs);
+  if (budget) {
+    const rent = raw.monthly_rent;
+    if (typeof rent !== "number" || !Number.isFinite(rent) || rent < budget.min || rent > budget.max) {
+      return false;
+    }
+  }
+
+  const household = minimumHouseholdSize(prefs.householdSize);
+  const capacity = raw.max_occupants;
+  if (household !== null && typeof capacity === "number" && capacity > 0 && capacity < household) {
+    return false;
+  }
+
+  if (prefs.hasSmoker && (raw.amenities ?? []).includes("nonsmoking")) return false;
+
+  return true;
+}
+
+export type BrowseRecommendationReason =
+  | "Preferred city"
+  | "Within budget"
+  | "Bedroom match"
+  | "Pet-friendly"
+  | "Parking available";
+
+/** At most this many reason chips show on a recommended card. */
+export const BROWSE_REASON_LIMIT = 2;
+
+/** Verified matches only (never a claim about unknown data), in fixed priority. */
+export function recommendationReasons(
+  raw: BrowseRowCandidate,
+  prefs: BrowseRowPreferences,
+): BrowseRecommendationReason[] {
+  const reasons: BrowseRecommendationReason[] = [];
+  if (raw.city != null && prefs.selectedCities.includes(raw.city)) reasons.push("Preferred city");
+
+  const budget = configuredBudget(prefs);
+  const rent = raw.monthly_rent;
+  if (budget && typeof rent === "number" && rent >= budget.min && rent <= budget.max) {
+    reasons.push("Within budget");
+  }
+
+  const range = prefs.bedroomCount ? BEDROOM_RANGES[prefs.bedroomCount] : undefined;
+  const bedrooms = raw.no_bedrooms;
+  if (
+    range &&
+    typeof bedrooms === "number" &&
+    bedrooms >= range.min &&
+    (range.max === undefined || bedrooms <= range.max)
+  ) {
+    reasons.push("Bedroom match");
+  }
+
+  const amenities = raw.amenities ?? [];
+  if (prefs.hasPets && amenities.includes("petfriendly")) reasons.push("Pet-friendly");
+  if (prefs.hasParking && amenities.includes("parking")) reasons.push("Parking available");
+
+  return reasons.slice(0, BROWSE_REASON_LIMIT);
 }
 
 export interface BrowseScoreOptions {
@@ -73,21 +177,20 @@ export interface BrowseScoreOptions {
 
 /**
  * Score one listing against saved preferences. Raw `budgetMin`/`budgetMax` are
- * used as-is. Higher is better; 0 or below means "not recommended".
+ * used as-is. Higher is better; 0 or below means "not recommended", which is
+ * what an ineligible listing (see `isListingEligible`) always scores.
  */
 export function scoreListing(
   raw: BrowseRowCandidate,
   prefs: BrowseRowPreferences,
   { wheelchairAmenity = false }: BrowseScoreOptions = {},
 ): number {
+  if (!isListingEligible(raw, prefs)) return 0;
+
   let score = 0;
 
-  if (prefs.selectedCities.length > 0) {
-    if (raw.city != null && prefs.selectedCities.includes(raw.city)) score += 3;
-    else return 0; // city is a hard gate when cities are set
-  } else {
-    score += 1; // no city preference, mild baseline
-  }
+  if (prefs.selectedCities.length > 0) score += 3;
+  else score += 1; // no city preference, mild baseline
 
   const rent = raw.monthly_rent ?? 0;
   if (rent >= prefs.budgetMin && rent <= prefs.budgetMax) score += 2;

@@ -1,4 +1,5 @@
 import {
+  describeTenantRatingSummary,
   prepareTenantReview,
   summarizeTenantReviews,
   toTenantReviewRecords,
@@ -38,6 +39,9 @@ describe("tenant review rules shared by web and mobile", () => {
   it("averages individual ratings to one decimal", () => {
     expect(summarizeTenantReviews([])).toEqual({ average: 0, count: 0 });
     expect(summarizeTenantReviews([5, 4, 4])).toEqual({ average: 4.3, count: 3 });
+    expect(describeTenantRatingSummary({ average: 0, count: 0 })).toBe('No ratings yet');
+    expect(describeTenantRatingSummary({ average: 5, count: 1 })).toBe('5.0 from 1 landlord rating');
+    expect(describeTenantRatingSummary({ average: 4.3, count: 3 })).toBe('4.3 from 3 landlord ratings');
     expect(summarizeTenantReviews([5, Number.NaN])).toEqual({ average: 5, count: 1 });
   });
 

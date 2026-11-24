@@ -53,7 +53,7 @@ const seedConversation: ConversationWithMeta = {
 
 let appStateListener: ((state: AppStateStatus) => void) | undefined;
 
-function renderReadSync() {
+async function renderReadSync() {
   const client = createMobileQueryClient();
   client.setQueryData(getConversationsQueryKey(MY_ID, "tenant"), [seedConversation]);
 
@@ -61,7 +61,7 @@ function renderReadSync() {
     return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
   }
 
-  const hook = renderHook(
+  const hook = await renderHook(
     () => useConversationReadSync({ myId: MY_ID, otherUserId: OTHER_ID, apartmentId: APARTMENT_ID }),
     { wrapper: Wrapper },
   );
@@ -91,36 +91,36 @@ afterEach(() => {
 });
 
 describe("useConversationReadSync", () => {
-  it("marks the conversation read and clears the list badge when it comes on screen", () => {
-    const { cachedUnread, unmount } = renderReadSync();
+  it("marks the conversation read and clears the list badge when it comes on screen", async () => {
+    const { cachedUnread, unmount } = await renderReadSync();
 
     expect(mockMarkMessagesAsRead).toHaveBeenCalledWith({ otherUserId: OTHER_ID, apartmentId: APARTMENT_ID });
     expect(cachedUnread()).toBe(0);
     expect(isViewingConversation(CONVERSATION_KEY)).toBe(true);
 
-    unmount();
+    await unmount();
     expect(isViewingConversation(CONVERSATION_KEY)).toBe(false);
   });
 
-  it("marks a burst of incoming messages read once", () => {
-    const { result, unmount } = renderReadSync();
+  it("marks a burst of incoming messages read once", async () => {
+    const { result, unmount } = await renderReadSync();
     mockMarkMessagesAsRead.mockClear();
 
-    act(() => {
+    await act(() => {
       result.current.handleIncomingMessage();
       result.current.handleIncomingMessage();
       jest.advanceTimersByTime(500);
     });
 
     expect(mockMarkMessagesAsRead).toHaveBeenCalledTimes(1);
-    unmount();
+    await unmount();
   });
 
-  it("clears the badge in every portal's cached list", () => {
-    const { result, client, unmount } = renderReadSync();
+  it("clears the badge in every portal's cached list", async () => {
+    const { result, client, unmount } = await renderReadSync();
     client.setQueryData(getConversationsQueryKey(MY_ID, "landlord"), [seedConversation]);
 
-    act(() => {
+    await act(() => {
       result.current.handleIncomingMessage();
       jest.advanceTimersByTime(500);
     });
@@ -129,26 +129,26 @@ describe("useConversationReadSync", () => {
       client.getQueryData<ConversationWithMeta[]>(getConversationsQueryKey(MY_ID, "landlord"))?.[0]
         .unread_count,
     ).toBe(0);
-    unmount();
+    await unmount();
   });
 
-  it("saves a pending read when the chat closes before the delay ends", () => {
-    const { result, unmount } = renderReadSync();
+  it("saves a pending read when the chat closes before the delay ends", async () => {
+    const { result, unmount } = await renderReadSync();
     mockMarkMessagesAsRead.mockClear();
 
-    act(() => {
+    await act(() => {
       result.current.handleIncomingMessage();
     });
-    unmount();
+    await unmount();
 
     expect(mockMarkMessagesAsRead).toHaveBeenCalledTimes(1);
   });
 
-  it("leaves messages unread while the chat is not focused", () => {
+  it("leaves messages unread while the chat is not focused", async () => {
     mockIsFocused = false;
-    const { result, cachedUnread, unmount } = renderReadSync();
+    const { result, cachedUnread, unmount } = await renderReadSync();
 
-    act(() => {
+    await act(() => {
       result.current.handleIncomingMessage();
       jest.advanceTimersByTime(500);
     });
@@ -156,26 +156,26 @@ describe("useConversationReadSync", () => {
     expect(mockMarkMessagesAsRead).not.toHaveBeenCalled();
     expect(cachedUnread()).toBe(3);
     expect(isViewingConversation(CONVERSATION_KEY)).toBe(false);
-    unmount();
+    await unmount();
   });
 
-  it("stops reading in the background and catches up on return", () => {
-    const { result, unmount } = renderReadSync();
+  it("stops reading in the background and catches up on return", async () => {
+    const { result, unmount } = await renderReadSync();
     mockMarkMessagesAsRead.mockClear();
 
-    act(() => appStateListener?.("background"));
+    await act(() => appStateListener?.("background"));
     expect(isViewingConversation(CONVERSATION_KEY)).toBe(false);
 
-    act(() => {
+    await act(() => {
       result.current.handleIncomingMessage();
       jest.advanceTimersByTime(500);
     });
     expect(mockMarkMessagesAsRead).not.toHaveBeenCalled();
 
-    act(() => appStateListener?.("active"));
+    await act(() => appStateListener?.("active"));
     expect(mockMarkMessagesAsRead).toHaveBeenCalledTimes(1);
     expect(isViewingConversation(CONVERSATION_KEY)).toBe(true);
 
-    unmount();
+    await unmount();
   });
 });

@@ -15,23 +15,32 @@ import StarterSuggestions, { type StarterSuggestion } from "./components/Starter
 import EmptyChatState from "./components/EmptyChatState";
 import MessageBubble from "./components/MessageBubble";
 import MessageComposer from "./components/MessageComposer";
+import AvaHistorySheet from "./components/AvaHistorySheet";
 import ScrollToBottomButton from "./components/ScrollToBottomButton";
 
 import { useAIChat, type AIChatMessage } from "hooks/chat";
 import { useFavorites, useFavoriteToggle } from "@/hooks/favorites";
+import { useProfile } from "@/hooks/auth/useProfile";
+import { useUserPreferences } from "@/hooks/preferences/useUserPreferences";
+import { hasAvaPreferences } from "@repo/utils";
 
 const STARTER_SUGGESTIONS: readonly StarterSuggestion[] = [
-  { title: "2 bedrooms", detail: "under ₱15,000", message: "2BR under ₱15k" },
-  { title: "Near Malabon", detail: "any budget", message: "Apartments in Malabon" },
-  { title: "With parking", detail: "for a car", message: "A place with parking" },
-  { title: "Pet friendly", detail: "for dogs or cats", message: "Pet friendly apartment" },
+  { label: "2BR under ₱15k", message: "2BR under ₱15k" },
+  { label: "Near Malabon", message: "Apartments in Malabon" },
+  { label: "With parking", message: "A place with parking" },
+  { label: "Pet friendly", message: "Pet friendly apartment" },
 ];
 
 const SCROLL_BOTTOM_THRESHOLD = 150;
 
 export default function AISearchScreen() {
   const router = useRouter();
-  const { input, setInput, messages, isLoading, sendMessage, resetChat } = useAIChat();
+  const { profile } = useProfile();
+  const { preferences } = useUserPreferences();
+  const avaPreferences = hasAvaPreferences(preferences) ? preferences : null;
+  const { input, setInput, messages, isLoading, sendMessage, resetChat, chats, activeChatId, openChat, deleteChat } =
+    useAIChat(profile?.user_id, avaPreferences);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const { isFavorite } = useFavorites();
   const { toggleFavoriteWithToast } = useFavoriteToggle();
 
@@ -112,7 +121,11 @@ export default function AISearchScreen() {
       dismissKeyboardOnTouch={false}
       header={
         <View onLayout={handleHeaderLayout}>
-          <AIHeader onNewChat={resetChat} canStartNewChat={messages.length > 0} />
+          <AIHeader
+            onNewChat={resetChat}
+            canStartNewChat={messages.length > 0}
+            onHistory={() => setIsHistoryOpen(true)}
+          />
         </View>
       }
     >
@@ -147,7 +160,11 @@ export default function AISearchScreen() {
           {/* Starters only before the chat starts; Ava's replies bring their own chips */}
           {messages.length === 0 && (
             <StarterSuggestions
-              suggestions={STARTER_SUGGESTIONS}
+              suggestions={
+                avaPreferences
+                  ? [{ label: "Based on my preferences", message: "Find apartments based on my preferences" }, ...STARTER_SUGGESTIONS]
+                  : STARTER_SUGGESTIONS
+              }
               onSelect={handleSuggestionPress}
             />
           )}
@@ -169,6 +186,18 @@ export default function AISearchScreen() {
           }}
         />
       </KeyboardAvoidingView>
+
+      <AvaHistorySheet
+        isOpen={isHistoryOpen}
+        onOpenChange={setIsHistoryOpen}
+        chats={chats}
+        activeChatId={activeChatId}
+        onOpen={(chatId) => {
+          setIsHistoryOpen(false);
+          void openChat(chatId);
+        }}
+        onDelete={deleteChat}
+      />
     </ScreenWrapper>
   );
 }

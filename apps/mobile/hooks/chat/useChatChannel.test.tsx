@@ -74,11 +74,11 @@ const handlerFor = (channel: MockChannel, event: string) => {
 };
 
 /** The hook fires bindings; this drives the subscribed transition it records. */
-const subscribeAs = (channel: MockChannel, status: string) => {
+const subscribeAs = async (channel: MockChannel, status: string) => {
   const subscribeCallback = channel.subscribe.mock.calls[0][0] as (
     status: string
   ) => void;
-  act(() => subscribeCallback(status));
+  await act(() => subscribeCallback(status));
 };
 
 beforeEach(() => {
@@ -94,12 +94,12 @@ afterEach(() => {
 });
 
 describe('useChatChannel', () => {
-  it('keeps channels alive across callback-only rerenders and dispatches through current callback refs', () => {
+  it('keeps channels alive across callback-only rerenders and dispatches through current callback refs', async () => {
     const firstOnNewMessage = jest.fn();
     const secondOnNewMessage = jest.fn();
     const onTypingChange = jest.fn();
 
-    const { rerender, unmount } = renderHook<
+    const { rerender, unmount } = await renderHook<
       ReturnType<typeof useChatChannel>,
       { onNewMessage: jest.Mock }
     >(
@@ -115,12 +115,12 @@ describe('useChatChannel', () => {
     expect(mockChannel).toHaveBeenCalledTimes(1);
     expect(mockRemoveChannel).not.toHaveBeenCalled();
 
-    rerender({ onNewMessage: secondOnNewMessage });
+    await rerender({ onNewMessage: secondOnNewMessage });
 
     expect(mockChannel).toHaveBeenCalledTimes(1);
     expect(mockRemoveChannel).not.toHaveBeenCalled();
 
-    act(() => {
+    await act(() => {
       handlerFor(mockChannels[0], 'new_message')({
         payload: {
           id: 'message-id',
@@ -140,12 +140,12 @@ describe('useChatChannel', () => {
       expect.objectContaining({ id: 'message-id', message: 'Hello', isSent: false })
     );
 
-    unmount();
+    await unmount();
     expect(mockRemoveChannel).toHaveBeenCalledTimes(1);
   });
 
-  it('creates no presence channel and binds no presence handler', () => {
-    renderHook(() => useChatChannel({ ...baseProps }));
+  it('creates no presence channel and binds no presence handler', async () => {
+    await renderHook(() => useChatChannel({ ...baseProps }));
 
     expect(mockChannel).toHaveBeenCalledTimes(1);
     const [topic, config] = mockChannel.mock.calls[0];
@@ -169,8 +169,8 @@ describe('useChatChannel', () => {
     expect(events.find((event) => event === 'presence')).toBeUndefined();
   });
 
-  it('recreates the channel only when conversation identity changes', () => {
-    const { rerender, unmount } = renderHook<
+  it('recreates the channel only when conversation identity changes', async () => {
+    const { rerender, unmount } = await renderHook<
       ReturnType<typeof useChatChannel>,
       { otherUserId: string }
     >(
@@ -179,12 +179,12 @@ describe('useChatChannel', () => {
       { initialProps: { otherUserId: OTHER_USER_ID } }
     );
 
-    rerender({ otherUserId: 'another-user' });
+    await rerender({ otherUserId: 'another-user' });
 
     expect(mockRemoveChannel).toHaveBeenCalledTimes(1);
     expect(mockChannel).toHaveBeenCalledTimes(2);
 
-    unmount();
+    await unmount();
     expect(mockRemoveChannel).toHaveBeenCalledTimes(2);
   });
 
@@ -200,7 +200,7 @@ describe('useChatChannel', () => {
     };
     mockGetChannels.mockReturnValue([staleMsg]);
 
-    const { unmount } = renderHook(() => useChatChannel({ ...baseProps }));
+    const { unmount } = await renderHook(() => useChatChannel({ ...baseProps }));
 
     // A fresh channel is created only after the stale one is removed.
     await waitFor(() => expect(mockChannel).toHaveBeenCalledTimes(1));
@@ -216,12 +216,12 @@ describe('useChatChannel', () => {
     expect(freshEvents).toContain('typing');
     expect(freshEvents.find((e) => e === 'presence')).toBeUndefined();
 
-    unmount();
+    await unmount();
   });
 
-  it('reports a database insert from the other user in this conversation, and ignores the rest', () => {
+  it('reports a database insert from the other user in this conversation, and ignores the rest', async () => {
     const onMessageInserted = jest.fn();
-    renderHook(() => useChatChannel({ ...baseProps, onMessageInserted }));
+    await renderHook(() => useChatChannel({ ...baseProps, onMessageInserted }));
 
     const channel = mockChannels[0];
     const insert = handlerFor(channel, 'INSERT') as unknown as (event: { new: object }) => void;
@@ -234,19 +234,19 @@ describe('useChatChannel', () => {
       expect.any(Function)
     );
 
-    act(() => insert({ new: row }));
+    await act(() => insert({ new: row }));
     expect(onMessageInserted).toHaveBeenCalledWith('row-1');
 
-    act(() => insert({ new: { ...row, id: 'row-2', receiver_id: 'someone-else' } }));
-    act(() => insert({ new: { ...row, id: 'row-3', apartment_id: 'another-apartment' } }));
-    act(() => insert({ new: { ...row, id: 'row-4', apartment_id: null } }));
+    await act(() => insert({ new: { ...row, id: 'row-2', receiver_id: 'someone-else' } }));
+    await act(() => insert({ new: { ...row, id: 'row-3', apartment_id: 'another-apartment' } }));
+    await act(() => insert({ new: { ...row, id: 'row-4', apartment_id: null } }));
     expect(onMessageInserted).toHaveBeenCalledTimes(1);
   });
 
   /** Validates: StrictMode-style unmount/remount on the same conversation
    *  rebinds exactly once without throwing. */
   it('survives an unmount-remount cycle on the same conversation', async () => {
-    const first = renderHook(() => useChatChannel({ ...baseProps }));
+    const first = await renderHook(() => useChatChannel({ ...baseProps }));
     await waitFor(() => expect(mockChannel).toHaveBeenCalledTimes(1));
 
     // Simulate the async gap: the first mount's channel is still registered
@@ -254,27 +254,27 @@ describe('useChatChannel', () => {
     mockGetChannels.mockImplementation(() =>
       mockChannels.map((c) => ({ ...c, topic: `realtime:${c.name}` }))
     );
-    first.unmount();
+    await first.unmount();
 
-    renderHook(() => useChatChannel({ ...baseProps }));
+    await renderHook(() => useChatChannel({ ...baseProps }));
     await waitFor(() => expect(mockChannel).toHaveBeenCalledTimes(2));
 
     const fresh = mockChannels[1];
     expect(fresh.handlerEvents.find((event) => event === 'typing')).toBe('typing');
   });
 
-  it('sends the typing Broadcast on the message channel only after SUBSCRIBED', () => {
-    const { result } = renderHook(() => useChatChannel({ ...baseProps }));
+  it('sends the typing Broadcast on the message channel only after SUBSCRIBED', async () => {
+    const { result } = await renderHook(() => useChatChannel({ ...baseProps }));
 
     expect(mockChannel).toHaveBeenCalledTimes(1);
     const channel = mockChannels[0];
 
-    act(() => result.current.broadcastTyping(CURRENT_USER_ID, true));
+    await act(() => result.current.broadcastTyping(CURRENT_USER_ID, true));
     expect(channel.send).not.toHaveBeenCalled();
 
-    subscribeAs(channel, 'SUBSCRIBED');
+    await subscribeAs(channel, 'SUBSCRIBED');
 
-    act(() => result.current.broadcastTyping(CURRENT_USER_ID, true));
+    await act(() => result.current.broadcastTyping(CURRENT_USER_ID, true));
     expect(channel.send).toHaveBeenCalledTimes(1);
     expect(channel.send).toHaveBeenCalledWith({
       type: 'broadcast',
@@ -282,7 +282,7 @@ describe('useChatChannel', () => {
       payload: { userId: CURRENT_USER_ID, isTyping: true },
     });
 
-    act(() => result.current.broadcastTyping(CURRENT_USER_ID, false));
+    await act(() => result.current.broadcastTyping(CURRENT_USER_ID, false));
     expect(channel.send).toHaveBeenLastCalledWith({
       type: 'broadcast',
       event: 'typing',
@@ -290,45 +290,45 @@ describe('useChatChannel', () => {
     });
   });
 
-  it('keeps the other user typing while heartbeats arrive and auto-clears a lost stop', () => {
+  it('keeps the other user typing while heartbeats arrive and auto-clears a lost stop', async () => {
     jest.useFakeTimers();
     const onTypingChange = jest.fn();
-    renderHook(() =>
+    await renderHook(() =>
       useChatChannel({ ...baseProps, onOtherUserTypingChange: onTypingChange })
     );
     const typing = handlerFor(mockChannels[0], 'typing');
 
     // The 4 s heartbeat (useChatTyping) lands inside the 5 s freshness window.
-    act(() => typing(typingEvent(OTHER_USER_ID, true)));
+    await act(() => typing(typingEvent(OTHER_USER_ID, true)));
     expect(onTypingChange).toHaveBeenLastCalledWith(true);
 
-    act(() => jest.advanceTimersByTime(3000));
-    act(() => typing(typingEvent(OTHER_USER_ID, true)));
+    await act(() => jest.advanceTimersByTime(3000));
+    await act(() => typing(typingEvent(OTHER_USER_ID, true)));
     expect(onTypingChange).toHaveBeenLastCalledWith(true);
 
-    act(() => jest.advanceTimersByTime(3000)); // still inside the fresh window
+    await act(() => jest.advanceTimersByTime(3000)); // still inside the fresh window
     expect(onTypingChange).toHaveBeenLastCalledWith(true);
 
     // No fresh heartbeat after this: a lost "stop" must not freeze typing.
-    act(() => jest.advanceTimersByTime(2000));
+    await act(() => jest.advanceTimersByTime(2000));
     expect(onTypingChange).toHaveBeenLastCalledWith(false);
   });
 
-  it('clears the indicator immediately on a stop Broadcast and ignores echoes of your own typing', () => {
+  it('clears the indicator immediately on a stop Broadcast and ignores echoes of your own typing', async () => {
     const onTypingChange = jest.fn();
-    renderHook(() =>
+    await renderHook(() =>
       useChatChannel({ ...baseProps, onOtherUserTypingChange: onTypingChange })
     );
     const typing = handlerFor(mockChannels[0], 'typing');
 
-    act(() => typing(typingEvent(OTHER_USER_ID, true)));
+    await act(() => typing(typingEvent(OTHER_USER_ID, true)));
     expect(onTypingChange).toHaveBeenLastCalledWith(true);
 
-    act(() => typing(typingEvent(OTHER_USER_ID, false)));
+    await act(() => typing(typingEvent(OTHER_USER_ID, false)));
     expect(onTypingChange).toHaveBeenLastCalledWith(false);
 
     // Your own Broadcast (self-echo) is not "the other user".
-    act(() => typing(typingEvent(CURRENT_USER_ID, true)));
+    await act(() => typing(typingEvent(CURRENT_USER_ID, true)));
     expect(onTypingChange).toHaveBeenLastCalledWith(false);
   });
 });

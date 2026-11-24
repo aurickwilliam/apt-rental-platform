@@ -1,17 +1,23 @@
 import { IconCircleCheck, IconCircleX, IconMinus } from "@tabler/icons-react";
 
+import type { TranslationKey } from "@repo/i18n";
 import type { usePasswordValidation } from "@repo/hooks";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 type PasswordRequirements = ReturnType<typeof usePasswordValidation>["passwordRequirements"];
 
 // Same requirements and wording as mobile (components/inputs/NewPasswordFields).
-const REQUIREMENT_LABELS: { key: keyof PasswordRequirements; label: string }[] = [
-  { key: "minLength", label: "At least 8 characters" },
-  { key: "hasLowercase", label: "At least one lowercase letter (a–z)" },
-  { key: "hasUppercase", label: "At least one uppercase letter (A–Z)" },
-  { key: "hasNumber", label: "At least one number (0–9)" },
-  { key: "hasSpecialChar", label: "At least one special character (e.g. ! @ # $ % ^ & *)" },
-  { key: "passwordsMatch", label: "Passwords match" },
+const REQUIREMENT_KEYS: {
+  key: keyof PasswordRequirements;
+  labelKey: TranslationKey;
+}[] = [
+  { key: "minLength", labelKey: "auth.passwordRule.minLength" },
+  { key: "hasLowercase", labelKey: "auth.passwordRule.lowercase" },
+  { key: "hasUppercase", labelKey: "auth.passwordRule.uppercase" },
+  { key: "hasNumber", labelKey: "auth.passwordRule.number" },
+  { key: "hasSpecialChar", labelKey: "auth.passwordRule.special" },
+  { key: "passwordsMatch", labelKey: "auth.passwordRule.match" },
 ];
 
 interface PasswordRequirementListProps {
@@ -20,9 +26,11 @@ interface PasswordRequirementListProps {
 }
 
 export default function PasswordRequirementList({ requirements, hasInput }: PasswordRequirementListProps) {
+  const { t } = useTranslation();
+
   return (
-    <ul className="flex flex-col gap-3" aria-label="Password requirements">
-      {REQUIREMENT_LABELS.map(({ key, label }) => {
+    <ul className="flex flex-col gap-3" aria-label={t("auth.passwordRule.aria")}>
+      {REQUIREMENT_KEYS.map(({ key, labelKey }) => {
         const isMet = requirements[key];
         return (
           <li key={key} className="flex items-center gap-2">
@@ -34,8 +42,10 @@ export default function PasswordRequirementList({ requirements, hasInput }: Pass
               <IconCircleX size={20} className="shrink-0 text-red-500" aria-hidden="true" />
             )}
             <span className="text-sm text-gray-600 dark:text-muted-foreground">
-              {label}
-              <span className="sr-only">{isMet ? ": met" : ": not met"}</span>
+              {t(labelKey)}
+              <span className="sr-only">
+                {isMet ? t("auth.passwordRule.met") : t("auth.passwordRule.notMet")}
+              </span>
             </span>
           </li>
         );

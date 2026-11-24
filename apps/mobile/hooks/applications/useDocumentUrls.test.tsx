@@ -32,7 +32,7 @@ describe('useDocumentUrls', () => {
 
   it('does not resolve again when a parent recreates equivalent document entries', async () => {
     const documents = [{ label: 'Government ID', path: 'tenant/government-id.jpg' }];
-    const { result, rerender } = renderHook<
+    const { result, rerender } = await renderHook<
       ReturnType<typeof useDocumentUrls>,
       DocumentEntriesProps
     >(
@@ -41,7 +41,7 @@ describe('useDocumentUrls', () => {
     );
 
     await waitFor(() => expect(result.current.loading).toBe(false));
-    rerender({ entries: [{ label: 'Government ID', path: 'tenant/government-id.jpg' }] });
+    await rerender({ entries: [{ label: 'Government ID', path: 'tenant/government-id.jpg' }] });
 
     await waitFor(() => expect(result.current.resolved).toEqual([
       {
@@ -55,7 +55,7 @@ describe('useDocumentUrls', () => {
 
   it('does not flip loading again once the first pass has resolved', async () => {
     const documents = [{ label: 'Government ID', path: 'tenant/government-id.jpg' }];
-    const { result, rerender } = renderHook<
+    const { result, rerender } = await renderHook<
       ReturnType<typeof useDocumentUrls>,
       DocumentEntriesProps
     >(
@@ -65,7 +65,7 @@ describe('useDocumentUrls', () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    rerender({
+    await rerender({
       entries: [
         { label: 'Government ID', path: 'tenant/government-id.jpg' },
         { label: 'NBI Clearance', path: 'tenant/nbi.jpg' },
@@ -78,7 +78,7 @@ describe('useDocumentUrls', () => {
 
   it('resolves through the requested private bucket', async () => {
     const documents = [{ label: 'Selfie', path: 'user-1/verification-1/selfie.jpg' }];
-    const { result } = renderHook(() => useDocumentUrls(documents, 'user-verification'));
+    const { result } = await renderHook(() => useDocumentUrls(documents, 'user-verification'));
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(mockResolvePrivateMediaUrls).toHaveBeenCalledWith('user-verification', [

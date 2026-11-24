@@ -27,25 +27,25 @@ beforeEach(() => {
   mockState = { release, installedVersion: "1.0.0", isRequired: false, isOffered: false, dismiss: mockDismiss };
 });
 
-it("renders nothing when there is no release or the app is current", () => {
+it("renders nothing when there is no release or the app is current", async () => {
   mockState = { ...mockState, release: null };
-  expect(render(<AppUpdateGate />).toJSON()).toBeNull();
+  expect((await render(<AppUpdateGate />)).toJSON()).toBeNull();
   mockState = { ...mockState, release };
-  expect(render(<AppUpdateGate />).toJSON()).toBeNull();
+  expect((await render(<AppUpdateGate />)).toJSON()).toBeNull();
 });
 
-it("shows the dismissible dialog for an optional update and opens the link", () => {
+it("shows the dismissible dialog for an optional update and opens the link", async () => {
   mockState = { ...mockState, isOffered: true };
-  const screen = render(<AppUpdateGate />);
-  fireEvent.press(screen.getByText("Update"));
+  const screen = await render(<AppUpdateGate />);
+  await fireEvent.press(screen.getByText("Update"));
   expect(mockOpen).toHaveBeenCalledWith(release.apkUrl);
-  fireEvent.press(screen.getByText("Maybe later"));
+  await fireEvent.press(screen.getByText("Maybe later"));
   expect(mockDismiss).toHaveBeenCalledTimes(1);
 });
 
-it("shows the blocking screen, which wins over the dialog", () => {
+it("shows the blocking screen, which wins over the dialog", async () => {
   mockState = { ...mockState, isRequired: true, isOffered: true };
-  const screen = render(<AppUpdateGate />);
+  const screen = await render(<AppUpdateGate />);
   expect(screen.getByText("required screen")).toBeTruthy();
   expect(screen.queryByText("optional dialog")).toBeNull();
 });
@@ -54,7 +54,7 @@ it("tells the user when the link cannot be opened", async () => {
   jest.spyOn(console, "error").mockImplementation(() => undefined);
   mockOpen.mockRejectedValue(new Error("no browser"));
   mockState = { ...mockState, isOffered: true };
-  const screen = render(<AppUpdateGate />);
-  fireEvent.press(screen.getByText("Update"));
+  const screen = await render(<AppUpdateGate />);
+  await fireEvent.press(screen.getByText("Update"));
   await waitFor(() => expect(screen.getByText("The download link could not be opened. Please try again.")).toBeTruthy());
 });

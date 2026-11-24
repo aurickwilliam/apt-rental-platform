@@ -1,12 +1,13 @@
 import type { Ref } from "react";
 import { View, TextInput as RNTextInput } from "react-native";
 import { IconArrowUp } from "@tabler/icons-react-native";
-import { Button, InputGroup, TextField } from "heroui-native";
+import { Button } from "heroui-native";
 
 import { useColors } from "@/hooks/useTheme";
 
 const MAX_MESSAGE_LENGTH = 500;
 const MAX_INPUT_HEIGHT = 120;
+const BUTTON_SIZE = 36;
 
 interface MessageComposerProps {
   inputRef: Ref<RNTextInput>;
@@ -16,8 +17,8 @@ interface MessageComposerProps {
   isDisabled: boolean;
 }
 
-// A roomy rounded field that grows with the message, with a round send
-// button that only lights up when there is something to send.
+// One rounded row: the message field grows with the text and the round send
+// button stays at the bottom right, lit only when there is something to send.
 export default function MessageComposer({
   inputRef,
   value,
@@ -29,41 +30,43 @@ export default function MessageComposer({
   const canSend = value.trim().length > 0 && !isDisabled;
 
   return (
-    <View className="px-4 pt-1 pb-2 bg-background">
-      <TextField>
-        <InputGroup className="rounded-3xl bg-surface">
-          <InputGroup.Input
-            ref={inputRef}
-            className="rounded-3xl border bg-surface pl-4 py-3 text-base"
-            style={{ maxHeight: MAX_INPUT_HEIGHT }}
-            placeholder="Ask Ava about rentals..."
-            placeholderTextColor={colors.gray400}
-            value={value}
-            onChangeText={onChangeText}
-            multiline
-            submitBehavior="submit"
-            onSubmitEditing={onSend}
-            returnKeyType="send"
-            maxLength={MAX_MESSAGE_LENGTH}
-            accessibilityLabel="Message Ava"
-          />
+    <View className="px-4 pt-1 pb-3 bg-background">
+      <View className="flex-row items-end gap-2 rounded-3xl border border-border bg-surface py-1.5 pl-4 pr-1.5">
+        <RNTextInput
+          ref={inputRef}
+          className="flex-1 text-base font-inter text-foreground"
+          // Explicit padding and line height: iOS adds its own inset to a multiline
+          // field, which made the row taller than the button and pushed it off centre.
+          style={{
+            minHeight: BUTTON_SIZE,
+            maxHeight: MAX_INPUT_HEIGHT,
+            paddingTop: 8,
+            paddingBottom: 8,
+            lineHeight: 20,
+          }}
+          placeholder="Ask Ava about rentals..."
+          placeholderTextColor={colors.gray400}
+          value={value}
+          onChangeText={onChangeText}
+          multiline
+          submitBehavior="submit"
+          onSubmitEditing={onSend}
+          returnKeyType="send"
+          maxLength={MAX_MESSAGE_LENGTH}
+          accessibilityLabel="Message Ava"
+        />
 
-          <InputGroup.Suffix className="p-0 self-end pb-1.5">
-            <Button
-              onPress={onSend}
-              isDisabled={!canSend}
-              isIconOnly
-              className={`mr-1.5 size-9 rounded-full ${canSend ? "bg-accent" : "bg-surface-tertiary"}`}
-              accessibilityLabel="Send message"
-            >
-              <IconArrowUp
-                size={20}
-                color={canSend ? colors.secondaryForeground : colors.gray400}
-              />
-            </Button>
-          </InputGroup.Suffix>
-        </InputGroup>
-      </TextField>
+        {/* Not `isDisabled`: its extra fade made the idle button vanish into the field. */}
+        <Button
+          onPress={canSend ? onSend : undefined}
+          isIconOnly
+          className={`size-9 rounded-full bg-accent ${canSend ? "" : "opacity-40"}`}
+          accessibilityLabel="Send message"
+          accessibilityState={{ disabled: !canSend }}
+        >
+          <IconArrowUp size={20} color={colors.secondaryForeground} />
+        </Button>
+      </View>
     </View>
   );
 }

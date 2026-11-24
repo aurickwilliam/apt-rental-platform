@@ -60,10 +60,10 @@ const newField = () => screen.getByPlaceholderText("Create a password");
 const confirmField = () => screen.getByPlaceholderText("Confirm your password");
 const submitButton = () => screen.getByRole("button", { name: /Update Password|Updating/ });
 
-function fillForm(current = CURRENT, next = NEXT, confirm = next) {
-  fireEvent.changeText(currentField(), current);
-  fireEvent.changeText(newField(), next);
-  fireEvent.changeText(confirmField(), confirm);
+async function fillForm(current = CURRENT, next = NEXT, confirm = next) {
+  await fireEvent.changeText(currentField(), current);
+  await fireEvent.changeText(newField(), next);
+  await fireEvent.changeText(confirmField(), confirm);
 }
 
 describe("Change Password screen", () => {
@@ -90,22 +90,22 @@ describe("Change Password screen", () => {
     consoleSpies.splice(0).forEach((spy) => spy.mockRestore());
   });
 
-  it("keeps Update Password disabled until the new password meets the rules", () => {
-    render(<ChangePassword />);
+  it("keeps Update Password disabled until the new password meets the rules", async () => {
+    await render(<ChangePassword />);
     expect(submitButton().props.accessibilityState.disabled).toBe(true);
 
-    fillForm(CURRENT, "weak", "weak");
+    await fillForm(CURRENT, "weak", "weak");
     expect(submitButton().props.accessibilityState.disabled).toBe(true);
 
-    fillForm();
+    await fillForm();
     expect(submitButton().props.accessibilityState.disabled).toBe(false);
   });
 
-  it("asks for the current password before calling the service", () => {
-    render(<ChangePassword />);
-    fillForm("");
+  it("asks for the current password before calling the service", async () => {
+    await render(<ChangePassword />);
+    await fillForm("");
 
-    fireEvent.press(submitButton());
+    await fireEvent.press(submitButton());
 
     expect(screen.getByText("Please enter your current password.")).toBeTruthy();
     expect(mockChangePassword).not.toHaveBeenCalled();
@@ -114,10 +114,10 @@ describe("Change Password screen", () => {
   it("changes the password, shows a success toast and returns to Settings", async () => {
     mockChangePassword.mockResolvedValueOnce(undefined);
     const dismiss = jest.spyOn(Keyboard, "dismiss");
-    render(<ChangePassword />);
-    fillForm();
+    await render(<ChangePassword />);
+    await fillForm();
 
-    fireEvent.press(submitButton());
+    await fireEvent.press(submitButton());
 
     await waitFor(() => expect(mockRouter.back).toHaveBeenCalled());
     expect(dismiss).toHaveBeenCalled();
@@ -136,10 +136,10 @@ describe("Change Password screen", () => {
 
   it("shows a wrong current password under that field and keeps the form", async () => {
     mockChangePassword.mockRejectedValueOnce(new PasswordError("wrong_current_password"));
-    render(<ChangePassword />);
-    fillForm();
+    await render(<ChangePassword />);
+    await fillForm();
 
-    fireEvent.press(submitButton());
+    await fireEvent.press(submitButton());
 
     expect(await screen.findByText("Your current password is incorrect.")).toBeTruthy();
     expect(currentField().props.value).toBe(CURRENT);
@@ -148,7 +148,7 @@ describe("Change Password screen", () => {
     expect(mockToastShow).not.toHaveBeenCalled();
 
     // Editing the field clears the server message.
-    fireEvent.changeText(currentField(), "different");
+    await fireEvent.changeText(currentField(), "different");
     expect(screen.queryByText("Your current password is incorrect.")).toBeNull();
   });
 
@@ -157,10 +157,10 @@ describe("Change Password screen", () => {
     ["weak_password", "This password is too weak. Please choose a stronger password."],
   ] as const)("shows %s under the new password field", async (reason, message) => {
     mockChangePassword.mockRejectedValueOnce(new PasswordError(reason));
-    render(<ChangePassword />);
-    fillForm();
+    await render(<ChangePassword />);
+    await fillForm();
 
-    fireEvent.press(submitButton());
+    await fireEvent.press(submitButton());
 
     expect(await screen.findByText(message)).toBeTruthy();
     expect(screen.queryByText(/^Error:/)).toBeNull();
@@ -169,20 +169,20 @@ describe("Change Password screen", () => {
 
   it("opens the error dialog for other failures", async () => {
     mockChangePassword.mockRejectedValueOnce(new PasswordError("reauthentication_required"));
-    render(<ChangePassword />);
-    fillForm();
+    await render(<ChangePassword />);
+    await fillForm();
 
-    fireEvent.press(submitButton());
+    await fireEvent.press(submitButton());
 
     expect(await screen.findByText(/Error: For your security, please sign in again/)).toBeTruthy();
   });
 
   it("logs unexpected failures by type only", async () => {
     mockChangePassword.mockRejectedValueOnce(new Error(`server echoed ${NEXT} and ${CURRENT}`));
-    render(<ChangePassword />);
-    fillForm();
+    await render(<ChangePassword />);
+    await fillForm();
 
-    fireEvent.press(submitButton());
+    await fireEvent.press(submitButton());
 
     expect(await screen.findByText("Error: Something went wrong. Please try again.")).toBeTruthy();
     expect(console.error).toHaveBeenCalledWith("Password change failed:", "Error");
@@ -191,15 +191,17 @@ describe("Change Password screen", () => {
   it("shows the pending state and ignores repeat presses", async () => {
     let resolveChange: () => void = () => {};
     mockChangePassword.mockReturnValueOnce(new Promise<void>((resolve) => { resolveChange = resolve; }));
-    render(<ChangePassword />);
-    fillForm();
+    await render(<ChangePassword />);
+    await fillForm();
 
-    fireEvent.press(submitButton());
+    // fireEvent settles the handler's promise, which stays pending until we resolve it.
+    const firstPress = fireEvent.press(submitButton());
     expect(await screen.findByText("Updating...")).toBeTruthy();
-    fireEvent.press(submitButton());
+    await fireEvent.press(submitButton());
     expect(mockChangePassword).toHaveBeenCalledTimes(1);
 
     await act(async () => resolveChange());
+    await firstPress;
     expect(mockRouter.back).toHaveBeenCalledTimes(1);
   });
 });

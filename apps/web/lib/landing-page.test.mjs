@@ -5,6 +5,7 @@ import vm from "node:vm";
 import ts from "typescript";
 import { rankTenantLovedApartments } from "./tenant-loved-apartments.ts";
 import { preferredPortal } from "../../../packages/supabase/src/portal-preference.ts";
+import { translate } from "../../../packages/i18n/src/index.ts";
 
 function loadModule(file, overrides = {}, globals = {}) {
   const jsx = (type, props) => ({ type, props });
@@ -340,12 +341,12 @@ test("Contact uses only the verified office address, Facebook page, and the FAQ 
   assert.doesNotMatch(source, /support@apt-rental\.ph|Monday|9:00 AM|contact form/i);
 });
 
-test("the shared footer points FAQ and Contact at the landing sections instead of dead routes", () => {
+test("the shared footer points FAQ and Contact at the dedicated FAQ page, not at the signed-in landing redirect", () => {
   const footer = readFileSync(new URL("../app/components/layout/Footer.tsx", import.meta.url), "utf8");
-  assert.equal((footer.match(/href="\/#faqs"/g) ?? []).length, 2);
-  assert.equal((footer.match(/href="\/#contact"/g) ?? []).length, 2);
-  assert.doesNotMatch(footer, /href="\/faq"/);
-  assert.doesNotMatch(footer, /href="\/contact"/);
+  assert.equal((footer.match(/href="\/faq"/g) ?? []).length, 2);
+  assert.equal((footer.match(/href="\/faq#contact"/g) ?? []).length, 2);
+  assert.doesNotMatch(footer, /href="\/#faqs"/);
+  assert.doesNotMatch(footer, /href="\/#contact"/);
 });
 
 test("APT Mobile streams the Android download action behind a skeleton", () => {
@@ -433,6 +434,8 @@ function navbarHarness({ open = false, signedIn = false, pathname = "/about", me
     "next/navigation": { usePathname: () => pathname, useSearchParams: () => new URLSearchParams("existing=keep"), useRouter: () => ({ push: path => pushes.push(path) }) },
     "@/lib/portal-preference": { PORTAL_COOKIE: "portal", preferredPortal },
     "@/app/components/settings/SettingsOverlay": { SETTINGS_QUERY_VALUE: "open" },
+    "@/app/components/i18n/LocaleProvider": { useTranslation: () => ({ language: "en", t: (key, vars) => translate("en", key, vars) }) },
+    "@/app/components/i18n/LanguageToggle": { default: "LanguageToggle" },
     "@/service/signOutService": { signOut: () => pushes.push("signout") },
   }, { URLSearchParams, document: { cookie: "" }, ...globals });
   return { tree: Navbar(), pushes, stateChanges, effects };

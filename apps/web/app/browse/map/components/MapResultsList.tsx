@@ -8,6 +8,7 @@ import { IconMapPin } from "@tabler/icons-react";
 
 import ApartmentCard from "@/app/components/ui/ApartmentCard";
 import ErrorBanner from "@/app/components/display/ErrorBanner";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 import { MAP_LIST_GRID_CLASS } from "../../lib/browse-layout";
 import { MAP_RESULT_LIMIT, type MapApartment } from "../../lib/fetch-map-results";
@@ -93,6 +94,7 @@ export default function MapResultsList({
   basePath,
 }: MapResultsListProps) {
   const router = useRouter();
+  const { t } = useTranslation();
   const cardRefs = useRef(new Map<string, HTMLDivElement>());
 
   const registerRef = (id: string, element: HTMLDivElement | null) => {
@@ -113,12 +115,18 @@ export default function MapResultsList({
     <div className="flex min-w-0 flex-col gap-4">
       <div className="flex min-h-8 items-center justify-between gap-2">
         <h2 className="font-nunito text-lg font-semibold" aria-live="polite">
-          {initialLoading ? "Searching this area…" : `${count}${capped ? "+" : ""} apartment${count === 1 ? "" : "s"} in this area`}
+          {initialLoading
+            ? t("browse.map.searchingArea")
+            : capped
+              ? t("browse.map.countCapped", { count })
+              : count === 1
+                ? t("browse.map.countOne", { count })
+                : t("browse.map.countOther", { count })}
         </h2>
         {searching && !initialLoading ? (
           <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <Spinner size="sm" color="current" aria-label="Searching" />
-            Searching…
+            <Spinner size="sm" color="current" aria-label={t("browse.map.searching")} />
+            {t("browse.map.searchingEllipsis")}
           </span>
         ) : null}
       </div>
@@ -126,7 +134,7 @@ export default function MapResultsList({
       {error ? (
         <ErrorBanner message={error}>
           <Button size="sm" variant="tertiary" className="mt-2 cursor-pointer" onPress={onRetry}>
-            Try again
+            {t("browse.map.retry")}
           </Button>
         </ErrorBanner>
       ) : null}
@@ -136,8 +144,8 @@ export default function MapResultsList({
       ) : count === 0 && !error ? (
         <EmptyState
           icon={IconMapPin}
-          title="No apartments in this area"
-          description="Zoom out or move the map, or loosen your filters."
+          title={t("browse.map.emptyTitle")}
+          description={t("browse.map.emptyHint")}
         />
       ) : (
         <div className={MAP_LIST_GRID_CLASS}>
@@ -159,7 +167,7 @@ export default function MapResultsList({
 
       {capped && !initialLoading ? (
         <p className="text-center text-sm text-muted-foreground">
-          Showing the first {MAP_RESULT_LIMIT}. Zoom in to see the rest.
+          {t("browse.map.capped", { count: MAP_RESULT_LIMIT })}
         </p>
       ) : null}
     </div>

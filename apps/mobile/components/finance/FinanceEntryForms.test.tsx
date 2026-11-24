@@ -1,10 +1,9 @@
 import type { PropsWithChildren, ReactNode } from "react";
 import type { PressableProps, TextInputProps, TextProps } from "react-native";
-import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
+import { act, fireEvent, render, waitFor, within } from "@testing-library/react-native";
 import type { FinanceBudget } from "@repo/utils";
 import BudgetEntryPage from "./BudgetEntryPage";
 import ExpenseEntryPage from "./ExpenseEntryPage";
-import BudgetGoalSheet from "./BudgetGoalSheet";
 
 jest.mock("@/components/layout/ScreenWrapper", () => {
   const { View } = jest.requireActual("react-native");
@@ -45,10 +44,13 @@ jest.mock("heroui-native", () => {
   function Container({
     children,
     isRequired,
-  }: PropsWithChildren<{ isRequired?: boolean }>) {
+    isOpen,
+    onOpenChange,
+  }: PropsWithChildren<{ isRequired?: boolean; isOpen?: boolean; onOpenChange?: (open: boolean) => void }>) {
     return (
       <RequiredContext.Provider value={!!isRequired}>
-        <View>{children}</View>
+        {/* stub* props expose the sheet's own props (RNTL v14 renders host nodes only). */}
+        <View {...({ stubIsOpen: isOpen, stubOnOpenChange: onOpenChange } as object)}>{children}</View>
       </RequiredContext.Provider>
     );
   }
@@ -67,9 +69,10 @@ jest.mock("heroui-native", () => {
     children,
     onPress,
     isDisabled,
-  }: PropsWithChildren<PressableProps & { isDisabled?: boolean }>) {
+    className,
+  }: PropsWithChildren<PressableProps & { isDisabled?: boolean; className?: string }>) {
     return (
-      <Pressable onPress={onPress} disabled={isDisabled}>
+      <Pressable onPress={onPress} disabled={isDisabled} {...({ className } as object)}>
         {children}
       </Pressable>
     );
@@ -184,7 +187,7 @@ describe("finance entry forms", () => {
 
   test("the add page keeps Save and Cancel outside the form and uses the shared validation and save", async () => {
     const onSave = jest.fn().mockResolvedValue(undefined);
-    const screen = render(<ExpenseEntryPage {...common} onSave={onSave} />);
+    const screen = await render(<ExpenseEntryPage {...common} onSave={onSave} />);
     expect(within(screen.getByTestId("entry-page-form")).queryByText("Save expense")).toBeNull();
     expect(within(screen.getByTestId("entry-page-footer")).getByText("Cancel")).toBeTruthy();
     expect(screen.getByText("Property *: apt")).toBeTruthy();
@@ -193,45 +196,45 @@ describe("finance entry forms", () => {
     // soft-blue pill as the budget form's Plan type sheet.
     expect(mockSelectHighlight.get("Category")).toBe(true);
     expect(mockSelectHighlight.get("Expense treatment")).toBe(true);
-    fireEvent.press(screen.getByText("Save expense"));
+    await fireEvent.press(screen.getByText("Save expense"));
     expect(onSave).not.toHaveBeenCalled();
-    fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "2500");
-    fireEvent.changeText(screen.getByLabelText("Description"), "AC repair");
-    fireEvent.press(screen.getByText("Save expense"));
+    await fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "2500");
+    await fireEvent.changeText(screen.getByLabelText("Description"), "AC repair");
+    await fireEvent.press(screen.getByText("Save expense"));
     await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ apartment_id: "apt", amount: 2500, description: "AC repair" }), false));
     expect(common.onClose).toHaveBeenCalled();
   });
 
-  test("expense amount formats typing and pasted pesos, preserves decimals, and can be cleared", () => {
-    const screen = render(<ExpenseEntryPage {...common} onSave={jest.fn()} />);
+  test("expense amount formats typing and pasted pesos, preserves decimals, and can be cleared", async () => {
+    const screen = await render(<ExpenseEntryPage {...common} onSave={jest.fn()} />);
     const field = () => screen.getByLabelText("Amount (₱)");
-    fireEvent.changeText(field(), "1000");
-    expect(field().props.value).toBe("₱ 1,000");
-    fireEvent.changeText(field(), "₱ 1,000.");
-    expect(field().props.value).toBe("₱ 1,000.");
-    fireEvent.changeText(field(), "₱ 999,999,999.99");
-    expect(field().props.value).toBe("₱ 999,999,999.99");
-    expect(field().props.maxLength).toBeGreaterThanOrEqual(field().props.value.length);
-    fireEvent.changeText(field(), "");
-    expect(field().props.value).toBe("");
+    await fireEvent.changeText(await field(), "1000");
+    expect(await field().props.value).toBe("₱ 1,000");
+    await fireEvent.changeText(await field(), "₱ 1,000.");
+    expect(await field().props.value).toBe("₱ 1,000.");
+    await fireEvent.changeText(await field(), "₱ 999,999,999.99");
+    expect(await field().props.value).toBe("₱ 999,999,999.99");
+    expect(await field().props.maxLength).toBeGreaterThanOrEqual(await field().props.value.length);
+    await fireEvent.changeText(await field(), "");
+    expect(await field().props.value).toBe("");
   });
 
   test("the date picker limits future days and saves the selected calendar day without timezone conversion", async () => {
     const onSave = jest.fn().mockResolvedValue(undefined);
-    const screen = render(<ExpenseEntryPage {...common} onSave={onSave} />);
+    const screen = await render(<ExpenseEntryPage {...common} onSave={onSave} />);
     expect(screen.getByLabelText("Date paid").props.maximumDate).toEqual(new Date(2026, 9, 17, 12));
-    fireEvent(screen.getByLabelText("Date paid"), "dateChange", new Date(2026, 9, 5, 12));
-    fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "1000");
-    fireEvent.changeText(screen.getByLabelText("Description"), "Repair");
-    fireEvent.press(screen.getByText("Save expense"));
+    await fireEvent(screen.getByLabelText("Date paid"), "dateChange", new Date(2026, 9, 5, 12));
+    await fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "1000");
+    await fireEvent.changeText(screen.getByLabelText("Description"), "Repair");
+    await fireEvent.press(screen.getByText("Save expense"));
     await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ spent_on: "2026-10-05" }), false));
   });
 
   test("required selection errors appear after Save and clear when corrected", async () => {
     const onSave = jest.fn().mockResolvedValue(undefined);
-    const screen = render(<ExpenseEntryPage {...common} apartmentId="unowned" category="emergency" onSave={onSave} />);
+    const screen = await render(<ExpenseEntryPage {...common} apartmentId="unowned" category="emergency" onSave={onSave} />);
     expect(screen.queryByText("Choose one of your properties.")).toBeNull();
-    fireEvent.press(screen.getByText("Save expense"));
+    await fireEvent.press(screen.getByText("Save expense"));
     expect(screen.getByText("Choose one of your properties.")).toBeTruthy();
     expect(screen.getByLabelText("Amount (₱)").props.className).toBe(
       "font-inter text-sm text-foreground finance-field-invalid",
@@ -244,10 +247,10 @@ describe("finance entry forms", () => {
     expect(screen.getByText("Choose an expense category.")).toBeTruthy();
     expect(screen.getByText("Describe this expense.")).toBeTruthy();
     expect(onSave).not.toHaveBeenCalled();
-    fireEvent.press(screen.getByLabelText("Property: Villa"));
-    fireEvent.press(screen.getByLabelText("Category: Maintenance & repairs"));
-    fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "1000");
-    fireEvent.changeText(screen.getByLabelText("Description"), "Repair");
+    await fireEvent.press(screen.getByLabelText("Property: Villa"));
+    await fireEvent.press(screen.getByLabelText("Category: Maintenance & repairs"));
+    await fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "1000");
+    await fireEvent.changeText(screen.getByLabelText("Description"), "Repair");
     expect(screen.queryByText("Choose one of your properties.")).toBeNull();
     expect(screen.getByLabelText("Amount (₱)").props.className).toBe(
       "font-inter text-sm text-foreground",
@@ -257,18 +260,18 @@ describe("finance entry forms", () => {
     );
     expect(screen.getByLabelText("Description").props.style).toBeUndefined();
     expect(screen.queryByText("Choose an expense category.")).toBeNull();
-    fireEvent.press(screen.getByText("Save expense"));
+    await fireEvent.press(screen.getByText("Save expense"));
     await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
   });
 
-  test("invalid amounts and future expenses cannot be saved", () => {
+  test("invalid amounts and future expenses cannot be saved", async () => {
     const onSave = jest.fn();
-    const screen = render(
+    const screen = await render(
       <ExpenseEntryPage {...common} onSave={onSave} onDelete={jest.fn()} />,
     );
-    fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "0");
-    fireEvent(screen.getByLabelText("Date paid"), "dateChange", new Date(2026, 9, 18, 12));
-    fireEvent.press(screen.getByText("Save expense"));
+    await fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "0");
+    await fireEvent(screen.getByLabelText("Date paid"), "dateChange", new Date(2026, 9, 18, 12));
+    await fireEvent.press(screen.getByText("Save expense"));
     expect(
       screen.getByText(/positive amount with at most two decimals/),
     ).toBeTruthy();
@@ -278,16 +281,16 @@ describe("finance entry forms", () => {
 
   test("a valid expense uses a stable UUID and explicit treatment", async () => {
     const onSave = jest.fn().mockResolvedValue(undefined);
-    const screen = render(
+    const screen = await render(
       <ExpenseEntryPage {...common} onSave={onSave} onDelete={jest.fn()} />,
     );
-    fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "1250.25");
+    await fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "1250.25");
     expect(screen.getByLabelText("Amount (₱)").props.value).toBe("₱ 1,250.25");
-    fireEvent.changeText(
+    await fireEvent.changeText(
       screen.getByLabelText("Description"),
       "  Sink repair  ",
     );
-    fireEvent.press(screen.getByText("Save expense"));
+    await fireEvent.press(screen.getByText("Save expense"));
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledWith(
         {
@@ -307,7 +310,7 @@ describe("finance entry forms", () => {
 
   test("deleting an expense needs explicit confirmation", async () => {
     const onDelete = jest.fn().mockResolvedValue(undefined);
-    const screen = render(
+    const screen = await render(
       <ExpenseEntryPage
         {...common}
         initial={{
@@ -323,27 +326,27 @@ describe("finance entry forms", () => {
         onDelete={onDelete}
       />,
     );
-    fireEvent.press(screen.getByText("Delete expense"));
+    await fireEvent.press(screen.getByText("Delete expense"));
     expect(onDelete).not.toHaveBeenCalled();
-    fireEvent.press(screen.getByText("Confirm delete"));
+    await fireEvent.press(screen.getByText("Confirm delete"));
     await waitFor(() => expect(onDelete).toHaveBeenCalledWith("existing"));
   });
 
-  test("a new expense starts without a property and cannot be saved until one is chosen", () => {
+  test("a new expense starts without a property and cannot be saved until one is chosen", async () => {
     const onSave = jest.fn();
-    const screen = render(
+    const screen = await render(
       <ExpenseEntryPage {...common} apartmentId={null} onSave={onSave} />,
     );
-    fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "1000");
-    fireEvent.changeText(screen.getByLabelText("Description"), "Repair");
-    fireEvent.press(screen.getByText("Save expense"));
+    await fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "1000");
+    await fireEvent.changeText(screen.getByLabelText("Description"), "Repair");
+    await fireEvent.press(screen.getByText("Save expense"));
     expect(screen.getByText("Choose one of your properties.")).toBeTruthy();
     expect(onSave).not.toHaveBeenCalled();
   });
 
-  test("a new plan starts without a property and cannot be saved until one is chosen", () => {
+  test("a new plan starts without a property and cannot be saved until one is chosen", async () => {
     const onSave = jest.fn();
-    const screen = render(
+    const screen = await render(
       <BudgetEntryPage
         properties={common.properties}
         apartmentId={null}
@@ -354,14 +357,14 @@ describe("finance entry forms", () => {
     );
     // The first property is no longer chosen for the landlord.
     expect(screen.queryByText("Property *: apt")).toBeNull();
-    fireEvent.changeText(screen.getByLabelText("Monthly spending limit (₱)"), "1000");
-    fireEvent.press(screen.getByText("Save budget"));
+    await fireEvent.changeText(screen.getByLabelText("Monthly spending limit (₱)"), "1000");
+    await fireEvent.press(screen.getByText("Save budget"));
     expect(screen.getByText("Choose one of your properties.")).toBeTruthy();
     expect(onSave).not.toHaveBeenCalled();
   });
 
-  test("the budget page keeps Save and Cancel in an equal-width footer row and marks required fields", () => {
-    const screen = render(
+  test("the budget page keeps Save and Cancel in an equal-width footer row and marks required fields", async () => {
+    const screen = await render(
       <BudgetEntryPage
         properties={common.properties}
         apartmentId="apt"
@@ -378,7 +381,7 @@ describe("finance entry forms", () => {
     const footer = screen.getByTestId("entry-page-footer");
     expect(within(footer).getByText("Cancel")).toBeTruthy();
     expect(within(footer).getByText("Save budget")).toBeTruthy();
-    expect(footer.findAllByProps({ className: "flex-1" })).toHaveLength(2);
+    expect(footer.queryAll((n) => n.props.className === "flex-1")).toHaveLength(2);
     expect(screen.getAllByTestId("searchable-property-picker")).toHaveLength(1);
     expect(screen.getByText("Property *: apt")).toBeTruthy();
     expect(screen.getByText("Plan type *: reserve")).toBeTruthy();
@@ -416,7 +419,7 @@ describe("finance entry forms", () => {
 
   test("budget field errors appear after Save, redden their inputs and clear when corrected", async () => {
     const onSave = jest.fn().mockResolvedValue(undefined);
-    const screen = render(
+    const screen = await render(
       <BudgetEntryPage
         properties={common.properties}
         apartmentId="unowned"
@@ -426,7 +429,7 @@ describe("finance entry forms", () => {
       />,
     );
     expect(screen.queryByText("Choose one of your properties.")).toBeNull();
-    fireEvent.press(screen.getByText("Save budget"));
+    await fireEvent.press(screen.getByText("Save budget"));
     expect(screen.getByText("Choose one of your properties.")).toBeTruthy();
     expect(
       screen.getByText(
@@ -442,8 +445,8 @@ describe("finance entry forms", () => {
       screen.getByText("Monthly spending limit (₱) *").props.className,
     ).toBe("font-nunitoSemiBold text-base text-danger");
     expect(onSave).not.toHaveBeenCalled();
-    fireEvent.press(screen.getByLabelText("Property: Villa"));
-    fireEvent.changeText(screen.getByLabelText("Monthly spending limit (₱)"), "5000");
+    await fireEvent.press(screen.getByLabelText("Property: Villa"));
+    await fireEvent.changeText(screen.getByLabelText("Monthly spending limit (₱)"), "5000");
     expect(screen.queryByText("Choose one of your properties.")).toBeNull();
     expect(screen.getByLabelText("Monthly spending limit (₱)").props.value).toBe(
       "₱ 5,000",
@@ -454,7 +457,7 @@ describe("finance entry forms", () => {
     expect(
       screen.getByLabelText("Monthly spending limit (₱)").props.style,
     ).toBeUndefined();
-    fireEvent.press(screen.getByText("Save budget"));
+    await fireEvent.press(screen.getByText("Save budget"));
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledWith(
         expect.objectContaining({ apartment_id: "apt", amount: 5000 }),
@@ -464,7 +467,7 @@ describe("finance entry forms", () => {
 
   test("the goal sheet calculates a suggestion the landlord must apply", async () => {
     const onSave = jest.fn().mockResolvedValue(undefined);
-    const screen = render(
+    const screen = await render(
       <BudgetEntryPage
         properties={common.properties}
         apartmentId="apt"
@@ -478,17 +481,17 @@ describe("finance entry forms", () => {
       within(sheet()).getByLabelText("Amount still needed or annual bill (₱)");
     const goalMonths = () =>
       within(sheet()).getByLabelText("Months to spread this amount over");
-    fireEvent.changeText(
+    await fireEvent.changeText(
       screen.getByLabelText("Monthly spending limit (₱)"),
       "2000",
     );
-    fireEvent.press(
+    await fireEvent.press(
       within(screen.getByTestId("entry-page-form")).getByText(
         "Calculate from a goal",
       ),
     );
     // The goal fields validate while typing; nothing invalid reaches the form.
-    fireEvent.changeText(goalAmount(), "12.345");
+    await fireEvent.changeText(goalAmount(), "12.345");
     expect(
       within(sheet()).getByText(
         "Enter a positive amount with at most two decimals.",
@@ -499,19 +502,19 @@ describe("finance entry forms", () => {
     ).toBeDisabled();
     expect(within(sheet()).queryByText("Save goal only")).toBeNull();
     expect(within(sheet()).queryByText("Cancel")).toBeNull();
-    fireEvent.press(screen.getByText("Use suggested amount"));
+    await fireEvent.press(screen.getByText("Use suggested amount"));
     expect(
       screen.getByLabelText("Monthly spending limit (₱)").props.value,
     ).toBe("₱ 2,000");
-    fireEvent.changeText(goalAmount(), "12000");
+    await fireEvent.changeText(goalAmount(), "12000");
     expect(goalAmount().props.value).toBe("₱ 12,000");
-    fireEvent.changeText(goalMonths(), "0");
+    await fireEvent.changeText(await goalMonths(), "0");
     expect(
       within(sheet()).getByText("Enter a whole number from 1 to 600."),
     ).toBeTruthy();
-    fireEvent.changeText(goalMonths(), "12");
+    await fireEvent.changeText(await goalMonths(), "12");
     expect(within(sheet()).getByText("Suggested: ₱ 1,000 / month")).toBeTruthy();
-    fireEvent.press(screen.getByText("Use suggested amount"));
+    await fireEvent.press(screen.getByText("Use suggested amount"));
     // The suggestion only fills the allocation; the landlord still saves.
     expect(
       screen.getByLabelText("Monthly spending limit (₱)").props.value,
@@ -526,7 +529,7 @@ describe("finance entry forms", () => {
         "Suggested ₱ 1,000 / month",
       ),
     ).toBeNull();
-    fireEvent.press(screen.getByText("Save budget"));
+    await fireEvent.press(screen.getByText("Save budget"));
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -538,33 +541,35 @@ describe("finance entry forms", () => {
     );
   });
 
-  test("dismissing the goal calculator discards its edits and reopening restores the saved goal", () => {
+  test("dismissing the goal calculator discards its edits and reopening restores the saved goal", async () => {
     const budget: FinanceBudget = {
       id: "existing", apartment_id: "apt", month: "2026-10",
       category: "insurance", kind: "reserve", amount: 500,
       target_amount: 12000, months_remaining: 12,
     };
     const onSave = jest.fn();
-    const screen = render(<BudgetEntryPage {...common} initial={budget} onSave={onSave} />);
-    const openGoal = () => fireEvent.press(
+    const screen = await render(<BudgetEntryPage {...common} initial={budget} onSave={onSave} />);
+    const openGoal = async () => await await fireEvent.press(
       within(screen.getByTestId("entry-page-form")).getByText("Change goal"),
     );
     const goalAmount = () => within(screen.getByTestId("budget-goal-sheet"))
       .getByLabelText("Amount still needed or annual bill (₱)");
-    openGoal();
+    await openGoal();
     expect(goalAmount().props.value).toBe("₱ 12,000");
-    fireEvent.changeText(goalAmount(), "24000");
-    fireEvent(screen.UNSAFE_getByType(BudgetGoalSheet), "close");
-    expect(screen.UNSAFE_getByType(BudgetGoalSheet).props.isOpen).toBe(false);
+    await fireEvent.changeText(goalAmount(), "24000");
+    const goalSheet = () => screen.container.queryAll((n) => n.props.stubOnOpenChange !== undefined)
+      .find((n) => n.queryAll((x) => x.props.testID === "budget-goal-sheet").length > 0)!;
+    await act(() => { goalSheet().props.stubOnOpenChange(false); });
+    expect(goalSheet().props.stubIsOpen).toBe(false);
     expect(screen.getByLabelText("Planned allocation this month (₱)").props.value).toBe("₱ 500");
     expect(onSave).not.toHaveBeenCalled();
-    openGoal();
+    await openGoal();
     expect(goalAmount().props.value).toBe("₱ 12,000");
   });
 
   test("an annual bill creates a user-approved monthly reserve suggestion", async () => {
     const onSave = jest.fn().mockResolvedValue(undefined);
-    const screen = render(
+    const screen = await render(
       <BudgetEntryPage
         properties={common.properties}
         apartmentId="apt"
@@ -576,12 +581,12 @@ describe("finance entry forms", () => {
       />,
     );
     const sheet = () => screen.getByTestId("budget-goal-sheet");
-    fireEvent.press(
+    await fireEvent.press(
       within(screen.getByTestId("entry-page-form")).getByText(
         "Calculate from a goal",
       ),
     );
-    fireEvent.changeText(
+    await fireEvent.changeText(
       within(sheet()).getByLabelText("Amount still needed or annual bill (₱)"),
       "12000",
     );
@@ -590,8 +595,8 @@ describe("finance entry forms", () => {
       within(sheet()).getByLabelText("Months to spread this amount over").props
         .value,
     ).toBe("12");
-    fireEvent.press(screen.getByText("Use suggested amount"));
-    fireEvent.press(screen.getByText("Save budget"));
+    await fireEvent.press(screen.getByText("Use suggested amount"));
+    await fireEvent.press(screen.getByText("Save budget"));
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledWith({
         apartment_id: "apt",
@@ -607,16 +612,16 @@ describe("finance entry forms", () => {
 
   test("failed saves retain the expense draft and show an error", async () => {
     jest.spyOn(console, "error").mockImplementation(() => undefined);
-    const screen = render(
+    const screen = await render(
       <ExpenseEntryPage
         {...common}
         onSave={jest.fn().mockRejectedValue(new Error("network"))}
         onDelete={jest.fn()}
       />,
     );
-    fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "1500");
-    fireEvent.changeText(screen.getByLabelText("Description"), "Repair");
-    fireEvent.press(screen.getByText("Save expense"));
+    await fireEvent.changeText(screen.getByLabelText("Amount (₱)"), "1500");
+    await fireEvent.changeText(screen.getByLabelText("Description"), "Repair");
+    await fireEvent.press(screen.getByText("Save expense"));
     await waitFor(() =>
       expect(screen.getByText("Save failed. Try again.")).toBeTruthy(),
     );
@@ -624,7 +629,7 @@ describe("finance entry forms", () => {
     expect(common.onClose).not.toHaveBeenCalled();
   });
 
-  test("the expense edit page seeds the form from the tapped expense and locks its property", () => {
+  test("the expense edit page seeds the form from the tapped expense and locks its property", async () => {
     const editRow = {
       id: "existing",
       apartment_id: "apt",
@@ -634,7 +639,7 @@ describe("finance entry forms", () => {
       spent_on: "2026-10-02",
       description: "Chair",
     };
-    const screen = render(
+    const screen = await render(
       <ExpenseEntryPage
         {...common}
         initial={editRow}
@@ -649,7 +654,7 @@ describe("finance entry forms", () => {
     expect(screen.getByText("Delete expense")).toBeTruthy();
   });
 
-  test("the edit page seeds the form from the tapped budget and locks its identity", () => {
+  test("the edit page seeds the form from the tapped budget and locks its identity", async () => {
     const budget: FinanceBudget = {
       id: "existing",
       apartment_id: "apt",
@@ -660,7 +665,7 @@ describe("finance entry forms", () => {
       target_amount: 12000,
       months_remaining: 12,
     };
-    const screen = render(
+    const screen = await render(
       <BudgetEntryPage
         {...common}
         initial={budget}
@@ -671,7 +676,7 @@ describe("finance entry forms", () => {
     expect(screen.getByText("Plan type *: reserve")).toBeTruthy();
     expect(screen.getByText("Category *: insurance")).toBeTruthy();
     expect(screen.getByLabelText("Planned allocation this month (₱)").props.value).toBe("₱ 1,000");
-    fireEvent.press(
+    await fireEvent.press(
       within(screen.getByTestId("entry-page-form")).getByText("Change goal"),
     );
     const goalSheet = screen.getByTestId("budget-goal-sheet");
@@ -685,13 +690,13 @@ describe("finance entry forms", () => {
     const footer = screen.getByTestId("entry-page-footer");
     expect(within(footer).getByText("Cancel")).toBeTruthy();
     expect(within(footer).getByText("Save budget")).toBeTruthy();
-    expect(footer.findAllByProps({ className: "flex-1" })).toHaveLength(2);
+    expect(footer.queryAll((n) => n.props.className === "flex-1")).toHaveLength(2);
     expect(
       within(screen.getByTestId("entry-page-form")).getByText("Remove budget"),
     ).toBeTruthy();
   });
 
-  test("a suggested amount seeds the edit form without touching the goal fields", () => {
+  test("a suggested amount seeds the edit form without touching the goal fields", async () => {
     const budget: FinanceBudget = {
       id: "existing",
       apartment_id: "apt",
@@ -702,7 +707,7 @@ describe("finance entry forms", () => {
       target_amount: 12000,
       months_remaining: 12,
     };
-    const screen = render(
+    const screen = await render(
       <BudgetEntryPage
         {...common}
         initial={budget}
@@ -728,7 +733,7 @@ describe("finance entry forms", () => {
       target_amount: null,
       months_remaining: null,
     };
-    const screen = render(
+    const screen = await render(
       <BudgetEntryPage
         {...common}
         initial={budget}
@@ -736,9 +741,9 @@ describe("finance entry forms", () => {
         onDelete={onDelete}
       />,
     );
-    fireEvent.press(screen.getByText("Remove budget"));
+    await fireEvent.press(screen.getByText("Remove budget"));
     expect(onDelete).not.toHaveBeenCalled();
-    fireEvent.press(screen.getByText("Confirm remove budget"));
+    await fireEvent.press(screen.getByText("Confirm remove budget"));
     await waitFor(() => expect(onDelete).toHaveBeenCalledWith("existing"));
   });
 });

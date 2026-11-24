@@ -17,8 +17,15 @@ import {
   IconSmoking,
   IconUser,
 } from "@tabler/icons-react";
-import { CAMANAVA_CITIES, OTHER_PET, PETS, VEHICLE_OPTIONS } from "@repo/constants";
+import {
+  CAMANAVA_CITIES,
+  OTHER_PET,
+  PETS,
+  VEHICLE_OPTIONS,
+} from "@repo/constants";
+import { PET_KEYS, enumLabel } from "@repo/i18n";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import type { RentalPreferencesForm } from "@/hooks/use-rental-preferences-form";
 import {
   BEDROOM_OPTIONS,
@@ -35,8 +42,6 @@ import BudgetRangeField, {
 import SettingsMultiSelect from "../SettingsMultiSelect";
 import SettingsSelect from "../SettingsSelect";
 import ToggleSwitch from "../ToggleSwitch";
-
-const NO_PREFERENCE = "No preference";
 
 function SectionHeading({
   icon,
@@ -76,6 +81,8 @@ export default function RentalPreferencesTab({
   form: RentalPreferencesForm;
 }) {
   const budgetRef = useRef<BudgetRangeFieldHandle>(null);
+  const { language, t } = useTranslation();
+  const noPreference = t("settings.rental.noPreference");
   const petsError = validatePets(form);
 
   const handleSave = async () => {
@@ -94,18 +101,23 @@ export default function RentalPreferencesTab({
       {/* Bottom clearance lets the last rows scroll fully above the
         floating save button instead of passing beneath it. */}
       <div className="pb-28">
-        <h2 className="font-nunito text-lg font-bold text-primary">Rental Preferences</h2>
+        <h2 className="font-nunito text-lg font-bold text-primary">
+          {t("settings.rental.title")}
+        </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Manage what matters most in your next home. Changes apply to your recommendations after saving.
+          {t("settings.rental.description")}
         </p>
 
         {/* Location */}
-        <section aria-label="Location" className="mt-5">
-          <SectionHeading icon={<IconMapPin size={18} />} title="Location" />
+        <section aria-label={t("settings.rental.location")} className="mt-5">
+          <SectionHeading
+            icon={<IconMapPin size={18} />}
+            title={t("settings.rental.location")}
+          />
           <p className="mt-1 text-xs text-muted-foreground">
             {form.selectedCities.length === 0
-              ? "Anywhere in CAMANAVA. Select cities to narrow it down."
-              : "Preferred cities."}
+              ? t("settings.rental.location.anywhere")
+              : t("settings.rental.location.selected")}
           </p>
           <CheckboxGroup
             name="preferred-cities"
@@ -129,8 +141,14 @@ export default function RentalPreferencesTab({
         </section>
 
         {/* Budget */}
-        <section aria-label="Budget" className="mt-10 border-t border-border pt-8">
-          <SectionHeading icon={<IconCoin size={18} />} title="Budget" />
+        <section
+          aria-label={t("settings.rental.budget")}
+          className="mt-10 border-t border-border pt-8"
+        >
+          <SectionHeading
+            icon={<IconCoin size={18} />}
+            title={t("settings.rental.budget")}
+          />
           <div className="mt-2">
             <BudgetRangeField
               ref={budgetRef}
@@ -145,17 +163,27 @@ export default function RentalPreferencesTab({
         </section>
 
         {/* Home */}
-        <section aria-label="Home" className="mt-10 border-t border-border pt-8">
-          <SectionHeading icon={<IconBed size={18} />} title="Home" />
+        <section
+          aria-label={t("settings.rental.home")}
+          className="mt-10 border-t border-border pt-8"
+        >
+          <SectionHeading
+            icon={<IconBed size={18} />}
+            title={t("settings.rental.home")}
+          />
           <div className="mt-3 flex flex-col gap-3">
             <ControlRow
-              label={<Label className="text-sm text-foreground">Bedrooms</Label>}
+              label={
+                <Label className="text-sm text-foreground">
+                  {t("settings.rental.bedrooms")}
+                </Label>
+              }
               control={
                 <SettingsSelect
-                  label="Bedrooms"
+                  label={t("settings.rental.bedrooms")}
                   value={form.bedroomCount ?? ""}
                   options={[
-                    { value: "", label: NO_PREFERENCE },
+                    { value: "", label: noPreference },
                     ...BEDROOM_OPTIONS.map((option) => ({ value: option, label: option })),
                   ]}
                   onChange={(value) => form.setBedroomCount(value === "" ? null : value)}
@@ -164,13 +192,17 @@ export default function RentalPreferencesTab({
               }
             />
             <ControlRow
-              label={<Label className="text-sm text-foreground">Household</Label>}
+              label={
+                <Label className="text-sm text-foreground">
+                  {t("settings.rental.household")}
+                </Label>
+              }
               control={
                 <SettingsSelect
-                  label="Household size"
+                  label={t("settings.rental.householdSize")}
                   value={form.householdSize ?? ""}
                   options={[
-                    { value: "", label: NO_PREFERENCE },
+                    { value: "", label: noPreference },
                     ...HOUSEHOLD_OPTIONS.map((option) => ({ value: option, label: option })),
                   ]}
                   onChange={(value) => form.setHouseholdSize(value === "" ? null : value)}
@@ -179,22 +211,26 @@ export default function RentalPreferencesTab({
               }
             />
             <ControlRow
-              label="Parking"
+              label={t("settings.rental.parking")}
               control={
                 <ToggleSwitch
                   isSelected={form.hasParking}
                   onValueChange={form.setHasParking}
-                  aria-label="Do you need a parking space?"
+                  aria-label={t("settings.rental.parking.aria")}
                 />
               }
             />
             {form.hasParking && (
               <div className="flex flex-col gap-3 rounded-xl bg-muted/40 p-3">
                 <ControlRow
-                  label={<Label className="text-sm text-foreground">Spots</Label>}
+                  label={
+                    <Label className="text-sm text-foreground">
+                      {t("settings.rental.spots")}
+                    </Label>
+                  }
                   control={
                     <SettingsSelect
-                      label="Parking spots needed"
+                      label={t("settings.rental.spots.aria")}
                       value={String(form.noOfParkingSpots)}
                       options={PARKING_SPOT_OPTIONS.map((count) => ({ value: count, label: count }))}
                       onChange={(value) => form.setNoOfParkingSpots(Number(value))}
@@ -203,14 +239,14 @@ export default function RentalPreferencesTab({
                   }
                 />
                 <ControlRow
-                  label={<Label className="text-sm text-foreground">Vehicles</Label>}
+                  label={<Label className="text-sm text-foreground">{t("settings.rental.vehicles")}</Label>}
                   control={
                     <SettingsMultiSelect
-                      label="Kinds of vehicles"
+                      label={t("settings.rental.vehicles")}
                       value={form.listOfVehicles}
                       options={VEHICLE_OPTIONS.map((vehicle) => ({ value: vehicle, label: vehicle }))}
                       onChange={form.setVehicles}
-                      placeholder="Select"
+                      placeholder={t("settings.rental.noPreference")}
                       className="w-44"
                     />
                   }
@@ -221,31 +257,41 @@ export default function RentalPreferencesTab({
         </section>
 
         {/* Lifestyle */}
-        <section aria-label="Lifestyle" className="mt-10 border-t border-border pt-8">
-          <SectionHeading icon={<IconUser size={18} />} title="Lifestyle" />
+        <section
+          aria-label={t("settings.rental.lifestyle")}
+          className="mt-10 border-t border-border pt-8"
+        >
+          <SectionHeading
+            icon={<IconUser size={18} />}
+            title={t("settings.rental.lifestyle")}
+          />
           <div className="mt-3 flex flex-col gap-3">
             <ControlRow
               label={
                 <span className="flex items-center gap-2">
                   <IconPaw size={16} className="shrink-0 text-primary" aria-hidden="true" />
-                  Pets
+                  {t("settings.rental.pets")}
                 </span>
               }
               control={
                 <ToggleSwitch
                   isSelected={form.hasPets}
                   onValueChange={form.setHasPets}
-                  aria-label="Do you have any pets?"
+                  aria-label={t("settings.rental.pets.aria")}
                 />
               }
             />
             {form.hasPets && (
               <div className="flex flex-col gap-3 rounded-xl bg-muted/40 p-3">
                 <ControlRow
-                  label={<Label className="text-sm text-foreground">Number of pets</Label>}
+                  label={
+                    <Label className="text-sm text-foreground">
+                      {t("settings.rental.petCount")}
+                    </Label>
+                  }
                   control={
                     <SettingsSelect
-                      label="Number of pets"
+                      label={t("settings.rental.petCount")}
                       value={petCountToOption(form.noOfPets)}
                       options={PET_COUNT_OPTIONS.map((count) => ({ value: count, label: count }))}
                       onChange={(value) => form.setNoOfPets(optionToPetCount(value))}
@@ -255,24 +301,33 @@ export default function RentalPreferencesTab({
                   }
                 />
                 <ControlRow
-                  label={<Label className="text-sm text-foreground">Pet types</Label>}
+                  label={
+                    <Label className="text-sm text-foreground">
+                      {t("settings.rental.petTypes")}
+                    </Label>
+                  }
                   control={
                     <SettingsMultiSelect
-                      label="Kinds of pets"
+                      label={t("settings.rental.petKinds.aria")}
                       value={form.kindOfPets}
-                      options={PETS.map((pet) => ({ value: pet, label: pet }))}
+                      options={PETS.map((pet) => ({
+                        value: pet,
+                        label: enumLabel(language, PET_KEYS, pet),
+                      }))}
                       onChange={form.setKindOfPets}
-                      placeholder="Select"
+                      placeholder={t("common.select")}
                       className="w-44"
                     />
                   }
                 />
                 {form.kindOfPets.includes(OTHER_PET) && (
                   <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="settings-pet-name">Please specify</Label>
+                    <Label htmlFor="settings-pet-name">
+                      {t("settings.rental.petOther")}
+                    </Label>
                     <Input
                       id="settings-pet-name"
-                      placeholder="e.g., Poodle, Siamese"
+                      placeholder={t("settings.rental.petOther.placeholder")}
                       value={form.nameOfPets ?? ""}
                       onChange={(e) => form.setNameOfPets(e.target.value || null)}
                     />
@@ -285,10 +340,10 @@ export default function RentalPreferencesTab({
                 <span>
                   <span className="flex items-center gap-2">
                     <IconSmoking size={16} className="shrink-0 text-primary" aria-hidden="true" />
-                    Smoking
+                    {t("settings.rental.smoking")}
                   </span>
                   <span className="mt-0.5 block text-xs text-muted-foreground">
-                    Prioritizes non-smoking listings.
+                    {t("settings.rental.smoking.note")}
                   </span>
                 </span>
               }
@@ -296,7 +351,7 @@ export default function RentalPreferencesTab({
                 <ToggleSwitch
                   isSelected={form.hasSmoker}
                   onValueChange={form.setHasSmoker}
-                  aria-label="Is anyone in your household a smoker?"
+                  aria-label={t("settings.rental.smoking.aria")}
                 />
               }
             />
@@ -305,10 +360,10 @@ export default function RentalPreferencesTab({
                 <span>
                   <span className="flex items-center gap-2">
                     <IconAccessible size={16} className="shrink-0 text-primary" aria-hidden="true" />
-                    Accessibility
+                    {t("settings.rental.accessibility")}
                   </span>
                   <span className="mt-0.5 block text-xs text-muted-foreground">
-                    Prioritize wheelchair-friendly listings.
+                    {t("settings.rental.accessibility.note")}
                   </span>
                 </span>
               }
@@ -316,7 +371,7 @@ export default function RentalPreferencesTab({
                 <ToggleSwitch
                   isSelected={form.hasDisability}
                   onValueChange={form.setHasDisability}
-                  aria-label="Do you have accessibility needs?"
+                  aria-label={t("settings.rental.accessibility.aria")}
                 />
               }
             />
@@ -348,7 +403,7 @@ export default function RentalPreferencesTab({
           isPending={form.isSaving}
           className="min-h-11 w-full disabled:opacity-50"
         >
-          {form.isSaving ? "Saving…" : "Save Changes"}
+          {form.isSaving ? t("settings.rental.saving") : t("settings.rental.save")}
         </Button>
       </div>
     </div>

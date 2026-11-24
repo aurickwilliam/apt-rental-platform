@@ -3,12 +3,16 @@
 import { useSyncExternalStore } from "react";
 import {
   IconDeviceDesktop,
+  IconLanguage,
   IconMoon,
   IconPlayerPause,
   IconSun,
 } from "@tabler/icons-react";
 import { useTheme } from "next-themes";
 
+import { ALLOW_FILIPINO, isLanguageCode } from "@repo/i18n";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import SettingsRow from "../SettingsRow";
 import SettingsSelect from "../SettingsSelect";
 import ToggleSwitch from "../ToggleSwitch";
@@ -27,6 +31,7 @@ const THEME_OPTIONS = [
 ] as const;
 
 export default function GeneralTab() {
+  const { language, setLanguage, t } = useTranslation();
   const { theme, setTheme } = useTheme();
   const mounted = useSyncExternalStore(
     () => () => {},
@@ -43,36 +48,74 @@ export default function GeneralTab() {
 
   const ThemeIcon = THEME_OPTIONS.find(({ value }) => value === activeTheme)!.icon;
 
+  const languageOptions = [
+    { value: "en" as const, label: t("languages.en") },
+    { value: "fil" as const, label: t("languages.fil") },
+  ];
+
   return (
     <>
-      <h2 className="font-nunito text-lg font-bold text-primary">General</h2>
+      <h2 className="font-nunito text-lg font-bold text-primary">{t("settings.general")}</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Appearance settings for this browser.
+        {t("settings.general.description")}
       </p>
+
+      {/* Language stands alone. Region was removed: it will not be implemented. */}
+      {ALLOW_FILIPINO ? (
+        <section className="mt-5" aria-labelledby="settings-language-heading">
+          <h3
+            id="settings-language-heading"
+            className="px-4 font-nunito text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+          >
+            {t("settings.languageRegion.heading")}
+          </h3>
+          <div className="mt-2 divide-y divide-border">
+            <SettingsRow
+              icon={<IconLanguage size={18} />}
+              title={t("settings.language.title")}
+              description={t("settings.language.description")}
+              suffix={
+                <SettingsSelect
+                  label={t("settings.language.label")}
+                  value={language}
+                  options={languageOptions}
+                  onChange={(value) => {
+                    if (isLanguageCode(value)) setLanguage(value);
+                  }}
+                />
+              }
+            />
+          </div>
+        </section>
+      ) : null}
+
       <div className="mt-3 divide-y divide-border">
         <SettingsRow
           icon={<ThemeIcon size={18} />}
           title="Theme"
-          description="Choose light, dark, or follow your device."
+          responsiveLayout="stack-control"
+          description={t("settings.theme.description")}
           suffix={
             <SettingsSelect
-              label="Theme"
+              label={t("settings.theme.label")}
               value={activeTheme}
-              options={THEME_OPTIONS.map(({ value, label, icon }) => ({ value, label, icon }))}
+              options={THEME_OPTIONS.map(({ value, icon }) => ({ value, label: t(`settings.theme.${value}`), icon }))}
               onChange={setTheme}
               isDisabled={!mounted}
+              className="w-full min-w-0 sm:w-40"
             />
           }
         />
         <SettingsRow
           icon={<IconPlayerPause size={18} />}
           title="Reduce motion"
-          description="Limit animations on this browser."
+          responsiveLayout="wrap"
+          description={t("settings.reduceMotion.description")}
           suffix={
             <ToggleSwitch
               isSelected={reduceMotion}
               onValueChange={setReducedMotion}
-              aria-label="Reduce motion"
+              aria-label={t("settings.reduceMotion.label")}
             />
           }
         />

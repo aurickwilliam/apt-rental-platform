@@ -38,7 +38,7 @@ describe("useApartmentDetails", () => {
   it("fetches apartment details with the keyed query and default review preview", async () => {
     const { QueryWrapper } = createWrapper();
 
-    const { result, unmount } = renderHook(() => useApartmentDetails(APARTMENT_ID), {
+    const { result, unmount } = await renderHook(() => useApartmentDetails(APARTMENT_ID), {
       wrapper: QueryWrapper,
     });
 
@@ -48,13 +48,13 @@ describe("useApartmentDetails", () => {
     expect(result.current.apartment?.name).toBe("APT Homes");
     expect(result.current.reviews).toHaveLength(1);
 
-    unmount();
+    await unmount();
   });
 
   it("skips the review preview when includeReviews is false (m5)", async () => {
     const { QueryWrapper } = createWrapper();
 
-    const { result, unmount } = renderHook(
+    const { result, unmount } = await renderHook(
       () => useApartmentDetails(APARTMENT_ID, { includeReviews: false }),
       { wrapper: QueryWrapper },
     );
@@ -63,40 +63,40 @@ describe("useApartmentDetails", () => {
     expect(mockFetchReviewsPreview).not.toHaveBeenCalled();
     expect(result.current.reviews).toEqual([]);
 
-    unmount();
+    await unmount();
   });
 
   it("does not fetch before an apartment id exists", async () => {
     const { QueryWrapper } = createWrapper();
 
-    const { result, unmount } = renderHook(() => useApartmentDetails(""), {
+    const { result, unmount } = await renderHook(() => useApartmentDetails(""), {
       wrapper: QueryWrapper,
     });
 
     expect(mockFetchApartmentDetails).not.toHaveBeenCalled();
 
-    unmount();
+    await unmount();
   });
 
   it("surfaces apartment errors without a full-screen failure", async () => {
     mockFetchApartmentDetails.mockRejectedValue(new Error("RLS blocked"));
     const { QueryWrapper } = createWrapper();
 
-    const { result, unmount } = renderHook(() => useApartmentDetails(APARTMENT_ID), {
+    const { result, unmount } = await renderHook(() => useApartmentDetails(APARTMENT_ID), {
       wrapper: QueryWrapper,
     });
 
     await waitFor(() => expect(result.current.error).toBe("RLS blocked"));
     expect(result.current.apartment).toBeNull();
 
-    unmount();
+    await unmount();
   });
 
   it("keeps a failed review fetch separate from the apartment error", async () => {
     mockFetchReviewsPreview.mockRejectedValue(new Error("reviews down"));
     const { QueryWrapper } = createWrapper();
 
-    const { result, unmount } = renderHook(() => useApartmentDetails(APARTMENT_ID), {
+    const { result, unmount } = await renderHook(() => useApartmentDetails(APARTMENT_ID), {
       wrapper: QueryWrapper,
     });
 
@@ -104,6 +104,6 @@ describe("useApartmentDetails", () => {
     expect(result.current.error).toBeNull();
     expect(result.current.apartment?.name).toBe("APT Homes");
 
-    unmount();
+    await unmount();
   });
 });

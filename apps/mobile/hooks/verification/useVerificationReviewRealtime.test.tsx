@@ -104,9 +104,9 @@ beforeEach(() => {
 });
 
 describe("useVerificationReviewRealtime", () => {
-  it("subscribes on the shared notifications channel for the current user", () => {
+  it("subscribes on the shared notifications channel for the current user", async () => {
     const { QueryWrapper } = createWrapper();
-    const { unmount } = renderHook(() => useVerificationReviewRealtime(), {
+    const { unmount } = await renderHook(() => useVerificationReviewRealtime(), {
       wrapper: QueryWrapper,
     });
 
@@ -115,14 +115,14 @@ describe("useVerificationReviewRealtime", () => {
       expect.objectContaining({ onInsert: expect.any(Function) }),
     );
 
-    unmount();
+    await unmount();
   });
 
   it("refetches verification and profile when a review notification arrives", async () => {
     const { client, QueryWrapper } = createWrapper();
-    const latest = renderHook(() => useLatestVerification(), { wrapper: QueryWrapper });
-    const currentUser = renderHook(() => useCurrentUser(), { wrapper: QueryWrapper });
-    renderHook(() => useVerificationReviewRealtime(), { wrapper: QueryWrapper });
+    const latest = await renderHook(() => useLatestVerification(), { wrapper: QueryWrapper });
+    const currentUser = await renderHook(() => useCurrentUser(), { wrapper: QueryWrapper });
+    await renderHook(() => useVerificationReviewRealtime(), { wrapper: QueryWrapper });
 
     await waitFor(() => expect(latest.result.current.data).toEqual(verificationRow));
     await waitFor(() => expect(currentUser.result.current.data).toEqual(profileRecord));
@@ -138,15 +138,15 @@ describe("useVerificationReviewRealtime", () => {
     await waitFor(() => expect(mockFetchLatestVerification).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(mockGetCurrentUser).toHaveBeenCalledTimes(2));
 
-    latest.unmount();
-    currentUser.unmount();
+    await latest.unmount();
+    await currentUser.unmount();
     client.clear();
   });
 
   it("ignores non-verification notifications", async () => {
     const { client, QueryWrapper } = createWrapper();
-    const latest = renderHook(() => useLatestVerification(), { wrapper: QueryWrapper });
-    renderHook(() => useVerificationReviewRealtime(), { wrapper: QueryWrapper });
+    const latest = await renderHook(() => useLatestVerification(), { wrapper: QueryWrapper });
+    await renderHook(() => useVerificationReviewRealtime(), { wrapper: QueryWrapper });
 
     await waitFor(() => expect(latest.result.current.data).toEqual(verificationRow));
 
@@ -163,7 +163,7 @@ describe("useVerificationReviewRealtime", () => {
     await new Promise((resolve) => setTimeout(resolve, 50));
     expect(mockFetchLatestVerification).toHaveBeenCalledTimes(1);
 
-    latest.unmount();
+    await latest.unmount();
     client.clear();
   });
 });

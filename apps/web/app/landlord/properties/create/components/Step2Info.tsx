@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { Input, Select, Checkbox, Label, ListBox, FieldError, NumberField, TextField, Description } from "@heroui/react";
 
 import type { ApartmentFormData, FormErrors } from "../page";
+import ElectricityMeterConfirmation from "@/app/components/inputs/ElectricityMeterConfirmation";
 
 import {
   APARTMENT_FLOOR_AREA,
@@ -297,6 +298,11 @@ export default function Step2Info({ formData, updateForm, errors }: Props) {
             </Select.Popover>
           </Select>
         </div>
+        <ElectricityMeterConfirmation
+          isSelected={formData.has_own_electricity_meter}
+          onChange={(selected) => updateForm({ has_own_electricity_meter: selected })}
+          error={errors.has_own_electricity_meter}
+        />
       </div>
 
       {/* Address */}

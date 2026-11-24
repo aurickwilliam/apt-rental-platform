@@ -128,4 +128,14 @@ describe('describeApplicationPreferences', () => {
     expect(bare[0].value).toBe('Yes');
     expect(bare[1].value).toBe('Needed: 3 spots');
   });
+
+  it('words the same limits in Filipino without changing the default English output', () => {
+    const lines = describeApplicationPreferences(buildApplicationPreferenceSnapshot(prefs(), yes)!, 'fil');
+    expect(lines).toEqual([
+      { label: 'Mga Alaga', value: 'Oo: Dog, Cat · 2 alaga · may pangalang Max and Luna' },
+      { label: 'Paradahan', value: 'Kailangan: 1 parking spot · Car' },
+      { label: 'Paninigarilyo', value: 'Hindi naninigarilyo' },
+      { label: 'Miyembro ng sambahayang may disability', value: 'Oo' },
+    ]);
+  });
 });

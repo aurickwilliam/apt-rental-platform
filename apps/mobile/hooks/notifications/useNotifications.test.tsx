@@ -41,26 +41,26 @@ beforeEach(() => {
 });
 
 describe("useNotifications", () => {
-  it("counts the unread rows of the portal feed", () => {
-    const { result } = renderHook(() => useNotifications());
+  it("counts the unread rows of the portal feed", async () => {
+    const { result } = await renderHook(() => useNotifications());
 
     expect(result.current.notifications).toHaveLength(3);
     expect(result.current.unreadIds).toEqual(["a", "c"]);
     expect(result.current.unreadCount).toBe(2);
   });
 
-  it("keeps a separate cached feed per portal", () => {
-    renderHook(() => useNotifications());
+  it("keeps a separate cached feed per portal", async () => {
+    await renderHook(() => useNotifications());
     expect(mockUseQuery.mock.calls[0][0].queryKey).toEqual(["notifications", "u", "tenant"]);
 
     mockPortal = "landlord";
-    renderHook(() => useNotifications());
+    await renderHook(() => useNotifications());
     expect(mockUseQuery.mock.calls[1][0].queryKey).toEqual(["notifications", "u", "landlord"]);
   });
 
-  it("loads that portal's feed through the service", () => {
+  it("loads that portal's feed through the service", async () => {
     mockPortal = "landlord";
-    renderHook(() => useNotifications());
+    await renderHook(() => useNotifications());
 
     const options = mockUseQuery.mock.calls[0][0];
     options.queryFn();
@@ -69,12 +69,12 @@ describe("useNotifications", () => {
     expect(mockFetchPortalNotifications).toHaveBeenCalledWith("u", "landlord");
   });
 
-  it("does not fetch, and never reports loading, while the portal is unknown", () => {
+  it("does not fetch, and never reports loading, while the portal is unknown", async () => {
     mockPortal = null;
     mockUserError = new Error("profile failed");
     mockUseQuery.mockReturnValue({ data: undefined, isLoading: false, error: null, refetch: jest.fn() });
 
-    const { result } = renderHook(() => useNotifications());
+    const { result } = await renderHook(() => useNotifications());
 
     expect(mockUseQuery.mock.calls[0][0].enabled).toBe(false);
     expect(result.current.loading).toBe(false);

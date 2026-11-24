@@ -46,8 +46,8 @@ describe("PaymentMethodChip", () => {
     ["card", "Debit/Credit Card", "card"],
     ["Debit/Credit-Card", "Debit/Credit-Card", "card"],
     ["cash", "Cash", "cash"],
-  ] as const)("draws %s with its own color, icon and label", (method, label, key) => {
-    render(<PaymentMethodChip method={method} />);
+  ] as const)("draws %s with its own color, icon and label", async (method, label, key) => {
+    await render(<PaymentMethodChip method={method} />);
     const palette = PAYMENT_METHOD_COLORS[key].light;
     expect(styleOf()).toMatchObject({ backgroundColor: palette.backgroundColor, borderColor: palette.borderColor, borderWidth: 1 });
     expect(screen.getByText(label).props.style).toMatchObject({ color: palette.textColor });
@@ -59,15 +59,15 @@ describe("PaymentMethodChip", () => {
     expect(new Set(backgrounds).size).toBe(5);
   });
 
-  it("uses the dark palette in dark mode", () => {
+  it("uses the dark palette in dark mode", async () => {
     mockIsDark = true;
-    render(<PaymentMethodChip method="gcash" />);
+    await render(<PaymentMethodChip method="gcash" />);
     expect(styleOf()).toMatchObject({ backgroundColor: PAYMENT_METHOD_COLORS.gcash.dark.backgroundColor });
     expect(screen.getByText("GCash").props.style).toMatchObject({ color: PAYMENT_METHOD_COLORS.gcash.dark.textColor });
   });
 
-  it("keeps a plain gray chip, with no icon, for a method it does not know", () => {
-    render(<PaymentMethodChip method="bank-transfer" />);
+  it("keeps a plain gray chip, with no icon, for a method it does not know", async () => {
+    await render(<PaymentMethodChip method="bank-transfer" />);
     expect(styleOf()).toEqual({ backgroundColor: "#F3F4F6" });
     expect(screen.getByText("bank-transfer").props.style).toMatchObject({ color: "#6B7280" });
     expect(screen.queryByLabelText(/^icon /)).toBeNull();

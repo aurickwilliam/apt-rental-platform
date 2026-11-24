@@ -15,6 +15,7 @@ import ConfirmDialog from 'components/display/ConfirmDialog'
 import PropertyOverviewSkeleton from './components/PropertyOverviewSkeleton';
 import HiddenListingBanner from 'components/apartment/HiddenListingBanner'
 import LandlordSignedLeaseCard from '@/components/tenancy/LandlordSignedLeaseCard';
+import LeaseRenewalEntry from '@/components/renewals/LeaseRenewalEntry';
 import { useLandlordTenancyRefresh } from '@/hooks/tenancy/useLandlordTenancyRefresh';
 import { usePortalStore } from '@/stores/usePortalStore';
 import { useListingVisibility } from '@/hooks/apartments/useListingVisibility';
@@ -204,6 +205,7 @@ export default function Index() {
               monthly_rent={apartment.monthly_rent}
               type={apartment.type}
               lease_duration={apartment.lease_duration!}
+              has_own_electricity_meter={apartment.has_own_electricity_meter}
               no_bedrooms={apartment.no_bedrooms}
               no_bathrooms={apartment.no_bathrooms}
               furnished_type={apartment.furnished_type!}
@@ -318,6 +320,7 @@ export default function Index() {
                       }
                       onMessagePress={handleMessageTenant}
                     />
+                    <LeaseRenewalEntry key={`renewal:${leaseAuthId}:${tenant.tenancyId}`} tenancyId={tenant.tenancyId} portal="landlord"/>
                     <LandlordSignedLeaseCard
                       key={`${leaseAuthId}:${tenant.tenancyId}`}
                       tenancyId={tenant.tenancyId}
@@ -349,7 +352,7 @@ export default function Index() {
                     <View className="flex-row items-center justify-between">
 
                       <Text className="text-foreground text-lg font-nunitoBold">
-                        Recent Rent Payments
+                        Recent Payments
                       </Text>
 
                       <Button

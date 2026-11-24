@@ -8,7 +8,7 @@ import { IconCamera as Camera } from "@tabler/icons-react";
 import { createClient as createBrowserClient } from "@repo/supabase/browser";
 
 import { compressAvatarImage, uploadAvatar, validateAvatarFile } from "@/lib/avatar-upload";
-import ProfilePhotoErrorDialog from "./ProfilePhotoErrorDialog";
+import ErrorDialog from "../display/ErrorDialog";
 
 type ProfileAvatarProps = {
   authUserId: string;
@@ -137,7 +137,7 @@ export default function ProfileAvatar({
       </div>
 
       {error ? (
-        <ProfilePhotoErrorDialog message={error} onClose={() => setError(null)} />
+        <ErrorDialog title="Photo upload failed" message={error} onClose={() => setError(null)} />
       ) : null}
     </div>
   );

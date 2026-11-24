@@ -69,7 +69,7 @@ const tabs: CustomTabConfig[] = [
   { name: 'profile', label: 'Profile', icon: Icon, iconFilled: Icon, badge: 120 },
 ];
 
-function renderBar(index = 0) {
+async function renderBar(index = 0) {
   const navigation = {
     emit: jest.fn(() => ({ defaultPrevented: false })),
     navigate: jest.fn(),
@@ -78,7 +78,7 @@ function renderBar(index = 0) {
     index,
     routes: tabs.map((tab) => ({ key: `${tab.name}-key`, name: tab.name })),
   };
-  const utils = render(
+  const utils = await render(
     <CustomTabBar
       {...(({ state, navigation, descriptors: {}, insets: {} }) as unknown as BarProps)}
       tabs={tabs}
@@ -96,29 +96,29 @@ describe('formatBadge', () => {
 });
 
 describe('CustomTabBar', () => {
-  it('marks only the focused tab as selected', () => {
-    const { getByLabelText } = renderBar(0);
+  it('marks only the focused tab as selected', async () => {
+    const { getByLabelText } = await renderBar(0);
     expect(getByLabelText('Rentals').props.accessibilityState).toEqual({ selected: true });
     expect(getByLabelText('Chat, 3 unread').props.accessibilityState).toEqual({
       selected: false,
     });
   });
 
-  it('shows badges with an accessible label and caps the count', () => {
-    const { getByTestId, getByLabelText } = renderBar(0);
+  it('shows badges with an accessible label and caps the count', async () => {
+    const { getByTestId, getByLabelText } = await renderBar(0);
     expect(getByTestId('tab-badge-chat')).toBeTruthy();
     expect(getByLabelText('Profile, 120 unread')).toBeTruthy();
   });
 
-  it('navigates when another tab is pressed', () => {
-    const { getByLabelText, navigation } = renderBar(0);
-    fireEvent.press(getByLabelText('Chat, 3 unread'));
+  it('navigates when another tab is pressed', async () => {
+    const { getByLabelText, navigation } = await renderBar(0);
+    await fireEvent.press(getByLabelText('Chat, 3 unread'));
     expect(navigation.navigate).toHaveBeenCalledWith('chat');
   });
 
-  it('emits tabPress but does not navigate when the focused tab is pressed again', () => {
-    const { getByLabelText, navigation } = renderBar(0);
-    fireEvent.press(getByLabelText('Rentals'));
+  it('emits tabPress but does not navigate when the focused tab is pressed again', async () => {
+    const { getByLabelText, navigation } = await renderBar(0);
+    await fireEvent.press(getByLabelText('Rentals'));
     expect(navigation.emit).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'tabPress', target: 'rentals-key' })
     );

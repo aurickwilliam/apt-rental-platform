@@ -29,51 +29,51 @@ const openURL = jest.spyOn(Linking, "openURL").mockResolvedValue(true);
 
 beforeEach(() => jest.clearAllMocks());
 
-it("opens images in the in-app viewer", () => {
+it("opens images in the in-app viewer", async () => {
   const onPressImage = jest.fn();
-  render(<DocumentRow label="Government ID" path="u/a/id.jpg" signedUrl="https://s/id.jpg" onPressImage={onPressImage} />);
+  await render(<DocumentRow label="Government ID" path="u/a/id.jpg" signedUrl="https://s/id.jpg" onPressImage={onPressImage} />);
 
-  fireEvent.press(screen.getByRole("button"));
+  await fireEvent.press(screen.getByRole("button"));
   expect(onPressImage).toHaveBeenCalledWith("https://s/id.jpg");
   expect(openURL).not.toHaveBeenCalled();
 });
 
-it("opens PDFs externally instead of the image viewer", () => {
+it("opens PDFs externally instead of the image viewer", async () => {
   const onPressImage = jest.fn();
-  render(<DocumentRow label="Proof of Income" path="u/passport/income.pdf" signedUrl="https://s/income.pdf" onPressImage={onPressImage} />);
+  await render(<DocumentRow label="Proof of Income" path="u/passport/income.pdf" signedUrl="https://s/income.pdf" onPressImage={onPressImage} />);
 
-  fireEvent.press(screen.getByRole("button"));
+  await fireEvent.press(screen.getByRole("button"));
   expect(openURL).toHaveBeenCalledWith("https://s/income.pdf");
   expect(onPressImage).not.toHaveBeenCalled();
 });
 
-it("opens other files externally", () => {
-  render(<DocumentRow label="Letter" path="u/letter.docx" signedUrl="https://s/letter.docx" />);
+it("opens other files externally", async () => {
+  await render(<DocumentRow label="Letter" path="u/letter.docx" signedUrl="https://s/letter.docx" />);
 
-  fireEvent.press(screen.getByRole("button"));
+  await fireEvent.press(screen.getByRole("button"));
   expect(openURL).toHaveBeenCalledWith("https://s/letter.docx");
 });
 
-it("uses only the custom handler when one is given", () => {
+it("uses only the custom handler when one is given", async () => {
   const onPress = jest.fn();
   const onPressImage = jest.fn();
-  render(<DocumentRow label="Doc" path="u/doc.pdf" signedUrl="https://s/doc.pdf" onPress={onPress} onPressImage={onPressImage} />);
+  await render(<DocumentRow label="Doc" path="u/doc.pdf" signedUrl="https://s/doc.pdf" onPress={onPress} onPressImage={onPressImage} />);
 
-  fireEvent.press(screen.getByRole("button"));
+  await fireEvent.press(screen.getByRole("button"));
   expect(onPress).toHaveBeenCalledTimes(1);
   expect(onPressImage).not.toHaveBeenCalled();
   expect(openURL).not.toHaveBeenCalled();
 });
 
-it("says Not provided when no document was submitted", () => {
-  render(<DocumentRow label="NBI Clearance" path="" signedUrl={null} />);
+it("says Not provided when no document was submitted", async () => {
+  await render(<DocumentRow label="NBI Clearance" path="" signedUrl={null} />);
 
   expect(screen.getByText("Not provided")).toBeTruthy();
   expect(screen.queryByText("Unavailable")).toBeNull();
 });
 
-it("still says Unavailable when a submitted document cannot be loaded", () => {
-  render(<DocumentRow label="Proof of Billing" path="u/passport/billing.pdf" signedUrl={null} />);
+it("still says Unavailable when a submitted document cannot be loaded", async () => {
+  await render(<DocumentRow label="Proof of Billing" path="u/passport/billing.pdf" signedUrl={null} />);
 
   expect(screen.getByText("Unavailable")).toBeTruthy();
   expect(screen.queryByText("Not provided")).toBeNull();

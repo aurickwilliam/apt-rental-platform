@@ -1,14 +1,17 @@
 import { Suspense } from "react";
+import { translate } from "@repo/i18n";
 import { AppSidebar, MobileSidebarNavigation } from "../components/layout/AppSidebar";
 import SettingsOverlay from "../components/settings/SettingsOverlay";
 import NotificationsOverlay from "../components/notifications/NotificationsOverlay";
 import DraggableNotificationBell from "../components/notifications/DraggableNotificationBell";
+import TutorialTour from "../components/tutorial/TutorialTour";
 import { getServerIdentity } from "@/lib/server-identity";
 import { hasActiveTenancyAsLandlord } from "@/lib/landlord-active-tenancy";
 
 import { canManageLandlordFinances } from "@/lib/landlord-finance-access";
 import { canViewPassport } from "@/lib/passport-access";
 import { isLandlordAccessBlocked } from "@repo/utils";
+import { getServerLocale } from "@/lib/i18n/locale";
 import { LANDLORD_VERIFY_REQUIRED_PATH } from "@/lib/landlord-verification-access";
 import LandlordAccessGate from "./components/LandlordAccessGate";
 
@@ -16,26 +19,26 @@ const PASSPORT_HREF = "/landlord/passport";
 const ANALYTICS_HREF = "/landlord/analytics";
 
 const LANDLORD_NAV = [
-  { href: "/landlord/dashboard", label: "Dashboard", icon: "LayoutDashboard", prefetchOnIntent: true, section: "Overview" },
-  { href: "/landlord/properties", label: "My Properties", icon: "Building", activityKey: "properties", prefetchOnIntent: true, section: "Rentals" },
-  { href: "/landlord/applications", label: "Applications", icon: "FileCheck", activityKey: "applications", prefetchOnIntent: true, section: "Rentals" },
-  { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Tool", activityKey: "maintenance", prefetchOnIntent: true, section: "Rentals" },
-  { href: "/landlord/messages", label: "Messages", icon: "MessageCircle", activityKey: "messages", section: "Rentals" },
-  { href: "/landlord/payments", label: "Payments", icon: "CashBanknote", activityKey: "payments", prefetchOnIntent: true, section: "Finance" },
-  { href: ANALYTICS_HREF, label: "Profit & planning", icon: "ChartBar", prefetchOnIntent: true, section: "Finance" },
-  { href: PASSPORT_HREF, label: "APT Passport", icon: "ShieldCheck", activityKey: "passport", section: "Verification" },
+  { href: "/landlord/dashboard", labelKey: "nav.dashboard", icon: "LayoutDashboard", tourKey: "nav-dashboard", prefetchOnIntent: true, sectionKey: "nav.section.overview" },
+  { href: "/landlord/properties", labelKey: "nav.properties", icon: "Building", activityKey: "properties", tourKey: "nav-properties", prefetchOnIntent: true, sectionKey: "nav.section.rentals" },
+  { href: "/landlord/applications", labelKey: "nav.applications", icon: "FileCheck", activityKey: "applications", tourKey: "nav-applications", prefetchOnIntent: true, sectionKey: "nav.section.rentals" },
+  { href: "/landlord/maintenance-requests", labelKey: "nav.maintenance", icon: "Tool", activityKey: "maintenance", tourKey: "nav-maintenance", prefetchOnIntent: true, sectionKey: "nav.section.rentals" },
+  { href: "/landlord/messages", labelKey: "nav.messages", icon: "Messages", activityKey: "messages", tourKey: "nav-messages", sectionKey: "nav.section.rentals" },
+  { href: "/landlord/payments", labelKey: "nav.payments", icon: "CashBanknote", activityKey: "payments", tourKey: "nav-payments", prefetchOnIntent: true, sectionKey: "nav.section.finance" },
+  { href: ANALYTICS_HREF, labelKey: "nav.analytics", icon: "ChartBar", tourKey: "nav-analytics", prefetchOnIntent: true, sectionKey: "nav.section.finance" },
+  { href: PASSPORT_HREF, labelKey: "nav.passport", icon: "ShieldCheck", activityKey: "passport", tourKey: "nav-passport", sectionKey: "nav.section.verification" },
 ] as const;
 
 // Landlord tools stay closed until the account is verified; the one entry
 // leads to the page that explains how to get there.
 const UNVERIFIED_NAV = [
-  { href: LANDLORD_VERIFY_REQUIRED_PATH, label: "Verify account", icon: "ShieldCheck", section: "Verification" },
+  { href: LANDLORD_VERIFY_REQUIRED_PATH, labelKey: "nav.verifyAccount", icon: "ShieldCheck", sectionKey: "nav.section.verification" },
 ] as const;
 
 // A running tenancy keeps the two screens it needs.
 const TENANCY_NAV = [
-  { href: "/landlord/maintenance-requests", label: "Maintenance", icon: "Tool", section: "Current tenancy" },
-  { href: "/landlord/payments", label: "Payments", icon: "CashBanknote", section: "Current tenancy" },
+  { href: "/landlord/maintenance-requests", labelKey: "nav.maintenance", icon: "Tool", tourKey: "nav-maintenance", sectionKey: "nav.section.currentTenancy" },
+  { href: "/landlord/payments", labelKey: "nav.payments", icon: "CashBanknote", tourKey: "nav-payments", sectionKey: "nav.section.currentTenancy" },
 ] as const;
 
 export default async function DashboardLayout({
@@ -43,11 +46,14 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  let userName = "Landlord";
-  const userRole = "Landlord";
+  const language = await getServerLocale();
+  const landlordRole = translate(language, "nav.role.landlord");
+  let userName = landlordRole;
+  const userRole = landlordRole;
   let userRoles: string[] = ["landlord"];
   let userAvatarUrl: string | null = null;
   let accountStatus: string | null = null;
+  let profileId: string | null = null;
   let hasActiveTenancy = false;
 
   try {
@@ -59,6 +65,7 @@ export default async function DashboardLayout({
       if (profile?.roles && profile.roles.length > 0) userRoles = profile.roles;
       userAvatarUrl = profile?.avatar_url ?? null;
       accountStatus = profile?.account_status ?? null;
+      profileId = profile?.id ?? null;
       if (profile && isLandlordAccessBlocked(profile.roles ?? [], accountStatus)) {
         hasActiveTenancy = await hasActiveTenancyAsLandlord(supabase, profile.id);
       }
@@ -101,9 +108,6 @@ export default async function DashboardLayout({
           navItems={navItems}
           profileHref="/landlord/profile"
           iconSet="tabler"
-          navLabel="Landlord navigation"
-          menuLabel="Landlord pages"
-          buttonLabel="Open landlord navigation"
           userRoles={userRoles}
           activePortal="landlord"
         />
@@ -120,6 +124,9 @@ export default async function DashboardLayout({
       <Suspense fallback={null}>
         <NotificationsOverlay activePortal="landlord" />
       </Suspense>
+      {profileId ? (
+        <TutorialTour portal="landlord" profileId={profileId} accountStatus={accountStatus} />
+      ) : null}
     </div>
   );
 }

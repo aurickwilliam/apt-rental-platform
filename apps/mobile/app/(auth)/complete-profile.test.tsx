@@ -30,8 +30,8 @@ jest.mock("@/service/auth/signUpService", () => ({
 describe("CompleteProfile screen (email sign-up)", () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it("asks for the details and a new password for the chosen account type", () => {
-    render(<CompleteProfile />);
+  it("asks for the details and a new password for the chosen account type", async () => {
+    await render(<CompleteProfile />);
 
     expect(screen.getByText(/Complete Your Landlord Profile/)).toBeTruthy();
     expect(screen.getByDisplayValue("a@example.test")).toBeTruthy();
@@ -40,35 +40,35 @@ describe("CompleteProfile screen (email sign-up)", () => {
     expect(screen.getByLabelText("At least 8 characters: not met")).toBeTruthy();
   });
 
-  it("starts with empty names", () => {
-    render(<CompleteProfile />);
+  it("starts with empty names", async () => {
+    await render(<CompleteProfile />);
 
     expect(screen.getByPlaceholderText("Enter your first name").props.value).toBe("");
   });
 
   it("shows required errors, including the passwords, and creates no account", async () => {
-    render(<CompleteProfile />);
+    await render(<CompleteProfile />);
 
-    readAndCloseRegistrationPolicy("Privacy Policy");
-    readAndCloseRegistrationPolicy("Terms and Conditions");
-    fireEvent.press(screen.getByLabelText("I have read and agree to the Privacy Policy"));
-    fireEvent.press(screen.getByLabelText("I have read and agree to the Terms and Conditions"));
-    fireEvent.press(screen.getByText("Submit"));
+    await readAndCloseRegistrationPolicy("Privacy Policy");
+    await readAndCloseRegistrationPolicy("Terms and Conditions");
+    await fireEvent.press(screen.getByLabelText("I have read and agree to the Privacy Policy"));
+    await fireEvent.press(screen.getByLabelText("I have read and agree to the Terms and Conditions"));
+    await fireEvent.press(screen.getByText("Submit"));
 
     await waitFor(() => expect(screen.getAllByText("This field is required").length).toBeGreaterThan(2));
     expect(mockRequestSignUpCode).not.toHaveBeenCalled();
   });
 
   it("reports a mismatched confirmation once submitted", async () => {
-    render(<CompleteProfile />);
+    await render(<CompleteProfile />);
 
-    fireEvent.changeText(screen.getByPlaceholderText("Create a password"), "Passw0rd!");
-    fireEvent.changeText(screen.getByPlaceholderText("Confirm your password"), "Different1!");
-    readAndCloseRegistrationPolicy("Privacy Policy");
-    readAndCloseRegistrationPolicy("Terms and Conditions");
-    fireEvent.press(screen.getByLabelText("I have read and agree to the Privacy Policy"));
-    fireEvent.press(screen.getByLabelText("I have read and agree to the Terms and Conditions"));
-    fireEvent.press(screen.getByText("Submit"));
+    await fireEvent.changeText(screen.getByPlaceholderText("Create a password"), "Passw0rd!");
+    await fireEvent.changeText(screen.getByPlaceholderText("Confirm your password"), "Different1!");
+    await readAndCloseRegistrationPolicy("Privacy Policy");
+    await readAndCloseRegistrationPolicy("Terms and Conditions");
+    await fireEvent.press(screen.getByLabelText("I have read and agree to the Privacy Policy"));
+    await fireEvent.press(screen.getByLabelText("I have read and agree to the Terms and Conditions"));
+    await fireEvent.press(screen.getByText("Submit"));
 
     await waitFor(() => expect(screen.getByText("Passwords do not match")).toBeTruthy());
   });

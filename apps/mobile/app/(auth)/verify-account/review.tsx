@@ -18,10 +18,12 @@ import { buildVerificationInput, useSubmitVerification } from '@/hooks/verificat
 import { useVerificationStore } from '@/stores/useVerificationStore'
 import { getCaptureSequence, SELFIE_STEP } from '@/constants/verification/captureSequences'
 import { getCaptureProgress } from '@/utils/verification/gating'
+import { useTranslation } from '@/hooks/i18n'
 
 export default function Review() {
   const router = useRouter();
   const { colors } = useColors();
+  const { t } = useTranslation();
 
   const selectedId = useVerificationStore((state) => state.selectedId);
   const captures = useVerificationStore((state) => state.captures);
@@ -75,8 +77,10 @@ export default function Review() {
     if (result === null) return [];
     return [{
       key: step.id,
-      label: `ID ${step.label}`,
-      photoLabel: `ID ${step.label} photo`,
+      label: t("authMobile.verify.review.idLabel", { label: t(step.labelKey) }),
+      photoLabel: t("authMobile.verify.review.idPhotoLabel", {
+        label: t(step.labelKey),
+      }),
       uri: result.uri,
       aspectRatio: step.aspectRatio,
       onRetake: () => handleEditIdStep(step.id),
@@ -88,8 +92,8 @@ export default function Review() {
       ? idItems
       : [...idItems, {
         key: SELFIE_STEP.id,
-        label: 'Selfie',
-        photoLabel: 'Selfie holding your ID',
+        label: t("authMobile.verify.review.selfieLabel"),
+        photoLabel: t("authMobile.verify.review.selfiePhotoLabel"),
         uri: selfie.uri,
         aspectRatio: 1,
         onRetake: handleRetakeSelfie,
@@ -102,7 +106,11 @@ export default function Review() {
     try {
       input = buildVerificationInput(selectedId, captures);
     } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : 'Please complete all required photos.');
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : t("authMobile.verify.review.missingPhotos"),
+      );
       return;
     }
 
@@ -110,7 +118,11 @@ export default function Review() {
       await submitStandalone(input);
       router.push('/(auth)/verify-account/success');
     } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : 'Failed to submit verification.');
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : t("authMobile.verify.review.submitFailed"),
+      );
       console.error('Verification submit failed', err);
     }
   };
@@ -126,7 +138,9 @@ export default function Review() {
           className='mx-5'
         >
           <Button.Label>
-            {isPending ? 'Submitting…' : 'Submit for Verification'}
+            {isPending
+              ? t("authMobile.verify.review.submitting")
+              : t("authMobile.verify.review.submit")}
           </Button.Label>
         </Button>
       }
@@ -136,16 +150,22 @@ export default function Review() {
         onOpenChange={(value) => {
           if (!value && !isPending) setConfirmOpen(false);
         }}
-        title="Submit for verification?"
-        description="Please review your ID photos and selfie before submitting. Once submitted, your documents will be sent to our team for review."
+        title={t("authMobile.verify.review.confirmTitle")}
+        description={t("authMobile.verify.review.confirmBody")}
         checklistItems={[
-          ...(idStepsComplete ? ['Your required ID photos are ready.'] : []),
-          ...(selfie ? ['Your selfie is ready.'] : []),
+          ...(idStepsComplete
+            ? [t("authMobile.verify.review.confirmPhotos")]
+            : []),
+          ...(selfie ? [t("authMobile.verify.review.confirmSelfie")] : []),
         ]}
-        confirmLabel={isPending ? 'Submitting…' : 'Confirm & submit'}
+        confirmLabel={
+          isPending
+            ? t("authMobile.verify.review.submitting")
+            : t("authMobile.verify.review.confirmAction")
+        }
         confirmVariant="primary"
         isConfirmDisabled={isPending}
-        cancelLabel="Go back and review"
+        cancelLabel={t("authMobile.verify.review.cancel")}
         onConfirm={() => {
           setConfirmOpen(false);
           void handleSubmit();
@@ -162,7 +182,7 @@ export default function Review() {
       <StepProgress
         currentStep={4}
         totalSteps={5}
-        stepName="Review & Submit"
+        stepName={t("authMobile.verify.reviewAndSubmit")}
       />
 
       <View className='flex gap-1'>
@@ -170,7 +190,7 @@ export default function Review() {
           {selectedId}
         </Text>
         <Text className='text-sm text-gray-500 font-inter'>
-          Review your documents before submitting.
+          {t("authMobile.verify.review.title")}
         </Text>
       </View>
 
@@ -206,7 +226,7 @@ export default function Review() {
 
       <View className='mt-5 rounded-2xl border border-border bg-surface p-4'>
         <Text className='text-sm font-inter text-gray-500 text-center'>
-          Your ID photos and selfie will be sent to APT administrators for manual verification. You’ll be notified once the review is complete.
+          {t("authMobile.verify.review.notice")}
         </Text>
       </View>
 
@@ -214,7 +234,7 @@ export default function Review() {
         isOpen={errorMessage !== null}
         onClose={() => setErrorMessage(null)}
         message={errorMessage ?? ''}
-        title="Submission Failed"
+        title={t("authMobile.verify.review.errorTitle")}
       />
     </ScreenWrapper>
   )
@@ -231,6 +251,7 @@ interface ReviewPhotoCardProps {
 
 function ReviewPhotoCard({ label, photoLabel, uri, aspectRatio, onView, onRetake }: ReviewPhotoCardProps) {
   const { colors } = useColors();
+  const { t } = useTranslation();
   const [loadFailed, setLoadFailed] = useState(false);
 
   return (
@@ -242,7 +263,7 @@ function ReviewPhotoCard({ label, photoLabel, uri, aspectRatio, onView, onRetake
         <IconCheck size={18} color={colors.primary} />
         <View className='flex-1' />
         <Button variant="tertiary" size="sm" onPress={onRetake}>
-          <Button.Label>Retake</Button.Label>
+          <Button.Label>{t("authMobile.verify.review.retake")}</Button.Label>
         </Button>
       </View>
 
@@ -252,13 +273,15 @@ function ReviewPhotoCard({ label, photoLabel, uri, aspectRatio, onView, onRetake
           className='rounded-2xl border border-border items-center justify-center p-4'
         >
           <Text className='text-sm text-gray-500 font-inter text-center'>
-            Photo couldn&apos;t load. Please retake it.
+            {t("authMobile.verify.review.photoLoadFailed")}
           </Text>
         </View>
       ) : (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`View ${photoLabel} fullscreen`}
+          accessibilityLabel={t("authMobile.verify.review.viewFullscreen", {
+            label: photoLabel,
+          })}
           onPress={onView}
           className='w-full rounded-2xl border border-border overflow-hidden'
         >

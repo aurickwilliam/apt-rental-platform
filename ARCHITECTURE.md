@@ -19,6 +19,18 @@ Every architectural claim in this document was verified against the repository a
 
 ## 1. System Overview
 
+Apartment own-meter eligibility (electricity and water; the column keeps its
+original name) is stored in
+`apartments.has_own_electricity_meter`: dedicated provider meters only, not shared
+meters or submeters. Both clients share confirmation wording/validation through
+`@repo/constants`; a database trigger requires explicit true on insert and prevents
+clearing it. Migration `20261106210000_apartment_own_electricity_meter.sql`
+classifies existing rows true by product decision without updating their other
+fields (`20261107170000_own_meter_electricity_and_water.sql` only rewords the
+refusal message and column comment for water); new rows default false and must explicitly confirm. Existing RLS and
+column-scoped writes remain authoritative. See `docs/listing-electricity-meter.md`
+for release compatibility and tests.
+
 APT is a rental management platform for the Philippine market (CAMANAVA area focus). It connects **tenants** (students and renters) with **landlords** (property owners): tenants browse listings, apply, visit, chat, pay rent, and file maintenance requests; landlords publish units, manage applications, visits, payments, and maintenance. The web admin portal reviews account/property verifications, moderates account access and listing visibility, and reports aggregate metrics. Admin promotion remains a trusted database-operator action.
 
 Admin operations run through server actions and constrained database functions, with the Auth ban/unban performed by a service-role Edge Function. Account suspension revokes refreshable sessions; restrictive table/storage RLS blocks data access from already-issued JWTs until expiry. Listing visibility is independent of apartment availability and deletion; tenant discovery filters hidden listings while owner/admin reads and existing tenancy records remain accessible. See `docs/plans/phase-2-admin-portal.md` for the rollout and acceptance matrix; Phase 2's migration and Edge Function require an approved production deployment.
@@ -467,6 +479,8 @@ sequenceDiagram
 
 Checkout offers the payment methods the tenant's landlord accepts (`landlord_payment_settings`, read through `get_landlord_accepted_methods`); there are no saved per-tenant preferences or defaults, and nothing is preselected. `@repo/utils/paymentMethods.ts` defines the method names and their database values; `acceptedPaymentMethods.ts` holds the landlord-setting helpers. The accepted list fails closed: until it has loaded, or if the read fails, no method is offered and Pay stays disabled with a retry. The old `payment_method_preferences` table was dropped (`20261102150000`).
 
+**Lease renewal (implemented locally, not yet deployed).** The `20261106090000_lease_renewals` migration adds `tenancy_lease_terms`, `lease_renewals`, versioned `lease_renewal_proposals`, `lease_renewal_agreements`, and `lease_renewal_events` without rewriting original tenancy terms or payment history. The caller-bound `act_on_lease_renewal` RPC owns the workflow: tenant request/intention, landlord approval, new immutable proposals, tenant acceptance, private agreement upload/confirmation, and server-calculated renewal payment. Verified provider/cash payment finalizes exactly once through `finish_lease_renewal`; a zero total needs no fabricated payment. Renewal rent cannot increase in this release. Deposit replenishment is landlord-declared and labelled as not independently verified by APT. `Discuss Charges` opens existing chat without accepting or changing terms. Scheduler reminders are inserted disabled; hosted rollout needs separate approval. Local contract suite: `pnpm db:renewal:test`. See `docs/plans/lease-renewal.md` for the rollout gates and remaining checks.
+
 | Piece | Status | Evidence |
 |---|---|---|
 | Mobile payment screens (method selection, cash form, hosted-checkout redirect, success, history) | Hybrid — PayMongo hosted checkout in test mode, simulation fallback | `apps/mobile/app/tenant/payment/*` |
@@ -605,16 +619,30 @@ Patterns:
 
 ### `@repo/utils`
 
-- **Exports**: `formatPesoDisplay`, `handlePesoChange`, `formatAddress`, `formatFullName`, `formatDate`, `formatTime`, `getRelativeTime`, `getInitials`, `isValidEmail`, auth error helpers, card validation (`validateCardInfo`, Luhn, expiry).
-- **Deps**: none.
+- **Exports**: `formatPesoDisplay`, `handlePesoChange`, `formatAddress`, `formatFullName`, `formatDate`, `formatTime`, `getRelativeTime`, `getInitials`, `isValidEmail`, auth error helpers, card validation (`validateCardInfo`, Luhn, expiry). `formatDate` and `getRelativeTime` accept an optional trailing `LanguageCode` and delegate to `@repo/i18n`.
+- **Deps**: `@repo/i18n` (locale formatting); none for the rest.
 - **When to use**: pure formatting/validation shared by both apps.
 - **When NOT to use**: anything stateful or React-bound (that's `@repo/hooks` or app hooks).
+
+### `@repo/i18n`
+
+- **Exports**: `translate` and `TranslationKey` (the key set of the English catalog), the merged `en` / `fil` catalogs, `resolveLocale` / `parseLanguageTag` / `parseAcceptLanguage` / `detectDeviceLanguage` / `isLanguageCode`, `ALLOW_FILIPINO` / `LOCALE_COOKIE` / `LOCALE_STORAGE_KEY`, locale-aware `formatDate` / `formatClockTime` / `getRelativeTime` / `getMonthNames`, month and relative-time vocabulary, and display-only enum maps (`FURNISHED_TYPE_KEYS`, …, `enumLabel`).
+- **Deps**: `@repo/constants` (`APP_LANGUAGES`). Pure TypeScript — no React, no Supabase.
+- **When to use**: any user-facing string, locale date/time, or display label for a stored enum on either platform.
+- **When NOT to use**: database values, guard messages, auth emails or push bodies — those stay as authored.
 
 ### `@repo/hooks`
 
 - **Exports**: `usePasswordValidation`, `usePHMobileValidation`, `usePHPostalCode`.
 - **Deps**: React (peer), `@repo/constants`.
 - **When to use**: mobile forms (signup, edit profile). Web declares the dependency but **never imports it** (debt D6) — validation on web lives in `sign-up-form/utils.ts` and `complete-profile.ts`.
+
+### Locale plumbing
+
+- **Web**: `apps/web/lib/i18n/locale.ts` resolves the request locale (`apt-locale` cookie → `Accept-Language` → English) inside `React.cache`. The async root layout (`app/layout.tsx`) sets `<html lang>` and seeds `app/components/i18n/LocaleProvider`. `app/(auth)/actions/locale.ts` writes the cookie (one year, `path=/`, `sameSite=lax`, guarded by `ALLOW_FILIPINO`); the provider switches optimistically and `router.refresh()` re-renders the server tree. There is no `[locale]` route segment — reading the cookie in the root layout makes every route dynamic, which is the accepted cost of a correct first paint. `LanguageToggle` is icon-only in the public navbar and auth rows, and a labeled row in the mobile navbar menu.
+- **Mobile**: `stores/useI18nStore.ts` persists only the explicit choice (AsyncStorage `apt-language`, `language: null` until chosen) and exposes a hydration flag; `hooks/i18n/useTranslation.ts` resolves `stored → device → English` and returns `{ language, setLanguage, t }`. `app/_layout.tsx` gates the first frame on theme **and** language hydration. There is no native dependency: the device locale comes from `Intl.DateTimeFormat().resolvedOptions().locale`.
+- **Rollout flag**: `ALLOW_FILIPINO` gates resolution and every switcher together. While `false`, resolution is always English, the toggles render nothing, the web General tab hides its Language & region group, and the mobile Settings row stays disabled. One flip enables detection and switching.
+- **Display-only labels**: `*_KEYS` map stored English enum values to catalog keys; `enumLabel` leaves unknown values unchanged. `enums.test.ts` asserts coverage for every option in `@repo/constants`, so adding a value without a label fails CI.
 
 ---
 
@@ -623,7 +651,7 @@ Patterns:
 | Owner | What it holds | Notes |
 |---|---|---|
 | **Local state** (`useState` + custom hooks) | Everything not listed below — the default | Hooks expose `{ data, loading, error, refetch }`; `useFocusEffect` refetch pattern |
-| **Zustand (mobile only)** | Multi-step form-flow state | `stores/use{Registration,ApartmentForm,ApplicationForm,Personalization}Store.ts` + persisted `useThemeStore` (AsyncStorage, key `apt-theme`) |
+| **Zustand (mobile only)** | Multi-step form-flow state | `stores/use{Registration,ApartmentForm,ApplicationForm,Personalization}Store.ts` + persisted per-device preferences `useThemeStore` (AsyncStorage, key `apt-theme`) and `useI18nStore` (key `apt-language`, `null` until an explicit language is chosen) |
 | **Supabase** | All server data | Source of truth; fetched directly in hooks/services, never mirrored in stores |
 | **URL state (web)** | Browse filters/search/pagination | `searchParams` → server page re-queries (`SearchContainer`, `FilterContainer`, `RenderApartments`) |
 | **Context (web)** | Auth-form state only | `AuthContext` is scoped to `(auth)` pages; **no global session context** (see §4.3) |
@@ -749,6 +777,10 @@ The mobile `(tabs)` shell mounts one `ReviewUnlockGate`, keyed by Auth ID + inte
 
 Close, Back, backdrop, Maybe later and Write a Review all close immediately and save one AsyncStorage dismissal under `apt-review-unlock:v1:{authUserId}:{tenancyId}`. A failed storage write keeps the current mount dismissed. Write a Review opens the existing apartment Ratings & Reviews route; submitting successfully invalidates the exact apartment-review, tenant eligibility and account prompt keys, unless the initiating account has retired. Dismissal is a device preference, not an authorization decision and not shared with web. A development-only targeted reset is described in `docs/mobile-review-unlock.md`. Presentation reuses the shared `AppDialog`; see DESIGN.md §14.
 
+### 12.4 First-time tutorial
+
+A guided tour per portal, tracked per user and portal in `public.tutorial_progress` (`user_id` = internal `users.id`, `portal` tenant/landlord, `completed_at`, `skipped_at`; owner-only RLS, restrictive active-account policy, no client delete; migration `20261106150000_tutorial_progress.sql`, which also backfills existing finished profiles as completed). No row means unseen; completed or skipped stops the automatic prompt, and replay (Settings → Tutorial on both platforms) writes only when finished. Which steps a person sees is the pure `getTutorialSteps` in `@repo/utils` (`tutorial.ts`): it follows the same verification rules as the rest of the app (unverified landlords get no steps unless a tenancy is running, then only Payments/Maintenance; unverified tenants lose Applications and Messages), and `shouldAutoStartTutorial` fails closed while the progress read is pending or failed. Targets are stable keys (web `data-tour` on sidebar links via `tourKey`, mobile `registerTutorialTarget` in the Android `CustomTabBar`); a missing target shows a plain card. The tour never navigates on web and only switches tabs on mobile. iOS `NativeTabs` cannot be measured, so their button is estimated by splitting the bar evenly; Quick Action buttons register as targets through `QuickActionButton tourKey`. Mobile: `TutorialHost` in the `(tabs)` layout, `useTutorialStore`, `hooks/tutorial`, `service/tutorial`. Web: `TutorialTour` in the tenant and landlord layouts, `lib/tutorial-controller.ts` (replay request), `lib/tutorial-placement.ts` (pure card placement), `service/tutorialService.ts`. Apply the migration before releasing either app.
+
 ## 13. Navigation
 
 ### Web (Next.js App Router)
@@ -860,11 +892,15 @@ flowchart LR
     WEB --> U[@repo/utils]
     WEB --> S[@repo/supabase]
     WEB -.declared, unused.-> H[@repo/hooks]
+    WEB --> I[@repo/i18n]
     MOB[apps/mobile] --> C
     MOB --> U
     MOB --> S
     MOB --> H
+    MOB --> I
     H --> C
+    U --> I
+    I --> C
     S --> SUP[@supabase/*]
 ```
 

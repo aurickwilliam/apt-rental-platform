@@ -29,8 +29,8 @@ jest.mock("heroui-native", () => {
 const base = { month: "March 2026", amount: 65000, status: "paid", method: "cash", referenceId: "APT-L44ZOUGS", onPress: jest.fn() };
 
 describe("PaymentHistoryCard", () => {
-  it("puts only the amount in the middle, large, and no paid date anywhere", () => {
-    render(<PaymentHistoryCard {...base} unitName="San Jose Corner Suite 2BR" tenantName="MAHARTT Navales" />);
+  it("puts only the amount in the middle, large, and no paid date anywhere", async () => {
+    await render(<PaymentHistoryCard {...base} unitName="San Jose Corner Suite 2BR" tenantName="MAHARTT Navales" />);
     const amount = screen.getByText(/65,000/);
     expect(amount.props.className).toContain("text-2xl");
     expect(screen.queryByText(/Paid on|Recorded on/)).toBeNull();
@@ -38,8 +38,8 @@ describe("PaymentHistoryCard", () => {
     expect(screen.getByText("method chip cash")).toBeTruthy();
   });
 
-  it("shares the bottom row between the unit and tenant on the left and the reference on the right", () => {
-    render(<PaymentHistoryCard {...base} unitName="San Jose Corner Suite 2BR" tenantName="MAHARTT Navales" />);
+  it("shares the bottom row between the unit and tenant on the left and the reference on the right", async () => {
+    await render(<PaymentHistoryCard {...base} unitName="San Jose Corner Suite 2BR" tenantName="MAHARTT Navales" />);
     expect(screen.getByText("San Jose Corner Suite 2BR")).toBeTruthy();
     expect(screen.getByText("MAHARTT Navales")).toBeTruthy();
     expect(screen.getByText("APT-L44ZOUGS")).toBeTruthy();
@@ -49,24 +49,24 @@ describe("PaymentHistoryCard", () => {
     expect(json.indexOf("MAHARTT Navales")).toBeLessThan(json.indexOf("APT-L44ZOUGS"));
   });
 
-  it("shows just the reference when a unit's own history gives no unit or tenant, and still opens on press", () => {
+  it("shows just the reference when a unit's own history gives no unit or tenant, and still opens on press", async () => {
     const onPress = jest.fn();
-    render(<PaymentHistoryCard {...base} onPress={onPress} />);
+    await render(<PaymentHistoryCard {...base} onPress={onPress} />);
     expect(screen.getByText("APT-L44ZOUGS")).toBeTruthy();
     expect(screen.queryByText("MAHARTT Navales")).toBeNull();
-    fireEvent.press(screen.getByRole("button"));
+    await fireEvent.press(screen.getByRole("button"));
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
-  it("shows when a payment was recorded on a unit's own history, which names no unit or tenant", () => {
-    render(<PaymentHistoryCard {...base} paidDate="3/5/2026" />);
+  it("shows when a payment was recorded on a unit's own history, which names no unit or tenant", async () => {
+    await render(<PaymentHistoryCard {...base} paidDate="3/5/2026" />);
     expect(screen.getByText("Paid on: 3/5/2026")).toBeTruthy();
-    render(<PaymentHistoryCard {...base} status="pending" paidDate="3/6/2026" />);
+    await render(<PaymentHistoryCard {...base} status="pending" paidDate="3/6/2026" />);
     expect(screen.getByText("Recorded on: 3/6/2026")).toBeTruthy();
   });
 
-  it("words a declined payment like its receipt instead of Unpaid", () => {
-    render(<PaymentHistoryCard {...base} status="rejected" />);
+  it("words a declined payment like its receipt instead of Unpaid", async () => {
+    await render(<PaymentHistoryCard {...base} status="rejected" />);
     expect(screen.getByText("Rejected")).toBeTruthy();
     expect(screen.queryByText("Unpaid")).toBeNull();
   });

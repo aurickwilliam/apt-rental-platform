@@ -137,89 +137,89 @@ describe('LiveCapture', () => {
   });
 
   describe('permission branches', () => {
-    it('denied → renders explanation and a settings-link control (Req 4.1)', () => {
+    it('denied → renders explanation and a settings-link control (Req 4.1)', async () => {
       setPermission('denied');
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
       expect(screen.getByText(/Camera access is required/i)).toBeTruthy();
       expect(screen.getByText('Open Settings')).toBeTruthy();
     });
 
-    it('tapping the settings control calls openSettings (Req 4.2)', () => {
+    it('tapping the settings control calls openSettings (Req 4.2)', async () => {
       const openSettings = jest.fn();
       (useCameraPermission as jest.Mock).mockReturnValue({
         state: 'denied',
         requestPermission: jest.fn(),
         openSettings,
       });
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
-      fireEvent.press(screen.getByText('Open Settings'));
+      await fireEvent.press(screen.getByText('Open Settings'));
 
       expect(openSettings).toHaveBeenCalledTimes(1);
     });
 
-    it('restricted → renders explanation with no settings-link control (Req 4.6)', () => {
+    it('restricted → renders explanation with no settings-link control (Req 4.6)', async () => {
       setPermission('restricted');
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
       expect(screen.getByText(/blocked by device policy/i)).toBeTruthy();
       expect(screen.queryByText('Open Settings')).toBeNull();
     });
 
-    it('undetermined → requestPermission is called automatically on mount (Req 4.4)', () => {
+    it('undetermined → requestPermission is called automatically on mount (Req 4.4)', async () => {
       const requestPermission = jest.fn().mockResolvedValue(undefined);
       (useCameraPermission as jest.Mock).mockReturnValue({
         state: 'undetermined',
         requestPermission,
         openSettings: jest.fn(),
       });
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
       expect(requestPermission).toHaveBeenCalled();
     });
 
-    it('granted → renders the camera preview', () => {
+    it('granted → renders the camera preview', async () => {
       setPermission('granted');
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
       expect(screen.getByTestId('camera-view')).toBeTruthy();
     });
   });
 
   describe('capture step resolution (Req 3.2)', () => {
-    it('a card stepId uses the rear camera and rectangular CARD_ASPECT_RATIO guide', () => {
+    it('a card stepId uses the rear camera and rectangular CARD_ASPECT_RATIO guide', async () => {
       setPermission('granted');
       mockSearchParams = { idType: 'National ID (PhilSys/PhilID)', stepId: 'front' };
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
       expect(latestCameraProps.facing).toBe('back');
       expect(latestGuidedFrameProps.aspectRatio).toBeCloseTo(CARD_ASPECT_RATIO);
       expect(latestGuidedFrameProps.shape).toBe('rectangle');
     });
 
-    it('a Passport stepId (identity-page) resolves to PASSPORT_ASPECT_RATIO for the guided frame', () => {
+    it('a Passport stepId (identity-page) resolves to PASSPORT_ASPECT_RATIO for the guided frame', async () => {
       setPermission('granted');
       mockSearchParams = { idType: 'Passport', stepId: 'identity-page' };
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
       expect(latestGuidedFrameProps.aspectRatio).toBeCloseTo(PASSPORT_ASPECT_RATIO);
       expect(latestGuidedFrameProps.aspectRatio).not.toBeCloseTo(CARD_ASPECT_RATIO, 2);
     });
 
-    it('a stepId not present in the resolved sequence renders the "capture step could not be found" error view instead of crashing', () => {
+    it('a stepId not present in the resolved sequence renders the "capture step could not be found" error view instead of crashing', async () => {
       setPermission('granted');
       mockSearchParams = { idType: 'National ID (PhilSys/PhilID)', stepId: 'nonexistent-step' };
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
       expect(screen.getByText(/capture step could not be found/i)).toBeTruthy();
       expect(screen.queryByTestId('camera-view')).toBeNull();
     });
 
-    it('the reserved selfie step uses the front camera with a circular success guide', () => {
+    it('the reserved selfie step uses the front camera with a circular success guide', async () => {
       setPermission('granted');
       mockSearchParams = { stepId: SELFIE_STEP.id };
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
       expect(latestCameraProps.facing).toBe('front');
       expect(latestGuidedFrameProps.aspectRatio).toBe(1);
@@ -231,29 +231,29 @@ describe('LiveCapture', () => {
   });
 
   describe('static framing hint', () => {
-    it('ID steps show the ID framing hint above the shutter', () => {
+    it('ID steps show the ID framing hint above the shutter', async () => {
       setPermission('granted');
       mockSearchParams = { idType: 'National ID (PhilSys/PhilID)', stepId: 'front' };
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
       expect(screen.getByText('Fit the entire ID inside the frame')).toBeTruthy();
     });
 
-    it('the selfie step shows the face framing hint above the shutter', () => {
+    it('the selfie step shows the face framing hint above the shutter', async () => {
       setPermission('granted');
       mockSearchParams = { stepId: SELFIE_STEP.id };
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
       expect(screen.getByText('Fit your face inside the circle')).toBeTruthy();
     });
   });
 
   describe('camera error handling (Req 3.9)', () => {
-    it('onMountError renders an error message and a retry control', () => {
+    it('onMountError renders an error message and a retry control', async () => {
       setPermission('granted');
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
-      act(() => {
+      await act(() => {
         latestCameraProps.onMountError({ message: 'Camera session failed' });
       });
 
@@ -261,16 +261,16 @@ describe('LiveCapture', () => {
       expect(screen.getByText('Retry')).toBeTruthy();
     });
 
-    it('tapping Retry remounts the camera view (error clears, preview renders again)', () => {
+    it('tapping Retry remounts the camera view (error clears, preview renders again)', async () => {
       setPermission('granted');
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
-      act(() => {
+      await act(() => {
         latestCameraProps.onMountError({ message: 'Camera session failed' });
       });
       expect(screen.queryByTestId('camera-view')).toBeNull();
 
-      fireEvent.press(screen.getByText('Retry'));
+      await fireEvent.press(screen.getByText('Retry'));
 
       expect(screen.getByTestId('camera-view')).toBeTruthy();
       expect(screen.queryByText(/Camera session failed/i)).toBeNull();
@@ -280,14 +280,14 @@ describe('LiveCapture', () => {
   describe('manual shutter only (Req 3.4, 3.5)', () => {
     it('manual shutter capture calls takePictureAsync', async () => {
       setPermission('granted');
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
-      act(() => {
+      await act(() => {
         latestCameraProps.onCameraReady();
       });
 
       await act(async () => {
-        fireEvent.press(screen.getByLabelText('Capture photo'));
+        await fireEvent.press(screen.getByLabelText('Capture photo'));
         await Promise.resolve();
       });
 
@@ -297,9 +297,9 @@ describe('LiveCapture', () => {
     it('preview never captures on its own — only the manual shutter does', async () => {
       setPermission('granted');
 
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
-      act(() => {
+      await act(() => {
         latestCameraProps.onCameraReady();
       });
 
@@ -311,7 +311,7 @@ describe('LiveCapture', () => {
       expect(mockTakePictureAsync).not.toHaveBeenCalled();
 
       await act(async () => {
-        fireEvent.press(screen.getByLabelText('Capture photo'));
+        await fireEvent.press(screen.getByLabelText('Capture photo'));
         await Promise.resolve();
         await Promise.resolve();
       });
@@ -324,18 +324,18 @@ describe('LiveCapture', () => {
       try {
         setPermission('granted');
         mockSearchParams = { idType: 'National ID (PhilSys/PhilID)', stepId: 'front' };
-        render(<LiveCapture />);
+        await render(<LiveCapture />);
 
-        act(() => {
+        await act(() => {
           latestCameraProps.onCameraReady();
         });
 
-        fireEvent(screen.getByTestId('camera-preview-container'), 'layout', {
+        await fireEvent(screen.getByTestId('camera-preview-container'), 'layout', {
           nativeEvent: { layout: { width: 400, height: 800 } },
         });
 
         await act(async () => {
-          fireEvent.press(screen.getByLabelText('Capture photo'));
+          await fireEvent.press(screen.getByLabelText('Capture photo'));
           await Promise.resolve();
           await Promise.resolve();
         });
@@ -366,18 +366,18 @@ describe('LiveCapture', () => {
     it('shows Mirror off by default and does not mirror the selfie capture', async () => {
       setPermission('granted');
       mockSearchParams = { stepId: SELFIE_STEP.id };
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
       expect(screen.getByLabelText('Mirror')).toBeTruthy();
       expect(latestCameraProps.mirror).toBe(false);
       expect(latestCameraProps.style.transform).toEqual([{ scaleX: -1 }]);
 
-      act(() => {
+      await act(() => {
         latestCameraProps.onCameraReady();
       });
 
       await act(async () => {
-        fireEvent.press(screen.getByLabelText('Capture photo'));
+        await fireEvent.press(screen.getByLabelText('Capture photo'));
         await Promise.resolve();
         await Promise.resolve();
       });
@@ -389,19 +389,19 @@ describe('LiveCapture', () => {
     it('mirrors both the front preview and captured selfie when Mirror is on, then resets it on retake', async () => {
       setPermission('granted');
       mockSearchParams = { stepId: SELFIE_STEP.id };
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
-      act(() => {
+      await act(() => {
         latestCameraProps.onCameraReady();
       });
 
-      fireEvent.press(screen.getByLabelText('Mirror'));
+      await fireEvent.press(screen.getByLabelText('Mirror'));
 
       expect(latestCameraProps.mirror).toBe(true);
       expect(latestCameraProps.style.transform).toEqual([{ scaleX: 1 }]);
 
       await act(async () => {
-        fireEvent.press(screen.getByLabelText('Capture photo'));
+        await fireEvent.press(screen.getByLabelText('Capture photo'));
         await Promise.resolve();
         await Promise.resolve();
       });
@@ -410,7 +410,7 @@ describe('LiveCapture', () => {
       expect(mockCropAction).toHaveBeenCalledTimes(1);
       expect(screen.getByTestId('captured-image-preview')).toBeTruthy();
 
-      fireEvent.press(screen.getByText('Retake'));
+      await fireEvent.press(screen.getByText('Retake'));
 
       expect(latestCameraProps.mirror).toBe(false);
       expect(latestCameraProps.style.transform).toEqual([{ scaleX: -1 }]);
@@ -419,18 +419,18 @@ describe('LiveCapture', () => {
     it('does not offer Mirror or mirror rear-camera ID captures', async () => {
       setPermission('granted');
       mockSearchParams = { idType: 'National ID (PhilSys/PhilID)', stepId: 'front' };
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
       expect(screen.queryByLabelText('Mirror')).toBeNull();
       expect(latestCameraProps.mirror).toBe(false);
       expect(latestCameraProps.style.transform).toEqual([{ scaleX: 1 }]);
 
-      act(() => {
+      await act(() => {
         latestCameraProps.onCameraReady();
       });
 
       await act(async () => {
-        fireEvent.press(screen.getByLabelText('Capture photo'));
+        await fireEvent.press(screen.getByLabelText('Capture photo'));
         await Promise.resolve();
         await Promise.resolve();
       });
@@ -444,14 +444,14 @@ describe('LiveCapture', () => {
       try {
         setPermission('granted');
         mockSaveAsync.mockRejectedValueOnce(new Error('crop failed'));
-        render(<LiveCapture />);
+        await render(<LiveCapture />);
 
-        act(() => {
+        await act(() => {
           latestCameraProps.onCameraReady();
         });
 
         await act(async () => {
-          fireEvent.press(screen.getByLabelText('Capture photo'));
+          await fireEvent.press(screen.getByLabelText('Capture photo'));
           await Promise.resolve();
           await Promise.resolve();
         });
@@ -460,7 +460,7 @@ describe('LiveCapture', () => {
         expect(mockTakePictureAsync).toHaveBeenCalledTimes(1);
         expect(consoleErrorSpy).toHaveBeenCalled();
 
-        fireEvent.press(screen.getByText('Use Photo'));
+        await fireEvent.press(screen.getByText('Use Photo'));
 
         expect(useVerificationStore.getState().captures.front).toEqual({
           uri: 'file://captured.jpg',
@@ -474,10 +474,10 @@ describe('LiveCapture', () => {
 
     it('capture attempted before onCameraReady fires is a graceful no-op', async () => {
       setPermission('granted');
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
       await act(async () => {
-        fireEvent.press(screen.getByLabelText('Capture photo'));
+        await fireEvent.press(screen.getByLabelText('Capture photo'));
         await Promise.resolve();
       });
 
@@ -490,15 +490,15 @@ describe('LiveCapture', () => {
       mockTakePictureAsync.mockImplementation(
         () => new Promise((resolve) => { resolveCapture = resolve; }),
       );
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
-      act(() => {
+      await act(() => {
         latestCameraProps.onCameraReady();
       });
 
       await act(async () => {
-        fireEvent.press(screen.getByLabelText('Capture photo'));
-        fireEvent.press(screen.getByLabelText('Capture photo'));
+        await fireEvent.press(screen.getByLabelText('Capture photo'));
+        await fireEvent.press(screen.getByLabelText('Capture photo'));
         await Promise.resolve();
       });
 
@@ -513,14 +513,14 @@ describe('LiveCapture', () => {
     it('a rejected takePictureAsync surfaces the error/retry UI state', async () => {
       setPermission('granted');
       mockTakePictureAsync.mockRejectedValue(new Error('Capture failed'));
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
-      act(() => {
+      await act(() => {
         latestCameraProps.onCameraReady();
       });
 
       await act(async () => {
-        fireEvent.press(screen.getByLabelText('Capture photo'));
+        await fireEvent.press(screen.getByLabelText('Capture photo'));
         await Promise.resolve();
         await Promise.resolve();
       });
@@ -533,14 +533,14 @@ describe('LiveCapture', () => {
   describe('capture review (Req 3.6, 3.7, 3.8)', () => {
     async function captureAndReachReview() {
       setPermission('granted');
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
-      act(() => {
+      await act(() => {
         latestCameraProps.onCameraReady();
       });
 
       await act(async () => {
-        fireEvent.press(screen.getByLabelText('Capture photo'));
+        await fireEvent.press(screen.getByLabelText('Capture photo'));
         await Promise.resolve();
         await Promise.resolve();
       });
@@ -557,7 +557,7 @@ describe('LiveCapture', () => {
     it('Retake discards the captured image and returns to the camera preview', async () => {
       await captureAndReachReview();
 
-      fireEvent.press(screen.getByText('Retake'));
+      await fireEvent.press(screen.getByText('Retake'));
 
       expect(screen.queryByTestId('captured-image-preview')).toBeNull();
       expect(screen.getByTestId('camera-view')).toBeTruthy();
@@ -566,19 +566,19 @@ describe('LiveCapture', () => {
     it('Retake does not trigger an automatic capture — the user must press the shutter again', async () => {
       setPermission('granted');
 
-      render(<LiveCapture />);
-      act(() => {
+      await render(<LiveCapture />);
+      await act(() => {
         latestCameraProps.onCameraReady();
       });
 
       await act(async () => {
-        fireEvent.press(screen.getByLabelText('Capture photo'));
+        await fireEvent.press(screen.getByLabelText('Capture photo'));
         await Promise.resolve();
         await Promise.resolve();
       });
       expect(mockTakePictureAsync).toHaveBeenCalledTimes(1);
 
-      fireEvent.press(screen.getByText('Retake'));
+      await fireEvent.press(screen.getByText('Retake'));
 
       await act(async () => {
         await Promise.resolve();
@@ -591,7 +591,7 @@ describe('LiveCapture', () => {
       mockSearchParams = { idType: 'National ID (PhilSys/PhilID)', stepId: 'front' };
       await captureAndReachReview();
 
-      fireEvent.press(screen.getByText('Use Photo'));
+      await fireEvent.press(screen.getByText('Use Photo'));
 
       expect(useVerificationStore.getState().captures.front).toEqual({
         uri: 'file://cropped.jpg',
@@ -608,7 +608,7 @@ describe('LiveCapture', () => {
       mockSearchParams = { idType: 'National ID (PhilSys/PhilID)', stepId: 'back' };
       await captureAndReachReview();
 
-      fireEvent.press(screen.getByText('Use Photo'));
+      await fireEvent.press(screen.getByText('Use Photo'));
 
       expect(useVerificationStore.getState().captures.back).toEqual({
         uri: 'file://cropped.jpg',
@@ -623,7 +623,7 @@ describe('LiveCapture', () => {
       mockSearchParams = { idType: 'Passport', stepId: 'identity-page' };
       await captureAndReachReview();
 
-      fireEvent.press(screen.getByText('Use Photo'));
+      await fireEvent.press(screen.getByText('Use Photo'));
 
       expect(useVerificationStore.getState().captures['identity-page']).toEqual({
         uri: 'file://cropped.jpg',
@@ -638,7 +638,7 @@ describe('LiveCapture', () => {
       mockSearchParams = { stepId: SELFIE_STEP.id };
       await captureAndReachReview();
 
-      fireEvent.press(screen.getByText('Use Photo'));
+      await fireEvent.press(screen.getByText('Use Photo'));
 
       expect(useVerificationStore.getState().captures.selfie).toEqual({
         uri: 'file://cropped.jpg',
@@ -651,15 +651,15 @@ describe('LiveCapture', () => {
   });
 
   describe('close button', () => {
-    it('discards the in-progress session and dismisses the flow to select-id, even when a capture already exists for the current step', () => {
+    it('discards the in-progress session and dismisses the flow to select-id, even when a capture already exists for the current step', async () => {
       setPermission('granted');
       useVerificationStore.setState({
         selectedId: 'National ID (PhilSys/PhilID)',
         captures: { front: { uri: 'file://captured.jpg', width: 400, height: 252 } },
       });
-      render(<LiveCapture />);
+      await render(<LiveCapture />);
 
-      fireEvent.press(screen.getByTestId('close-button'));
+      await fireEvent.press(screen.getByTestId('close-button'));
 
       expect(useVerificationStore.getState()).toEqual(
         expect.objectContaining(initialVerificationState),

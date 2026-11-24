@@ -3,6 +3,7 @@ import { FlatList } from "react-native";
 
 import VisitRequests from "@/app/landlord/visit-requests";
 import { renderKeyboardAwareListScrollView } from "./ScreenWrapper";
+import { spyOnClassComponent } from "../../tests/support/classComponentProps";
 
 jest.mock("expo-router", () => ({
   useRouter: () => ({ push: jest.fn() }),
@@ -75,33 +76,35 @@ jest.mock("heroui-native", () => {
   };
 });
 
-it("scrolls the measured search section upward on focus, including with no approved visits", () => {
+it("scrolls the measured search section upward on focus, including with no approved visits", async () => {
+  const flatList = spyOnClassComponent(FlatList);
   const scrollToOffset = jest.spyOn(FlatList.prototype, "scrollToOffset")
     .mockImplementation(() => {});
   try {
-    const { getByText, getByPlaceholderText, UNSAFE_getByType } = render(<VisitRequests />);
+    const { getByText, getByPlaceholderText } = await render(<VisitRequests />);
     const searchSection = getByText("Approved Visit Requests").parent?.parent;
 
-    expect(UNSAFE_getByType(FlatList).props.renderScrollComponent)
+    expect(flatList.latestProps().renderScrollComponent)
       .toBe(renderKeyboardAwareListScrollView);
     expect(getByText("No approved visits")).toBeTruthy();
 
-    fireEvent(searchSection!, "layout", {
+    await fireEvent(searchSection!, "layout", {
       nativeEvent: { layout: { x: 0, y: 420, width: 320, height: 100 } },
     });
-    fireEvent(getByPlaceholderText("Search tenant or apartment..."), "focus");
+    await fireEvent(getByPlaceholderText("Search tenant or apartment..."), "focus");
     expect(scrollToOffset).toHaveBeenLastCalledWith({ offset: 420, animated: true });
 
     // A calendar/layout size change must not leave a hard-coded scroll target.
-    fireEvent(searchSection!, "layout", {
+    await fireEvent(searchSection!, "layout", {
       nativeEvent: { layout: { x: 0, y: 500, width: 320, height: 100 } },
     });
-    fireEvent(getByPlaceholderText("Search tenant or apartment..."), "focus");
+    await fireEvent(getByPlaceholderText("Search tenant or apartment..."), "focus");
     expect(scrollToOffset).toHaveBeenLastCalledWith({ offset: 500, animated: true });
 
-    fireEvent(getByPlaceholderText("Search tenant or apartment..."), "blur");
+    await fireEvent(getByPlaceholderText("Search tenant or apartment..."), "blur");
     expect(scrollToOffset).toHaveBeenCalledTimes(2);
   } finally {
+    flatList.restore();
     scrollToOffset.mockRestore();
   }
 });

@@ -24,6 +24,7 @@ import { canCopyImageMessage, copyChatImage } from "@/app/components/chat/copyIm
 import MessageBubble from "@/app/components/chat/MessageBubble";
 import useConversation from "@/app/components/chat/useConversation";
 import useConversationRealtime from "@/app/components/chat/useConversationRealtime";
+import useConversationReadSync from "@/app/components/chat/useConversationReadSync";
 import useReplyNavigation from "@/app/components/chat/useReplyNavigation";
 import useScrollToLatestOnOpen from "@/app/components/chat/useScrollToLatestOnOpen";
 import type { ChatMessage } from "@/app/components/chat/types";
@@ -154,6 +155,18 @@ export default function ConversationView({
     },
   });
 
+  // Viewing the thread (tab visible) reads its incoming messages and the same
+  // thread's message notifications; see useConversationReadSync.
+  const { syncNotificationsUpTo } = useConversationReadSync({
+    supabase,
+    portal,
+    currentUserId,
+    contactId: activeContact?.id ?? null,
+    apartmentId: apartmentId ?? null,
+    conversationKey: activeContact?.conversationKey ?? null,
+    onConversationRead,
+  });
+
   // Realtime: incoming messages, read receipts for sent ones, the contact's
   // typing Broadcast, and a resync after reconnects/refocus. Shared with the
   // portal's view so both subscribe identically.
@@ -167,6 +180,7 @@ export default function ConversationView({
     setMessages,
     refreshMessages,
     onConversationRead,
+    onIncomingMessageRead: syncNotificationsUpTo,
   });
 
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -186,33 +200,6 @@ export default function ConversationView({
     pauseFollowing: () => { nearBottomRef.current = false; setIsNearBottom(false); },
   });
 
-
-  // Mark incoming messages as read when this conversation is opened
-  useEffect(() => {
-    if (!activeContact) return;
-
-    const markAsRead = async () => {
-      let query = supabase
-        .from("chat")
-        .update({ is_read: true, read_at: new Date().toISOString() })
-        .select("id")
-        .eq("sender_id", activeContact.id)
-        .eq("receiver_id", currentUserId)
-        .eq("is_read", false);
-
-      if (apartmentId) {
-        query = query.eq("apartment_id", apartmentId);
-      }
-
-      const { data, error } = await query;
-
-      if (!error && (data?.length ?? 0) > 0) {
-        onConversationRead?.(activeContact.conversationKey);
-      }
-    };
-
-    void markAsRead();
-  }, [activeContact, apartmentId, currentUserId, onConversationRead, supabase]);
 
   /**
    * Owns the "follow the bottom" flag. Sampled on scroll, and again

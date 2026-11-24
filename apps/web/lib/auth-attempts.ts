@@ -64,9 +64,17 @@ export type CodeAttempt =
   | { ok: false; kind: "invalid_code" }
   | { ok: false; kind: "error"; error: AttemptError };
 
-function locked(purpose: LockPurpose, retryAfterSeconds: number): Locked {
-  // Subject-free, so a spike in lockouts can be alerted on without logging who.
+/**
+ * Subject-free line for every lockout, so a spike can be alerted on without
+ * logging who. Every server path that reports a lock uses it, including the web
+ * password-reset action, which has its own code path.
+ */
+export function logAuthLockout(purpose: LockPurpose): void {
   console.warn("Auth lockout:", purpose);
+}
+
+function locked(purpose: LockPurpose, retryAfterSeconds: number): Locked {
+  logAuthLockout(purpose);
   return { ok: false, kind: "locked", retryAfterSeconds };
 }
 

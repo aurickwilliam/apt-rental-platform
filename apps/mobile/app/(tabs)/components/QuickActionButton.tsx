@@ -1,6 +1,7 @@
 import { TouchableOpacity, View } from "react-native";
 import type React from "react";
 
+import { registerTutorialTarget } from "@/components/tutorial/targetRegistry";
 import QuickActionContent from "./QuickActionContent";
 
 interface QuickActionButtonProps {
@@ -9,6 +10,8 @@ interface QuickActionButtonProps {
   onPress?: () => void;
   badgeCount?: number;
   columns?: 4 | 5;
+  /** Stable first-time tutorial key (see `TUTORIAL_TARGETS` in `@repo/utils`). */
+  tourKey?: string;
 }
 
 export default function QuickActionButton({
@@ -17,11 +20,15 @@ export default function QuickActionButton({
   onPress,
   badgeCount,
   columns = 4,
+  tourKey,
 }: QuickActionButtonProps) {
   const isFiveColumnLayout = columns === 5;
 
   return (
-    <View className={`${columns === 5 ? "w-1/5" : "w-1/4 mb-3"} px-1`}>
+    <View
+      ref={tourKey ? (view) => registerTutorialTarget(tourKey, view) : undefined}
+      className={`${columns === 5 ? "w-1/5" : "w-1/4 mb-3"} px-1`}
+    >
       <TouchableOpacity
         className="flex items-center justify-center gap-1.5"
         onPress={onPress}

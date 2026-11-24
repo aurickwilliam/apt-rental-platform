@@ -11,6 +11,7 @@ import {
   isCamanavaZipForCity,
   getBarangaysByCity,
   getDescriptionError,
+  getOwnElectricityMeterError,
 } from "@repo/constants";
 import {
   pricingAmountFromMonths,
@@ -42,6 +43,7 @@ export type ApartmentFormData = {
   max_occupants: number;
   floor_level: string;
   lease_duration: string;
+  has_own_electricity_meter: boolean;
   street_address: string;
   barangay: string;
   city: string;
@@ -73,6 +75,7 @@ const INITIAL_FORM: ApartmentFormData = {
   max_occupants: 1,
   floor_level: "",
   lease_duration: "",
+  has_own_electricity_meter: false,
   street_address: "",
   barangay: "",
   city: "",
@@ -256,6 +259,7 @@ export default function CreateApartmentPage() {
           furnished_type: formData.furnished_type,
           floor_level: formData.floor_level,
           lease_duration: formData.lease_duration,
+          has_own_electricity_meter: formData.has_own_electricity_meter,
           latitude: formData.latitude,
           longitude: formData.longitude,
           amenities: formData.amenities,
@@ -263,7 +267,7 @@ export default function CreateApartmentPage() {
         .select()
         .single();
 
-      if (aptError || !apartment) throw aptError;
+      if (aptError || !apartment) throw new Error(aptError?.message ?? "The listing could not be created. Please try again.");
 
 
       // Upload lease agreement and images
@@ -365,6 +369,8 @@ export default function CreateApartmentPage() {
       if (!data.furnished_type) errors.furnished_type = "Furnished type is required.";
       if (!data.floor_level) errors.floor_level = "Floor level is required.";
       if (!data.lease_duration) errors.lease_duration = "Lease duration is required.";
+      const meterError = getOwnElectricityMeterError(data.has_own_electricity_meter);
+      if (meterError) errors.has_own_electricity_meter = meterError;
       if (data.area_sqm <= 0) {
         errors.area_sqm = "Must be greater than 0.";
       } else if (areaLimits && (data.area_sqm < areaLimits.min || data.area_sqm > areaLimits.max)) {

@@ -1,6 +1,6 @@
 "use client";
 import { Breadcrumbs, Card, Chip, Separator } from "@heroui/react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { IconBuilding as Building2, IconCircleCheck as CheckCircle2, IconShieldCheck as ShieldCheck, IconGlobe as Globe2 } from "@tabler/icons-react";
 
 const fadeUp = {

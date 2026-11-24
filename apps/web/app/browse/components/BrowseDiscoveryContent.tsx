@@ -1,9 +1,12 @@
 import { createClient } from "@repo/supabase/server";
+import { hasMeaningfulPreferences } from "@repo/utils";
 
 import type { TenantPreferences } from "@/lib/tenant-preferences";
 
 import { fetchBrowseResults } from "../lib/fetch-browse-results";
 import { loadDiscoverySections } from "../lib/fetch-browse-discovery";
+import { RECOMMENDED_SECTION_ID } from "../lib/fetch-personalized-sections";
+import RecommendationNotice from "./RecommendationNotice";
 import BrowseResultsBar from "./BrowseResultsBar";
 import BrowseSectionsList from "./BrowseSectionsList";
 import RenderApartments from "./RenderApartments";
@@ -31,7 +34,16 @@ export default async function BrowseDiscoveryContent({
   const sections = await loadDiscoverySections(supabase, preferences, basePath);
 
   if (sections.length > 0) {
-    return <BrowseSectionsList sections={sections} basePath={basePath} />;
+    const missingRecommendations =
+      preferences !== null &&
+      hasMeaningfulPreferences(preferences) &&
+      !sections.some((section) => section.id === RECOMMENDED_SECTION_ID);
+    return (
+      <>
+        {missingRecommendations && <RecommendationNotice basePath={basePath} />}
+        <BrowseSectionsList sections={sections} basePath={basePath} />
+      </>
+    );
   }
 
   // Empty/failed sections fall back to the filtered grid, exactly like the

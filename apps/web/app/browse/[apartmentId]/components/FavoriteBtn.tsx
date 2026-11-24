@@ -5,6 +5,7 @@ import { Button, toast } from "@heroui/react";
 import { IconHeart, IconHeartFilled } from "@tabler/icons-react";
 
 import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 import { useFavorites } from "@/hooks/use-favorites";
 
@@ -13,6 +14,7 @@ interface FavoriteBtnProps {
 }
 
 export default function FavoriteBtn({ apartmentId }: FavoriteBtnProps) {
+  const { t } = useTranslation();
   const { isFavorite, toggleFavorite, loading } = useFavorites();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -25,9 +27,9 @@ export default function FavoriteBtn({ apartmentId }: FavoriteBtnProps) {
     try {
       const nextValue = await toggleFavorite(apartmentId);
       if (nextValue) {
-        toast.success("Saved to favorites");
+        toast.success(t("favorites.saved"));
       } else {
-        toast("Removed from favorites");
+        toast(t("favorites.removed"));
       }
     } catch (err: unknown) {
       const error = err as { code?: string; message?: string };
@@ -38,11 +40,11 @@ export default function FavoriteBtn({ apartmentId }: FavoriteBtnProps) {
       }
 
       if (error?.code === "NOT_TENANT") {
-        toast.warning(error?.message ?? "Only tenants can save favorites");
+        toast.warning(error?.message ?? t("favorites.tenantsOnly"));
         return;
       }
 
-      toast.danger(error?.message ?? "Unable to update favorites");
+      toast.danger(error?.message ?? t("favorites.updateFailed"));
     } finally {
       setIsSaving(false);
     }
@@ -54,7 +56,7 @@ export default function FavoriteBtn({ apartmentId }: FavoriteBtnProps) {
         variant="tertiary"
         size="md"
         isIconOnly
-        aria-label={favorited ? "Remove from favorites" : "Save to favorites"}
+        aria-label={favorited ? t("favorites.remove.aria") : t("favorites.save.aria")}
         isPending={isSaving}
         isDisabled={loading}
         onPress={handleToggleFavorite}
@@ -69,8 +71,8 @@ export default function FavoriteBtn({ apartmentId }: FavoriteBtnProps) {
       <AuthPromptModal
         isOpen={isAuthModalOpen}
         onOpenChange={setIsAuthModalOpen}
-        title="Sign in to save favorites"
-        description="Create an account to save apartments and access them anytime."
+        title={t("favorites.signInTitle")}
+        description={t("favorites.signInBody")}
       />
     </>
   );

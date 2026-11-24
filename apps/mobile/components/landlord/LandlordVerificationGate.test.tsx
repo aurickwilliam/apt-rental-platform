@@ -28,8 +28,8 @@ jest.mock("@/components/layout/ScreenWrapper", () => {
   return { __esModule: true, default: ({ children }: { children: React.ReactNode }) => <View>{children}</View> };
 });
 
-const renderGate = (allowTenancyScreens = false) =>
-  render(
+const renderGate = async (allowTenancyScreens = false) =>
+  await render(
     <LandlordVerificationGate allowTenancyScreens={allowTenancyScreens}>
       <Text>landlord tools</Text>
     </LandlordVerificationGate>,
@@ -42,60 +42,60 @@ describe("LandlordVerificationGate", () => {
     mockActiveTenancy = false;
   });
 
-  it.each(["unverified", "pending", "rejected"])("replaces the tools for a %s landlord", (status) => {
+  it.each(["unverified", "pending", "rejected"])("replaces the tools for a %s landlord", async (status) => {
     mockProfile = { id: "u1", roles: ["landlord"], account_status: status };
-    renderGate();
+    await renderGate();
     expect(screen.queryByText("landlord tools")).toBeNull();
     expect(screen.getByLabelText("Verify your account to use landlord features.")).toBeTruthy();
   });
 
-  it("explains a review in progress separately from missing verification", () => {
+  it("explains a review in progress separately from missing verification", async () => {
     mockProfile = { id: "u1", roles: ["landlord"], account_status: "pending" };
-    renderGate();
+    await renderGate();
     expect(screen.getByText("Your verification is under review")).toBeTruthy();
   });
 
-  it("sends the landlord to the profile where verification lives", () => {
+  it("sends the landlord to the profile where verification lives", async () => {
     mockProfile = { id: "u1", roles: ["landlord"], account_status: "unverified" };
-    renderGate();
-    fireEvent.press(screen.getByText("Verify my account"));
+    await renderGate();
+    await fireEvent.press(screen.getByText("Verify my account"));
     expect(mockNavigate).toHaveBeenCalledWith("/(tabs)/(landlord)/profile");
   });
 
-  it("shows the tools to a verified landlord and while the profile loads", () => {
+  it("shows the tools to a verified landlord and while the profile loads", async () => {
     mockProfile = { id: "u1", roles: ["landlord"], account_status: "verified" };
-    renderGate();
+    await renderGate();
     expect(screen.getByText("landlord tools")).toBeTruthy();
-    screen.unmount();
+    await screen.unmount();
     mockProfile = undefined;
-    renderGate();
+    await renderGate();
     expect(screen.getByText("landlord tools")).toBeTruthy();
   });
 
-  it("offers payments and maintenance to a landlord with a running tenancy", () => {
+  it("offers payments and maintenance to a landlord with a running tenancy", async () => {
     mockProfile = { id: "u1", roles: ["landlord"], account_status: "unverified" };
     mockActiveTenancy = true;
-    renderGate();
-    fireEvent.press(screen.getByText("Payments"));
+    await renderGate();
+    await fireEvent.press(screen.getByText("Payments"));
     expect(mockNavigate).toHaveBeenCalledWith("/landlord/payments");
-    fireEvent.press(screen.getByText("Maintenance requests"));
+    await fireEvent.press(screen.getByText("Maintenance requests"));
     expect(mockNavigate).toHaveBeenCalledWith("/landlord/maintenance-requests");
   });
 
-  it("opens only the tenancy screens of the landlord stack, and only during a tenancy", () => {
+  it("opens only the tenancy screens of the landlord stack, and only during a tenancy", async () => {
     mockProfile = { id: "u1", roles: ["landlord"], account_status: "unverified" };
     mockSegments = ["landlord", "payments"];
-    renderGate(true);
+    await renderGate(true);
     expect(screen.queryByText("landlord tools")).toBeNull();
-    screen.unmount();
+    await screen.unmount();
 
     mockActiveTenancy = true;
-    renderGate(true);
+    await renderGate(true);
     expect(screen.getByText("landlord tools")).toBeTruthy();
-    screen.unmount();
+    await screen.unmount();
 
     mockSegments = ["landlord", "analytics"];
-    renderGate(true);
+    await renderGate(true);
     expect(screen.queryByText("landlord tools")).toBeNull();
   });
 });

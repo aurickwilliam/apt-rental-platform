@@ -1,6 +1,10 @@
 import { Stack } from 'expo-router';
 
-export default function _Layout() {
+import { useTranslation } from '@/hooks/i18n';
+
+export default function PersonalizationLayout() {
+  const { t } = useTranslation();
+
   return (
     <Stack
       screenOptions={{
@@ -10,31 +14,31 @@ export default function _Layout() {
       <Stack.Screen
         name="step-one"
         options={{
-          title: 'Personalization'
+          title: t("authMobile.personalization.title")
         }}
       />
       <Stack.Screen
         name="step-two"
         options={{
-          title: 'Personalization'
+          title: t("authMobile.personalization.title")
         }}
       />
       <Stack.Screen
         name="step-three"
         options={{
-          title: 'Personalization'
+          title: t("authMobile.personalization.title")
         }}
       />
       <Stack.Screen
         name="step-four"
         options={{
-          title: 'Personalization'
+          title: t("authMobile.personalization.title")
         }}
       />
       <Stack.Screen
         name="step-five"
         options={{
-          title: 'Personalization'
+          title: t("authMobile.personalization.title")
         }}
       />
     </Stack>

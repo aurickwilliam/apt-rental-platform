@@ -28,27 +28,27 @@ jest.mock("heroui-native", () => {
   return { Dialog, Button };
 });
 
-function renderDialog() {
+async function renderDialog() {
   const onUpdate = jest.fn();
   const onDismiss = jest.fn();
-  const screen = render(
+  const screen = await render(
     <AppUpdateDialog latestVersion="1.3.0" releaseNotes="Fixes" errorMessage={null} onUpdate={onUpdate} onDismiss={onDismiss} />,
   );
   return { screen, onUpdate, onDismiss };
 }
 
-it("cannot be closed by the close button, a backdrop tap, a swipe or the back button", () => {
-  const { screen, onDismiss } = renderDialog();
+it("cannot be closed by the close button, a backdrop tap, a swipe or the back button", async () => {
+  const { screen, onDismiss } = await renderDialog();
   expect(screen.queryByLabelText("Close")).toBeNull();
   expect(mockSwipeable).toBe(false);
   mockRequestClose?.(false);
   expect(onDismiss).not.toHaveBeenCalled();
 });
 
-it("closes only through Maybe later and opens the download through Update", () => {
-  const { screen, onUpdate, onDismiss } = renderDialog();
-  fireEvent.press(screen.getByText("Update"));
+it("closes only through Maybe later and opens the download through Update", async () => {
+  const { screen, onUpdate, onDismiss } = await renderDialog();
+  await fireEvent.press(screen.getByText("Update"));
   expect(onUpdate).toHaveBeenCalledTimes(1);
-  fireEvent.press(screen.getByText("Maybe later"));
+  await fireEvent.press(screen.getByText("Maybe later"));
   expect(onDismiss).toHaveBeenCalledTimes(1);
 });

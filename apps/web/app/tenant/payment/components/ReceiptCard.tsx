@@ -1,7 +1,8 @@
 "use client";
 
-import { Card, Button } from "@heroui/react";
-import { IconCircleCheck as CheckCircle2, IconAlertCircle as AlertCircle, IconCircleX as XCircle, IconDownload as Download, IconShare2 as Share2 } from "@tabler/icons-react";
+import type { ReactNode } from "react";
+import { Card } from "@heroui/react";
+import { IconCircleCheck as CheckCircle2, IconAlertCircle as AlertCircle, IconCircleX as XCircle } from "@tabler/icons-react";
 import { formatPesoDisplay } from "../utils";
 import type { PaymentStatus } from "../types";
 import ZigzagEdge from "./ZigzagEdge";
@@ -27,9 +28,10 @@ interface ReceiptCardProps {
   referenceNumber: string;
   status?: PaymentStatus;
   periodLabel?: string;
+  /** Color behind the paper; "transparent" hangs white teeth below it instead of cutting notches. */
   backgroundColor?: string;
-  onSave?: () => void;
-  onShare?: () => void;
+  /** Save and Share; the receipt's owner supplies them because they need the full payment. */
+  actions?: ReactNode;
 }
 
 // The receipt is an always-white paper surface, so its content uses fixed
@@ -57,15 +59,15 @@ export default function ReceiptCard({
   status = "Paid",
   periodLabel,
   backgroundColor = "#376BF5",
-  onSave,
-  onShare,
+  actions,
 }: ReceiptCardProps) {
   const meta = STATUS_META[status] ?? STATUS_META.Paid;
   const Icon = meta.icon;
+  const floating = backgroundColor === "transparent";
 
   return (
     <div className="w-full max-w-[560px] mx-auto">
-      <Card className="relative rounded-t-2xl rounded-b-none border border-b-0 border-zinc-200/80 bg-white shadow-sm overflow-hidden">
+      <Card className={`relative rounded-t-2xl rounded-b-none border border-b-0 border-zinc-200/80 bg-white overflow-hidden ${floating ? "shadow-none" : "shadow-sm"}`}>
         <Card.Header className="flex flex-col items-center justify-center px-6 pt-8 pb-2">
           <Icon size={48} className={meta.color} />
           <h3 className={`mt-3 text-xl font-nunito font-bold ${meta.color}`}>{meta.title}</h3>
@@ -93,22 +95,17 @@ export default function ReceiptCard({
           </div>
         </Card.Content>
 
-        <Card.Footer className="mt-6 mb-2 flex items-center justify-center gap-2 px-6 pb-4">
-          <Button variant="ghost" size="sm" onPress={onSave} className="gap-1.5 font-nunito text-zinc-500 hover:text-zinc-700">
-            <Download size={14} />
-            Save to Photos
-          </Button>
-          <Button variant="ghost" size="sm" onPress={onShare} className="gap-1.5 font-nunito text-zinc-500 hover:text-zinc-700">
-            <Share2 size={14} />
-            Share Receipt
-          </Button>
-        </Card.Footer>
+        {actions ? <Card.Footer className="mt-6 mb-2 flex items-center justify-center px-6 pb-4">{actions}</Card.Footer> : null}
 
         {/* Mobile parity: edge overlays the card bottom (covers HeroUI bottom padding) */}
-        <div className="pointer-events-none absolute bottom-0 left-0 right-0" aria-hidden>
-          <ZigzagEdge cutColor={backgroundColor} depth={13} toothWidth={20} />
-        </div>
+        {!floating && (
+          <div className="pointer-events-none absolute bottom-0 left-0 right-0" aria-hidden>
+            <ZigzagEdge cutColor={backgroundColor} depth={13} toothWidth={20} />
+          </div>
+        )}
       </Card>
+      {/* Over a transparent dialog there is no color to cut with, so paper-colored teeth hang below. */}
+      {floating && <ZigzagEdge hanging cutColor="#ffffff" depth={13} toothWidth={20} className="-mt-px" />}
     </div>
   );
 }

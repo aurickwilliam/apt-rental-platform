@@ -21,6 +21,8 @@ export interface AiSearchFilters {
   priceMin: number | null;
   priceMax: number | null;
   bedrooms: AiSearchRoomCount | null;
+  /** With `bedrooms`, an upper bound: "one or two bedrooms" is bedrooms "1", bedroomsMax 2. */
+  bedroomsMax: number | null;
   bathrooms: AiSearchRoomCount | null;
   types: string[];
   furnishing: string[];
@@ -35,6 +37,7 @@ export const EMPTY_AI_SEARCH_FILTERS: AiSearchFilters = {
   priceMin: null,
   priceMax: null,
   bedrooms: null,
+  bedroomsMax: null,
   bathrooms: null,
   types: [],
   furnishing: [],
@@ -104,6 +107,23 @@ function toRoomCount(value: unknown): AiSearchRoomCount | null {
   return count >= 4 ? '4+' : (String(count) as AiSearchRoomCount);
 }
 
+/** The bedroom count and its optional upper bound, in order and within a sensible range. */
+function sanitizeBedrooms(
+  bedrooms: unknown,
+  bedroomsMax: unknown,
+): Pick<AiSearchFilters, 'bedrooms' | 'bedroomsMax'> {
+  const low = toRoomCount(bedrooms);
+  const upper = typeof bedroomsMax === 'string' ? Number(bedroomsMax) : bedroomsMax;
+  if (low === null || typeof upper !== 'number' || !Number.isInteger(upper) || upper < 1 || upper > 10) {
+    return { bedrooms: low, bedroomsMax: null };
+  }
+  const min = low === '4+' ? 4 : Number(low);
+  if (upper === min) return { bedrooms: low, bedroomsMax: null };
+  // A swapped pair ("2 or 1") is still a 1 to 2 range.
+  const [from, to] = upper < min ? [upper, min] : [min, upper];
+  return { bedrooms: toRoomCount(from), bedroomsMax: to };
+}
+
 /** Letters, digits, spaces and hyphens only, so it is safe inside a PostgREST `or` filter. */
 export function sanitizeSearchKeyword(value: unknown): string | null {
   if (typeof value !== 'string') return null;
@@ -127,7 +147,7 @@ export function sanitizeAiFilters(raw: unknown): AiSearchFilters {
     cities: pickAllowed(input.cities, CAMANAVA_CITIES),
     priceMin,
     priceMax,
-    bedrooms: toRoomCount(input.bedrooms),
+    ...sanitizeBedrooms(input.bedrooms, input.bedroomsMax),
     bathrooms: toRoomCount(input.bathrooms),
     types: pickAllowed(input.types, APARTMENT_TYPES),
     furnishing: pickAllowed(input.furnishing, FURNISHED_TYPES),
@@ -181,7 +201,9 @@ function parseBudget(text: string): Pick<AiSearchFilters, 'priceMin' | 'priceMax
     return { priceMin: toBudget(low), priceMax: toBudget(high) };
   }
 
-  const max = text.match(new RegExp(`(?:${MAX_WORDS})\\s*${AMOUNT}`));
+  const max = text.match(
+    new RegExp(`(?:${MAX_WORDS})(?:\\s+(?:is|ay|na|of|around|about|mga))?\\s*${AMOUNT}`),
+  );
   if (max) return { priceMin: null, priceMax: toBudget(parseAmount(max[1], max[2])) };
 
   const min = text.match(new RegExp(`(?:${MIN_WORDS})\\s*${AMOUNT}`));
@@ -201,6 +223,10 @@ const TAGALOG_NUMBERS: Record<string, number> = {
 const NUMBER_WORD = `(?:^|[^${LETTER}0-9])(\\d|${Object.keys(TAGALOG_NUMBERS).join('|')})`;
 const BEDROOM_NOUNS = 'br|bedrooms?|beds?|rooms?|kwarto|kuwarto|silid';
 const BATHROOM_NOUNS = 'bathrooms?|baths?|cr|crs|banyo|t&b|toilets?';
+// "one or two bedrooms", "1-2 BR", "isa o dalawang kwarto": a range, not one count.
+const ROOM_RANGE = new RegExp(
+  `${NUMBER_WORD}\\s*(?:or|o|to|-|–|hanggang|at|/)\\s*(\\d|${Object.keys(TAGALOG_NUMBERS).join('|')})\\s*-?\\s*(?:${BEDROOM_NOUNS})(?![${LETTER}])`,
+);
 const ROOM_PHRASE = new RegExp(
   `${NUMBER_WORD}\\s*-?\\s*(?:${BEDROOM_NOUNS}|${BATHROOM_NOUNS})(?![${LETTER}])`,
   'g',
@@ -211,6 +237,15 @@ function parseRooms(text: string, nouns: string): AiSearchRoomCount | null {
   if (!match) return null;
   const count = /^\d$/.test(match[1]) ? Number(match[1]) : TAGALOG_NUMBERS[match[1]];
   return toRoomCount(count);
+}
+
+const toCount = (word: string): number =>
+  /^\d$/.test(word) ? Number(word) : TAGALOG_NUMBERS[word];
+
+function parseBedrooms(text: string): Pick<AiSearchFilters, 'bedrooms' | 'bedroomsMax'> {
+  const range = text.match(ROOM_RANGE);
+  if (range) return sanitizeBedrooms(toCount(range[1]), toCount(range[2]));
+  return { bedrooms: parseRooms(text, BEDROOM_NOUNS), bedroomsMax: null };
 }
 
 function parseTypes(text: string): string[] {
@@ -257,8 +292,8 @@ export function parseSearchKeywords(message: string): AiSearchFilters {
     ...EMPTY_AI_SEARCH_FILTERS,
     cities: [...cities],
     // Room counts and floor areas are numbers too; keep them out of the budget.
-    ...parseBudget(text.replace(ROOM_PHRASE, ' ').replace(SIZE_PHRASE, ' ')),
-    bedrooms: parseRooms(text, BEDROOM_NOUNS),
+    ...parseBudget(text.replace(ROOM_RANGE, ' ').replace(ROOM_PHRASE, ' ').replace(SIZE_PHRASE, ' ')),
+    ...parseBedrooms(text),
     bathrooms: parseRooms(text, BATHROOM_NOUNS),
     types: parseTypes(text),
     furnishing: parseFurnishing(text),
@@ -270,6 +305,64 @@ export function parseSearchKeywords(message: string): AiSearchFilters {
   };
 }
 
+const ANY_AREA_PHRASES = ['any area', 'anywhere', 'any city', 'kahit saan', 'kahit anong lugar', 'ibang lugar', 'other areas'];
+const ANY_TYPE_PHRASES = ['any unit type', 'any type', 'kahit anong uri', 'kahit anong klase'];
+const ANY_BUDGET_PHRASES = ['any budget', 'no budget limit', 'no budget', 'kahit magkano', 'walang budget'];
+const ANY_BEDROOM_PHRASES = ['any bedrooms', 'any number of bedrooms', 'kahit ilang kwarto', 'kahit ilang bedroom'];
+const START_OVER_PHRASES = ['start over', 'new search', 'clear filters', 'clear all filters', 'reset search', 'simula ulit', 'umpisa ulit'];
+
+/** True when the tenant widens the area ("any area in CAMANAVA", "kahit saan"). */
+export function wantsAnyArea(message: string): boolean {
+  const text = message.toLowerCase();
+  return ANY_AREA_PHRASES.some((phrase) => hasPhrase(text, phrase)) || hasPhrase(text, 'any area in camanava');
+}
+
+/**
+ * Applies a new message's filters on top of what the conversation already
+ * settled. What the tenant says now wins; what they did not mention stays, so
+ * "2 bedrooms" after "sa Malabon" keeps Malabon. "Any area" and "any unit type"
+ * clear the city and type.
+ */
+export function mergeAiFilters(base: AiSearchFilters, next: AiSearchFilters, message = ''): AiSearchFilters {
+  const text = message.toLowerCase();
+  const says = (phrases: string[]) => phrases.some((phrase) => hasPhrase(text, phrase));
+  // "Start over" forgets everything said before, keeping only what this message adds.
+  if (says(START_OVER_PHRASES)) return { ...next };
+
+  let priceMin = next.priceMin ?? base.priceMin;
+  let priceMax = next.priceMax ?? base.priceMax;
+  if (says(ANY_BUDGET_PHRASES) && next.priceMin === null && next.priceMax === null) {
+    priceMin = null;
+    priceMax = null;
+  }
+  if (priceMin !== null && priceMax !== null && priceMin > priceMax) priceMin = null;
+
+  return {
+    cities: wantsAnyArea(message) ? [] : next.cities.length > 0 ? next.cities : base.cities,
+    priceMin,
+    priceMax,
+    // A new bedroom count replaces the old one, range included.
+    ...(says(ANY_BEDROOM_PHRASES)
+      ? { bedrooms: null, bedroomsMax: null }
+      : next.bedrooms !== null
+        ? { bedrooms: next.bedrooms, bedroomsMax: next.bedroomsMax }
+        : { bedrooms: base.bedrooms, bedroomsMax: base.bedroomsMax }),
+    bathrooms: next.bathrooms ?? base.bathrooms,
+    types: says(ANY_TYPE_PHRASES) ? [] : next.types.length > 0 ? next.types : base.types,
+    furnishing: next.furnishing.length > 0 ? next.furnishing : base.furnishing,
+    amenities: [...new Set([...base.amenities, ...next.amenities])],
+    verifiedOnly: base.verifiedOnly || next.verifiedOnly,
+    // "Cheapest first" belongs to the message that asked for it, not to every later one.
+    sort: next.sort,
+    keyword: next.keyword ?? base.keyword,
+  };
+}
+
+/** True when plain Browse can show exactly this search (it cannot filter a bedroom range). */
+export function isBrowseExpressible(filters: AiSearchFilters): boolean {
+  return filters.bedroomsMax === null;
+}
+
 /** The web Browse query params (`apps/web/app/browse/lib/browse-query.ts`) for these filters. */
 export function aiFiltersToBrowseParams(filters: AiSearchFilters): Record<string, string> {
   const params: Record<string, string> = {};
@@ -277,7 +370,11 @@ export function aiFiltersToBrowseParams(filters: AiSearchFilters): Record<string
   if (filters.priceMin !== null) params.price_min = String(filters.priceMin);
   if (filters.priceMax !== null) params.price_max = String(filters.priceMax);
   if (filters.types.length > 0) params.apt_types = filters.types.join(',');
-  if (filters.bedrooms !== null) params.bedrooms = filters.bedrooms;
+  // Browse cannot filter a range, so a range travels under Ava's own keys.
+  if (filters.bedrooms !== null && filters.bedroomsMax !== null) {
+    params.ava_bedrooms_min = filters.bedrooms === '4+' ? '4' : filters.bedrooms;
+    params.ava_bedrooms_max = String(filters.bedroomsMax);
+  } else if (filters.bedrooms !== null) params.bedrooms = filters.bedrooms;
   if (filters.bathrooms !== null) params.bathrooms = filters.bathrooms;
   if (filters.furnishing.length > 0) params.furnishing = filters.furnishing.join(',');
   if (filters.amenities.length > 0) params.amenities = filters.amenities.join(',');

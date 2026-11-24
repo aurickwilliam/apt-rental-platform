@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Card, Modal, useOverlayState } from "@heroui/react";
+import { Button, Card } from "@heroui/react";
 import { IconCalendar as CalendarDays, IconHome as House, IconMapPin as MapPin, IconCircleCheck as CheckCircle2 } from "@tabler/icons-react";
 import { formatPesoDisplay, generatePaymentReference, getCurrentRentStatus, paidAmountForPeriod, isMethodAccepted, findPendingOnlinePayment } from "@repo/utils";
 import { getBankLimitError, getBankTransferBank, type BankCode } from "@repo/constants";
@@ -23,6 +23,7 @@ import PaymentFooter from "./components/PaymentFooter";
 import type { CashPaymentErrors } from "./types";
 import { validateCashPayment } from "./components/CashPaymentForm";
 import { useAcceptedPaymentMethods } from "@/hooks/use-accepted-payment-methods";
+import ErrorDialog from "@/app/components/display/ErrorDialog";
 
 function toIsoDate(date: Date): string {
   const year = date.getFullYear();
@@ -40,12 +41,6 @@ function PaymentContent() {
   const [cashErrors, setCashErrors] = useState<CashPaymentErrors>({});
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState<{ message: string; title?: string } | null>(null);
-  const errorState = useOverlayState({
-    isOpen: paymentError !== null,
-    onOpenChange: (open) => {
-      if (!open) setPaymentError(null);
-    },
-  });
   const router = useRouter();
 
   const { profile } = useUser();
@@ -479,26 +474,13 @@ function PaymentContent() {
         </div>
       </PaymentPageShell>
 
-      {/* Error dialog (mobile ErrorDialog parity, HeroUI Modal) */}
-      <Modal.Root state={errorState}>
-        <Modal.Backdrop>
-          <Modal.Container placement="center" size="sm">
-            <Modal.Dialog className="rounded-2xl">
-              <Modal.Header className="text-base font-nunito font-semibold">
-                {paymentError?.title ?? "Payment Failed"}
-              </Modal.Header>
-              <Modal.Body>
-                <p className="text-sm text-zinc-600 dark:text-zinc-300">{paymentError?.message ?? ""}</p>
-              </Modal.Body>
-              <Modal.Footer className="flex justify-end">
-                <Button variant="secondary" size="sm" onPress={() => setPaymentError(null)} className="rounded-full font-nunito">
-                  Dismiss
-                </Button>
-              </Modal.Footer>
-            </Modal.Dialog>
-          </Modal.Container>
-        </Modal.Backdrop>
-      </Modal.Root>
+      {/* Crucial errors get a modal (shared ErrorDialog, mobile parity);
+          field-level ones stay inline. */}
+      <ErrorDialog
+        message={paymentError?.message ?? null}
+        title={paymentError?.title ?? "Payment Failed"}
+        onClose={() => setPaymentError(null)}
+      />
     </>
   );
 }

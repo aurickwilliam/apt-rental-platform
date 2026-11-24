@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { translate } from "../../../packages/i18n/src/index.ts";
 
 const jsx = (type, props) => ({ type, props });
 function compile(file, modules, globals = {}) {
@@ -14,12 +15,12 @@ function compile(file, modules, globals = {}) {
 }
 
 const sectioned = [
-  { href: "/landlord/dashboard", label: "Dashboard", icon: "LayoutDashboard", section: "Overview" },
-  { href: "/landlord/properties", label: "My Properties", icon: "Building", section: "Rentals" },
-  { href: "/landlord/applications", label: "Applications", icon: "FileCheck", section: "Rentals" },
-  { href: "/landlord/payments", label: "Payments", icon: "CashBanknote", section: "Finance" },
+  { href: "/landlord/dashboard", labelKey: "nav.dashboard", icon: "LayoutDashboard", sectionKey: "nav.section.overview" },
+  { href: "/landlord/properties", labelKey: "nav.properties", icon: "Building", sectionKey: "nav.section.rentals" },
+  { href: "/landlord/applications", labelKey: "nav.applications", icon: "FileCheck", sectionKey: "nav.section.rentals" },
+  { href: "/landlord/payments", labelKey: "nav.payments", icon: "CashBanknote", sectionKey: "nav.section.finance" },
 ];
-const flat = sectioned.map(item => ({ href: item.href, label: item.label, icon: item.icon }));
+const flat = sectioned.map(({ href, labelKey, icon }) => ({ href, labelKey, icon }));
 
 function render({ navItems, collapsed = false, mobile = false }) {
   const sidebar = compile("../app/components/layout/AppSidebar.tsx", {
@@ -35,8 +36,10 @@ function render({ navItems, collapsed = false, mobile = false }) {
     "@heroui/react": { Button: "Button", Spinner: "Spinner", Label: "Label", Separator: "Separator", Drawer: { Root: "Drawer.Root", Backdrop: "Drawer.Backdrop", Content: "Drawer.Content", Dialog: "Drawer.Dialog" }, useOverlayState: options => options, Dropdown: { Menu: "Dropdown.Menu", Item: "Dropdown.Item", Section: "Dropdown.Section", Popover: "Popover" } },
     "@/hooks/use-notifications": { useNotifications: () => ({ notifications: [], unreadCount: 0 }) },
     "@/lib/sidebar-notification-activity": { getUnreadSidebarActivity: () => new Set() },
+    "@/lib/tutorial-controller": { useTutorialNavMenuOpen: () => false, setTutorialLayerHost: () => {} },
     "@/hooks/use-pending-navigation": { usePendingNavigation: () => ({ pendingHref: null, navigate: () => {} }) },
     "./SidebarLinkPending": { default: "SidebarLinkPending" },
+    "@/app/components/i18n/LocaleProvider": { useTranslation: () => ({ language: "en", t: (key, vars) => translate("en", key, vars) }) },
   }, { window: { localStorage: { getItem: () => String(collapsed) } }, URLSearchParams });
   const nodes = node => {
     if (!node || typeof node !== "object") return [];
@@ -85,7 +88,7 @@ test("mobile drawer renders one group per section, split by separators, then the
   assert.deepEqual(groups, ["Overview", "Rentals", "Finance", "Account"]);
   assert.equal(all.filter(node => node.type === "Separator").length >= 3, true);
   const labelOf = node => [node.props.children].flat(Infinity).filter(child => typeof child === "string").join("");
-  const rows = all.filter(node => node.type === "Button" && node.props.className?.includes("button--bare") && sectioned.some(item => item.label === labelOf(node)));
+  const rows = all.filter(node => node.type === "Button" && node.props.className?.includes("button--bare") && sectioned.some(item => translate("en", item.labelKey) === labelOf(node)));
   assert.equal(rows.length, sectioned.length);
 });
 
@@ -98,6 +101,7 @@ function renderNotificationsItem({ entry, unreadCount = 0, collapsed = false, pu
     "@/app/components/notifications/NotificationsOverlay": { NOTIFICATIONS_QUERY_VALUE: "open" },
     "@/hooks/use-notification-display-preferences": { useNotificationDisplayPreferences: () => ({ preferences: { entry, drawerSide: "right" } }) },
     "@/hooks/use-notifications": { useNotifications: () => ({ unreadCount }) },
+    "@/app/components/i18n/LocaleProvider": { useTranslation: () => ({ language: "en", t: (key, vars) => translate("en", key, vars) }) },
   }, { window: { location: { href: "http://localhost/landlord/dashboard?tab=1#top" }, history: { pushState: (_state, _title, url) => pushed.push(url) } }, URL });
   const root = item.default({ activePortal: "landlord", collapsed });
   if (!root) return null;
@@ -107,6 +111,35 @@ function renderNotificationsItem({ entry, unreadCount = 0, collapsed = false, pu
   const button = trigger.props.children.props.children;
   return Object.assign(button, { tooltip: content?.props.children, tooltipDisabled: !content });
 }
+
+test("every mobile page, account, theme and logout row shares left alignment without changing desktop", () => {
+  const mobile = render({ navItems: sectioned, mobile: true });
+  const rows = mobile.filter(node => node.type === "Button" && node.props.className?.includes("button--bare"));
+  assert.ok(rows.length >= sectioned.length + 5);
+  for (const row of rows) {
+    assert.match(row.props.className, /mobile-sidebar-row/);
+    assert.match(row.props.className, /items-center justify-start gap-3/);
+    assert.match(row.props.className, /min-h-11.*px-3/);
+  }
+  assert.ok(rows.some(row => row.props["aria-current"] === "page" && row.props.className.includes("bg-primary/10")));
+  assert.ok(rows.some(row => row.props.className.includes("text-danger")));
+  const desktop = render({ navItems: sectioned });
+  assert.equal(desktop.some(node => node.props?.className?.includes("mobile-sidebar-row")), false);
+  for (const portal of ["tenant", "landlord", "admin"]) {
+    assert.match(readFileSync(new URL(`../app/${portal}/layout.tsx`, import.meta.url), "utf8"), /<MobileSidebarNavigation/);
+  }
+});
+
+test("mobile row CSS overrides HeroUI centering and preserves icon/trailing-control widths", () => {
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  const row = css.match(/\.mobile-sidebar-row\.button\s*\{([^}]+)\}/)?.[1];
+  assert.ok(row);
+  for (const rule of ["justify-content: flex-start", "height: auto", "white-space: normal", "overflow-wrap: anywhere"]) {
+    assert.ok(row.includes(rule), rule);
+  }
+  assert.match(css, /\.mobile-sidebar-row\.button > svg\s*\{\s*flex: 0 0 20px;/);
+  assert.match(css, /\.mobile-sidebar-row\.button > span\s*\{\s*flex-shrink: 0;/);
+});
 
 test("Notifications tab is hidden while the floating bell is the chosen entry point", () => {
   assert.equal(renderNotificationsItem({ entry: "bell", unreadCount: 3 }), null);

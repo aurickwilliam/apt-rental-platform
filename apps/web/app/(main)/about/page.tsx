@@ -5,7 +5,7 @@ import {
   Chip,
   Separator,
 } from "@heroui/react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { IconUsers as Users, IconTarget as Target, IconEye as Eye } from "@tabler/icons-react";
 
 import { ABOUT_MISSION, ABOUT_VISION } from "@repo/constants";

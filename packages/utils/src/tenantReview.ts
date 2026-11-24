@@ -40,6 +40,15 @@ export function summarizeTenantReviews(ratings: readonly number[]): TenantReview
   return { average: Math.round((total / valid.length) * 10) / 10, count: valid.length };
 }
 
+/** Ratings an application detail screen previews; the rest are on the tenant's profile. */
+export const APPLICANT_RATINGS_PREVIEW_LIMIT = 5;
+
+/** Headline for a tenant's landlord ratings, e.g. "4.5 from 3 landlord ratings" or "No ratings yet". */
+export function describeTenantRatingSummary({ average, count }: TenantReviewSummary): string {
+  if (count <= 0) return 'No ratings yet';
+  return `${average.toFixed(1)} from ${count} landlord ${count === 1 ? 'rating' : 'ratings'}`;
+}
+
 export const TENANT_REVIEW_SAVE_ERROR = 'Could not save your rating. Please try again.';
 
 export interface TenantReviewSubmission {

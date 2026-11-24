@@ -22,6 +22,7 @@ import {
   verificationChipColor,
   type AdminUserDetail,
 } from "../../lib/user-display";
+import AdminRoleCard from "./AdminRoleCard";
 import type { UserActivityEvent } from "./UserActivityTimeline";
 import type { UserVerificationItem } from "./UserVerificationCard";
 
@@ -32,6 +33,7 @@ interface UserSettingsModalProps {
   verifications: UserVerificationItem[];
   activityEvents: UserActivityEvent[];
   suspensionSupported: boolean;
+  viewerId: string;
   initialOpen?: boolean;
   showTrigger?: boolean;
   closeHref?: string;
@@ -64,6 +66,7 @@ export default function UserSettingsModal({
   verifications,
   activityEvents,
   suspensionSupported,
+  viewerId,
   initialOpen = false,
   showTrigger = true,
   closeHref,
@@ -166,7 +169,7 @@ export default function UserSettingsModal({
                           aria-selected={selected}
                           aria-controls={`user-settings-panel-${id}`}
                           onClick={() => setActiveTab(id)}
-                          className={`button--bare flex min-h-10 shrink-0 cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                          className={`button--bare flex min-h-10 shrink-0 cursor-pointer items-center justify-start gap-2 rounded-xl md:w-full px-3 py-2 text-left text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                             selected
                               ? "bg-primary text-primary-foreground"
                               : "text-muted-foreground hover:bg-background hover:text-foreground"
@@ -190,7 +193,7 @@ export default function UserSettingsModal({
                         <div>
                           <h2 className="font-nunito text-lg font-bold text-foreground">Account</h2>
                           <p className="mt-1 text-sm text-muted-foreground">
-                            Identity and role details are read-only for administrators.
+                            Identity details are read-only for administrators. Admin access is under Account actions.
                           </p>
                         </div>
                         <div className="grid gap-3 sm:grid-cols-2">
@@ -338,6 +341,8 @@ export default function UserSettingsModal({
                               : "Account suspension is unavailable until the phase-2 admin operations migration is applied."}
                           </div>
                         )}
+
+                        <AdminRoleCard user={user} viewerId={viewerId} />
 
                         <div>
                           <h3 className="font-nunito text-base font-bold">Recent account actions</h3>

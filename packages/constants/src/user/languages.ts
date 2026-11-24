@@ -1,7 +1,6 @@
-export const LANGUAGES = [
-  { code: 'en', label: 'English' },
-  { code: 'ph', label: 'Filipino' },
-  { code: 'es', label: 'Spanish' },
-  { code: 'fr', label: 'French' },
-  { code: 'de', label: 'German' },
-];
+export const APP_LANGUAGES = [
+  { code: "en", label: "English" },
+  { code: "fil", label: "Filipino" },
+] as const;
+
+export type LanguageCode = (typeof APP_LANGUAGES)[number]["code"];

@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
 
 import type { usePasswordValidation } from "@repo/hooks";
-import { CAPTCHA_FAILED_MESSAGE, CAPTCHA_PENDING_MESSAGE, getEmailCodeRequestError, isCaptchaError, joinFullName } from "@repo/utils";
+import { CAPTCHA_FAILED_MESSAGE, CAPTCHA_PENDING_MESSAGE, emailCodeRequestErrorMessage, getEmailCodeRequestError, isCaptchaError, joinFullName } from "@repo/utils";
 
+import { useTranslation } from "@/hooks/i18n";
 import { requestSignUpCode } from "@/service/auth/signUpService";
 import type { Portal } from "@/service/auth/portalPreference";
 import { useRegistrationStore } from "@/stores/useRegistrationStore";
@@ -24,6 +25,7 @@ interface UseSignUpProfileOptions {
 // and continue to code verification, where the profile row is written.
 export function useSignUpProfile({ form, passwords, email, userSide, takeCaptcha }: UseSignUpProfileOptions) {
   const router = useRouter();
+  const { language } = useTranslation();
   const { setData, reset } = useRegistrationStore();
   const policies = useRegistrationAcceptance();
   const pending = useRef(false);
@@ -82,7 +84,7 @@ export function useSignUpProfile({ form, passwords, email, userSide, takeCaptcha
       setError(
         isCaptchaError(err)
           ? CAPTCHA_FAILED_MESSAGE
-          : getEmailCodeRequestError(err instanceof Error ? err.message : undefined),
+          : emailCodeRequestErrorMessage(language, err instanceof Error ? err.message : undefined),
       );
       setErrorDialogOpen(true);
     } finally {

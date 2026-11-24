@@ -53,7 +53,7 @@ function PaymentRowCard({ payment }: { payment: PaymentRecord }) {
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-sm font-nunito font-semibold text-zinc-900 dark:text-zinc-100 truncate">
-                {payment.billing_kind === "move_in" ? "Move-in payment" : periodMonthLabel(payment.due_date ?? payment.period_start ?? payment.date)}
+                {payment.billing_kind === "lease_renewal" ? "Lease Renewal" : payment.billing_kind === "move_in" ? "Move-in payment" : periodMonthLabel(payment.due_date ?? payment.period_start ?? payment.date)}
               </p>
               <p className="text-xs text-zinc-500 truncate mt-0.5">{payment.apartment_name ?? "—"}</p>
               <p className="text-xs text-zinc-400 mt-1">via {methodLabel(payment.method)}</p>
@@ -107,6 +107,9 @@ function HistoryContent() {
   );
 
   const activeCount = filters.years.length + filters.statuses.length;
+  // Everything on record is pending or a failed attempt: explain it instead of blaming the filters.
+  const hasFailedAttempts = (paymentsQuery.data ?? []).some((payment) => payment.status.toLowerCase() === "failed");
+  const nothingCompleted = visiblePayments.length === 0 && activeCount === 0;
 
   const filtered = useMemo(() => {
     let r = [...visiblePayments];
@@ -201,7 +204,25 @@ function HistoryContent() {
         </div>
 
         {/* Content */}
-        {filtered.length === 0 ? (
+        {filtered.length === 0 && nothingCompleted ? (
+          <EmptyState
+            framed
+            icon={Receipt}
+            title="No completed payments yet"
+            description={
+              (paymentsQuery.data ?? []).length > 0
+                ? "Pending payments are tracked from My Rental, and abandoned checkouts appear under the Failed filter."
+                : "Your payments will appear here once you make one."
+            }
+            action={
+              hasFailedAttempts ? (
+                <Button variant="secondary" size="sm" onPress={() => setFilters({ years: [], statuses: ["Failed"], sort: "Newest" })}>
+                  Show failed attempts
+                </Button>
+              ) : undefined
+            }
+          />
+        ) : filtered.length === 0 ? (
           <EmptyState
             framed
             icon={Receipt}

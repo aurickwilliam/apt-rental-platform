@@ -1,5 +1,6 @@
 "use client";
 
+import { IconSearch } from "@tabler/icons-react";
 import { memo, useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -26,8 +27,17 @@ import {
   LEASE_DURATIONS,
 } from "@repo/constants";
 
+import {
+  APARTMENT_TYPE_KEYS,
+  FLOOR_LEVEL_KEYS,
+  FURNISHED_TYPE_KEYS,
+  LEASE_DURATION_KEYS,
+  enumLabel,
+} from "@repo/i18n";
+
 import AmenitiesSelect from "../../components/inputs/AmenitiesSelect";
 import { PERKS } from "../../components/inputs/perks";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 const LOCATIONS = ["Caloocan", "Malabon", "Navotas", "Valenzuela"];
 
@@ -39,11 +49,11 @@ const MAX_SIZE = 300;
 const BEDROOM_OPTIONS = ["Any", "1", "2", "3", "4+"];
 const BATHROOM_OPTIONS = ["Any", "1", "2", "3", "4+"];
 const SORT_OPTIONS = [
-  { value: "newest",     label: "Newest" },
-  { value: "price_asc",  label: "Price: Low to High" },
-  { value: "price_desc", label: "Price: High to Low" },
-  { value: "most_popular", label: "Most Popular" },
-];
+  { value: "newest", labelKey: "browse.sort.newest" },
+  { value: "price_asc", labelKey: "browse.sort.priceAsc" },
+  { value: "price_desc", labelKey: "browse.sort.priceDesc" },
+  { value: "most_popular", labelKey: "browse.sort.mostPopular" },
+] as const;
 
 type Filters = {
   locations: string[];
@@ -200,6 +210,7 @@ function RangeInputs({
   maxLabel: string;
   onCommit: (next: [number, number]) => void;
 }) {
+  const { t } = useTranslation();
   const [draftMin, setDraftMin] = useState<string | null>(null);
   const [draftMax, setDraftMax] = useState<string | null>(null);
 
@@ -240,7 +251,7 @@ function RangeInputs({
       className="min-w-0 flex-1"
     >
       <Label className="mb-1 text-xs text-muted-foreground">
-        {side === "min" ? "Min" : "Max"}
+        {side === "min" ? t("browse.filter.min") : t("browse.filter.max")}
       </Label>
       <InputGroup className="rounded-lg border border-gray-300 bg-white transition-all focus-within:border-[#376BF5] focus-within:ring-2 focus-within:ring-[#376BF5]/15 [&_input::placeholder]:text-gray-400">
         {affix && affixSlot === "prefix" ? (
@@ -285,6 +296,7 @@ const BudgetSection = memo(function BudgetSection({
   priceRange: [number, number];
   onPriceChange: (next: [number, number]) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col gap-2 mt-6">
       <Slider
@@ -295,7 +307,7 @@ const BudgetSection = memo(function BudgetSection({
         onChange={(val) => onPriceChange(val as [number, number])}
         className="w-full [&_[data-slot=slider-thumb]]:bg-primary [&_[data-slot=slider-thumb]::after]:bg-white [&_[data-slot=slider-track][data-fill-start=true]]:border-s-primary [&_[data-slot=slider-track][data-fill-end=true]]:border-e-primary"
       >
-        <Label className="font-nunito text-base font-semibold">Budget</Label>
+        <Label className="font-nunito text-base font-semibold">{t("browse.filter.budget")}</Label>
 
         <Slider.Output>
           {() => {
@@ -326,8 +338,8 @@ const BudgetSection = memo(function BudgetSection({
         absoluteMax={MAX_BUDGET}
         step={500}
         prefix="₱"
-        minLabel="Minimum budget"
-        maxLabel="Maximum budget"
+        minLabel={t("browse.filter.minBudget")}
+        maxLabel={t("browse.filter.maxBudget")}
         onCommit={onPriceChange}
       />
     </div>
@@ -341,6 +353,7 @@ const SizeSection = memo(function SizeSection({
   sizeRange: [number, number];
   onSizeChange: (next: [number, number]) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col gap-2 mt-6">
       <Slider
@@ -351,7 +364,7 @@ const SizeSection = memo(function SizeSection({
         onChange={(val) => onSizeChange(val as [number, number])}
         className="w-full [&_[data-slot=slider-thumb]]:bg-primary [&_[data-slot=slider-thumb]::after]:bg-white [&_[data-slot=slider-track][data-fill-start=true]]:border-s-primary [&_[data-slot=slider-track][data-fill-end=true]]:border-e-primary"
       >
-        <Label className="font-nunito text-base font-semibold">Size Range</Label>
+        <Label className="font-nunito text-base font-semibold">{t("browse.filter.size")}</Label>
 
         <Slider.Output>
           {() => `${sizeRange[0]} – ${sizeRange[1]} sqm`}
@@ -375,8 +388,8 @@ const SizeSection = memo(function SizeSection({
         absoluteMax={MAX_SIZE}
         step={5}
         suffix="sqm"
-        minLabel="Minimum size"
-        maxLabel="Maximum size"
+        minLabel={t("browse.filter.minSize")}
+        maxLabel={t("browse.filter.maxSize")}
         onCommit={onSizeChange}
       />
     </div>
@@ -422,6 +435,7 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
 {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { language, t } = useTranslation();
   const [isPending, startTransition] = useTransition();
   const replaceUrl = useCallback(
     (href: string) => (navigate ? navigate(href) : router.replace(href)),
@@ -543,7 +557,7 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
           onChange={(val) => updateFilter("verifiedOnly", val)}
         >
           <Switch.Content className="flex w-full items-center justify-between">
-            <Label>Verified listings only</Label>
+            <Label>{t("browse.filter.verifiedOnly")}</Label>
             <Switch.Control>
               <Switch.Thumb />
             </Switch.Control>
@@ -553,7 +567,7 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
         <Separator className="my-5" />
 
         {/* Location */}
-        <h4 className="font-nunito text-base font-semibold mb-3">Location</h4>
+        <h4 className="font-nunito text-base font-semibold mb-3">{t("browse.filter.location")}</h4>
         <CheckboxGroup
           name="locations"
           value={filters.locations}
@@ -576,14 +590,14 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
         <BudgetSection priceRange={filters.priceRange} onPriceChange={handlePriceChange} />
 
         {/* Unit Type */}
-        <h4 className="font-nunito text-base font-semibold mt-6 mb-3">Unit Type</h4>
+        <h4 className="font-nunito text-base font-semibold mt-6 mb-3">{t("browse.filter.unitType")}</h4>
         <div className="flex flex-wrap gap-2">
           {APARTMENT_TYPES.map((type) => {
             const selected = filters.aptTypes.includes(type);
             return (
               <FilterChip
                 key={type}
-                label={type}
+                label={enumLabel(language, APARTMENT_TYPE_KEYS, type)}
                 selected={selected}
                 onToggle={() => toggleArray("aptTypes", type)}
               />
@@ -594,12 +608,12 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
         <Separator className="my-5" />
 
         {/* Sort By: one choice, as chips (mobile's control). */}
-        <h4 className="font-nunito text-base font-semibold mb-3">Sort By</h4>
+        <h4 className="font-nunito text-base font-semibold mb-3">{t("browse.filter.sortBy")}</h4>
         <div role="group" aria-label="Sort by" className="flex flex-wrap gap-2">
           {SORT_OPTIONS.map((opt) => (
             <FilterChip
               key={opt.value}
-              label={opt.label}
+              label={t(opt.labelKey)}
               selected={filters.sortBy === opt.value}
               onToggle={() => updateFilter("sortBy", opt.value)}
             />
@@ -607,7 +621,7 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
         </div>
 
         {/* Bedrooms */}
-        <h4 className="font-nunito text-base font-semibold mb-3 mt-6">Bedrooms</h4>
+        <h4 className="font-nunito text-base font-semibold mb-3 mt-6">{t("browse.filter.bedrooms")}</h4>
         <ToggleButtonGroup
           selectionMode="single"
           selectedKeys={filters.bedroom ? new Set([filters.bedroom]) : new Set()}
@@ -625,13 +639,13 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
               className="flex-1 min-w-0"
             >
               {index !== 0 && <ToggleButtonGroup.Separator />}
-              {option}
+              {option === "Any" ? t("browse.filter.any") : option}
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
 
         {/* Bathrooms */}
-        <h4 className="font-nunito text-base font-semibold mt-6 mb-3">Bathrooms</h4>
+        <h4 className="font-nunito text-base font-semibold mt-6 mb-3">{t("browse.filter.bathrooms")}</h4>
         <ToggleButtonGroup
           selectionMode="single"
           selectedKeys={filters.bathroom ? new Set([filters.bathroom]) : new Set()}
@@ -649,7 +663,7 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
               className="flex-1 min-w-0"
             >
               {index !== 0 && <ToggleButtonGroup.Separator />}
-              {option}
+              {option === "Any" ? t("browse.filter.any") : option}
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
@@ -660,14 +674,14 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
         <Separator className="my-5" />
 
         {/* Furnishing */}
-        <h4 className="font-nunito text-base font-semibold mb-3">Furnishing</h4>
+        <h4 className="font-nunito text-base font-semibold mb-3">{t("browse.filter.furnishing")}</h4>
         <div className="flex flex-wrap gap-2">
           {FURNISHED_TYPES.map((option) => {
             const selected = filters.furnishing.includes(option);
             return (
               <FilterChip
                 key={option}
-                label={option}
+                label={enumLabel(language, FURNISHED_TYPE_KEYS, option)}
                 selected={selected}
                 onToggle={() => toggleArray("furnishing", option)}
               />
@@ -676,14 +690,14 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
         </div>
 
         {/* Floor Level */}
-        <h4 className="font-nunito text-base font-semibold mt-6 mb-3">Floor Level</h4>
+        <h4 className="font-nunito text-base font-semibold mt-6 mb-3">{t("browse.filter.floorLevel")}</h4>
         <div className="flex flex-wrap gap-2">
           {FLOOR_LEVELS.map((option) => {
             const selected = filters.floorLevel.includes(option);
             return (
               <FilterChip
                 key={option}
-                label={option}
+                label={enumLabel(language, FLOOR_LEVEL_KEYS, option)}
                 selected={selected}
                 onToggle={() => toggleArray("floorLevel", option)}
               />
@@ -692,14 +706,14 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
         </div>
 
         {/* Lease Duration */}
-        <h4 className="font-nunito text-base font-semibold mt-6 mb-3">Lease Duration</h4>
+        <h4 className="font-nunito text-base font-semibold mt-6 mb-3">{t("browse.filter.leaseDuration")}</h4>
         <div className="flex flex-wrap gap-2">
           {LEASE_DURATIONS.map((option) => {
             const selected = filters.leaseDuration.includes(option);
             return (
               <FilterChip
                 key={option}
-                label={option}
+                label={enumLabel(language, LEASE_DURATION_KEYS, option)}
                 selected={selected}
                 onToggle={() => toggleArray("leaseDuration", option)}
               />
@@ -710,7 +724,7 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
         <Separator className="my-5" />
 
         {/* Amenities */}
-        <h4 className="font-nunito text-base font-semibold mb-3">Amenities</h4>
+        <h4 className="font-nunito text-base font-semibold mb-3">{t("browse.filter.amenities")}</h4>
         <AmenitiesSelect
           amenities={Object.values(PERKS)}
           selected={filters.amenities}
@@ -720,6 +734,7 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
 
       <div className="flex shrink-0 gap-2 border-t border-divider bg-surface px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <Button className="min-w-0 flex-1" onPress={handleApply}>
+          <IconSearch size={20} />
           Apply Filters
         </Button>
 
@@ -729,7 +744,7 @@ export default function FilterContainer({ basePath = "/browse", onApply, navigat
           isPending={isPending}
           onPress={handleClear}
         >
-          Clear All
+          {t("browse.clearAll")}
         </Button>
       </div>
     </div>

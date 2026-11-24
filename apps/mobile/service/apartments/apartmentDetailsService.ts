@@ -24,6 +24,7 @@ export type ApartmentDetails = {
   floor_level: string | null;
   furnished_type: string | null;
   lease_duration: string | null;
+  has_own_electricity_meter: boolean;
   max_occupants: number | null;
   security_deposit: number | null;
   advance_rent: number | null;
@@ -81,6 +82,7 @@ const APARTMENT_SELECT = `
   floor_level,
   furnished_type,
   lease_duration,
+  has_own_electricity_meter,
   max_occupants,
   security_deposit,
   advance_rent,

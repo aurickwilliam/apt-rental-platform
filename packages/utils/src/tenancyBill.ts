@@ -19,7 +19,7 @@ export interface TenancyBill {
 
 /** Optional fields preserve the historical payment contract on both platforms. */
 export interface PaymentAllocation {
-  billing_kind?: "move_in" | "monthly" | "fees" | null;
+  billing_kind?: "move_in" | "monthly" | "fees" | "lease_renewal" | null;
   rent_amount?: number | null;
   deposit_amount?: number | null;
   advance_amount?: number | null;
@@ -32,8 +32,8 @@ export function paymentBreakdown(payment: PaymentAllocation): { label: string; a
   if (!payment.billing_kind) return [];
   const rows = [
     { label: payment.billing_kind === "move_in" ? "First month’s rent" : "Rent", amount: payment.rent_amount ?? 0 },
-    { label: "Security deposit (held separately)", amount: payment.deposit_amount ?? 0 },
-    { label: `Advance rent — month 2${payment.advance_period_start ? ` (${payment.advance_period_start} – ${payment.advance_period_end})` : ""}`, amount: payment.advance_amount ?? 0 },
+    { label: payment.billing_kind === "lease_renewal" ? "Lease renewal — deposit replenishment" : "Security deposit (held separately)", amount: payment.deposit_amount ?? 0 },
+    { label: `${payment.billing_kind === "lease_renewal" ? "Lease renewal — advance rent" : "Advance rent — month 2"}${payment.advance_period_start ? ` (${payment.advance_period_start} – ${payment.advance_period_end})` : ""}`, amount: payment.advance_amount ?? 0 },
     { label: "Maintenance fees", amount: payment.maintenance_amount ?? 0 },
   ];
   return rows.filter((row) => row.amount > 0);

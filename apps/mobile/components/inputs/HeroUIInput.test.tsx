@@ -50,9 +50,9 @@ const TextArea = jest.requireActual<{ default: typeof HeroUITextArea }>(
 describe("shared HeroUI input alignment", () => {
   test.each(["6", "₱ 3,200", "Apartment name"])(
     "single-line value %s uses native font metrics without changing size or borders",
-    (value) => {
+    async (value) => {
       const onChangeText = jest.fn();
-      const screen = render(
+      const screen = await render(
         <Input
           accessibilityLabel="Field"
           value={value}
@@ -76,13 +76,13 @@ describe("shared HeroUI input alignment", () => {
       expect(style.borderWidth).toBe(2);
       expect(field.props.placeholder).toBe("Enter a value");
       expect(field.props.allowFontScaling).not.toBe(false);
-      fireEvent.changeText(field, "123");
+      await fireEvent.changeText(field, "123");
       expect(onChangeText).toHaveBeenCalledWith("123");
     },
   );
 
-  test("TextArea preserves its multiline spacing and top alignment", () => {
-    const screen = render(
+  test("TextArea preserves its multiline spacing and top alignment", async () => {
+    const screen = await render(
       <TextArea
         accessibilityLabel="Description"
         value={"First line\nSecond line"}
@@ -98,9 +98,9 @@ describe("shared HeroUI input alignment", () => {
     expect(style.includeFontPadding).toBeUndefined();
   });
 
-  test("error borders and accessibility font scaling survive focus", () => {
+  test("error borders and accessibility font scaling survive focus", async () => {
     const onFocus = jest.fn();
-    const screen = render(
+    const screen = await render(
       <Input
         accessibilityLabel="Amount"
         isInvalid
@@ -110,7 +110,7 @@ describe("shared HeroUI input alignment", () => {
         style={{ fontSize: 24, lineHeight: 32, borderColor: "#E50914", borderWidth: 2 }}
       />,
     );
-    fireEvent(screen.getByLabelText("Amount"), "focus");
+    await fireEvent(screen.getByLabelText("Amount"), "focus");
     expect(onFocus).toHaveBeenCalled();
     const field = screen.getByLabelText("Amount");
     expect(field.props.allowFontScaling).toBe(true);
@@ -124,14 +124,14 @@ describe("shared HeroUI input alignment", () => {
     }));
   });
 
-  test("a growing multiline Input keeps caller-provided spacing", () => {
+  test("a growing multiline Input keeps caller-provided spacing", async () => {
     const props: ComponentProps<typeof Input> = {
       accessibilityLabel: "Message",
       multiline: true,
       textAlignVertical: "top",
       style: { lineHeight: 24, paddingVertical: 12 },
     };
-    const screen = render(<Input {...props} />);
+    const screen = await render(<Input {...props} />);
     const field = screen.getByLabelText("Message");
     expect(StyleSheet.flatten(field.props.style).lineHeight).toBe(24);
     expect(field.props.textAlignVertical).toBe("top");

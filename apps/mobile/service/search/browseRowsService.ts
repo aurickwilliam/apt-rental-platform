@@ -2,6 +2,7 @@ import { supabase } from "@repo/supabase";
 import {
   BROWSE_ROW_LIMIT,
   rankCandidates,
+  recommendationReasons,
   type BrowseRowCriteria,
   type BrowseRowPreferences,
   type BrowseRowSort,
@@ -21,7 +22,7 @@ import {
  * cut; only the winners are fetched with photos.
  */
 export const RECOMMENDATION_POOL_SIZE = 1000;
-const POOL_SELECT = "id, city, monthly_rent, no_bedrooms, amenities, is_verified, average_rating";
+const POOL_SELECT = "id, city, monthly_rent, no_bedrooms, max_occupants, amenities, is_verified, average_rating";
 
 // The tenant's accessibility need maps to the `wheelchair` amenity on mobile.
 const SCORE_OPTIONS = { wheelchairAmenity: true } as const;
@@ -132,5 +133,9 @@ export async function fetchRecommendedCards(
   const ordered = ids
     .map((id) => byId.get(id))
     .filter((card): card is ApartmentCardRow => card !== undefined);
-  return toApartmentCards(ordered);
+  const candidates = new Map((pool ?? []).map((candidate) => [candidate.id, candidate]));
+  return toApartmentCards(ordered).map((card) => {
+    const candidate = candidates.get(card.id);
+    return { ...card, reasons: candidate ? recommendationReasons(candidate, prefs) : [] };
+  });
 }

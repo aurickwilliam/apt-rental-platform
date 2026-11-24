@@ -123,7 +123,7 @@ jest.mock('heroui-native', () => {
     React.createElement(TouchableOpacity, { accessibilityLabel: 'Confirm information', onPress: onSelectedChange }, children)
   ControlField.Indicator = Passthrough
   const Label = Passthrough as typeof Passthrough & { Text: typeof Passthrough }
-  Label.Text = Passthrough
+  Label.Text = function LabelText({ children }: { children?: React.ReactNode }) { return React.createElement(Text, null, children) }
   const LinkButton = ({ children, onPress }: { children: React.ReactNode; onPress: () => void }) =>
     React.createElement(TouchableOpacity, { onPress }, children)
   LinkButton.Label = Button.Label
@@ -139,72 +139,72 @@ beforeEach(() => {
   mockDocType = 'Payslip'
 })
 
-it('uses the same icon next to the title as the document selection for every type', () => {
+it('uses the same icon next to the title as the document selection for every type', async () => {
   expect([...DOCUMENT_TYPES].sort()).toEqual(Object.keys(expectedDescriptions).sort())
   expect(getDocumentTypeIcon('Proof of Income')).toBe(IconBriefcase2)
   expect(getDocumentTypeIcon('Payslip')).toBe(IconFileCertificate)
   expect(getDocumentTypeIcon('Income Tax Return (ITR)')).toBe(IconFileCertificate)
   for (const docType of DOCUMENT_TYPES) {
     mockDocType = docType
-    const { unmount } = render(<Upload />)
+    const { unmount } = await render(<Upload />)
     expect(screen.getByText(docType)).toBeTruthy()
     expect(screen.getByText(expectedDescriptions[docType])).toBeTruthy()
     const icon = screen.getByTestId('document-type-icon')
     expect(icon.parent?.children[0]).toBe(icon)
-    unmount()
+    await unmount()
   }
 })
 
-it('sends National IDs to canonical ID verification instead of offering file upload', () => {
+it('sends National IDs to canonical ID verification instead of offering file upload', async () => {
   mockDocType = 'National ID'
-  render(<Upload />)
+  await render(<Upload />)
 
   expect(screen.getByText(/live ID capture and a selfie/)).toBeTruthy()
   expect(screen.queryByLabelText('Select test document')).toBeNull()
-  fireEvent.press(screen.getByText('Go to ID verification'))
+  await fireEvent.press(screen.getByText('Go to ID verification'))
   expect(mockRouter.replace).toHaveBeenCalledWith('/(auth)/verify-account')
   expect(mockUpload).not.toHaveBeenCalled()
 })
 
-it('does not offer Driver Handbook, including via a direct upload link', () => {
+it('does not offer Driver Handbook, including via a direct upload link', async () => {
   expect(DOCUMENT_TYPES).not.toContain('Driver Handbook')
   expect(DOCUMENT_TYPES).not.toContain('National ID')
   mockDocType = 'Driver Handbook'
-  render(<Upload />)
+  await render(<Upload />)
 
   expect(screen.queryByLabelText('Select test document')).toBeNull()
-  fireEvent.press(screen.getByText('Choose document type'))
+  await fireEvent.press(screen.getByText('Choose document type'))
   expect(mockRouter.replace).toHaveBeenCalledWith('/document-id/select-document')
   expect(mockUpload).not.toHaveBeenCalled()
 })
 
-it('opens the legal notice from a link and dismisses it with the modal close control', () => {
-  render(<Upload />)
+it('opens the legal notice from a link and dismisses it with the modal close control', async () => {
+  await render(<Upload />)
   expect(screen.queryByTestId('legal-dialog')).toBeNull()
-  fireEvent.press(screen.getByText('Legal notice'))
+  await fireEvent.press(screen.getByText('Legal notice'))
   expect(screen.getByTestId('legal-dialog')).toBeTruthy()
   expect(screen.getByText(/Cybercrime Prevention Act/)).toBeTruthy()
-  fireEvent.press(screen.getByLabelText('Close legal notice'))
+  await fireEvent.press(screen.getByLabelText('Close legal notice'))
   expect(screen.queryByTestId('legal-dialog')).toBeNull()
 })
 
-it('blocks a past expiry date before uploading', () => {
-  render(<Upload />)
-  fireEvent.press(screen.getByLabelText('Select test document'))
-  fireEvent.press(screen.getByLabelText('Confirm information'))
-  fireEvent.press(screen.getByLabelText('Select yesterday'))
+it('blocks a past expiry date before uploading', async () => {
+  await render(<Upload />)
+  await fireEvent.press(screen.getByLabelText('Select test document'))
+  await fireEvent.press(screen.getByLabelText('Confirm information'))
+  await fireEvent.press(screen.getByLabelText('Select yesterday'))
 
   expect(screen.getByText('Expiry date cannot be in the past.')).toBeTruthy()
-  fireEvent.press(screen.getByText('Add Document'))
+  await fireEvent.press(screen.getByText('Add Document'))
   expect(mockUpload).not.toHaveBeenCalled()
 })
 
-it('submits a future expiry and allows clearing it', () => {
-  render(<Upload />)
-  fireEvent.press(screen.getByLabelText('Select test document'))
-  fireEvent.press(screen.getByLabelText('Confirm information'))
-  fireEvent.press(screen.getByLabelText('Select tomorrow'))
-  fireEvent.press(screen.getByText('Add Document'))
+it('submits a future expiry and allows clearing it', async () => {
+  await render(<Upload />)
+  await fireEvent.press(screen.getByLabelText('Select test document'))
+  await fireEvent.press(screen.getByLabelText('Confirm information'))
+  await fireEvent.press(screen.getByLabelText('Select tomorrow'))
+  await fireEvent.press(screen.getByText('Add Document'))
 
   const expected = `${mockTomorrow.getFullYear()}-${String(mockTomorrow.getMonth() + 1).padStart(2, '0')}-${String(mockTomorrow.getDate()).padStart(2, '0')}`
   expect(mockUpload).toHaveBeenCalledWith(
@@ -212,39 +212,39 @@ it('submits a future expiry and allows clearing it', () => {
     expect.any(Object),
   )
 
-  fireEvent.press(screen.getByLabelText('Clear expiry date'))
-  fireEvent.press(screen.getByText('Add Document'))
+  await fireEvent.press(screen.getByLabelText('Clear expiry date'))
+  await fireEvent.press(screen.getByText('Add Document'))
   expect(mockUpload).toHaveBeenLastCalledWith(
     expect.objectContaining({ expiresAt: null }),
     expect.any(Object),
   )
 })
 
-it('refuses to add a second document of the same type and points back to the Passport', () => {
+it('refuses to add a second document of the same type and points back to the Passport', async () => {
   mockDocType = 'Payslip'
   mockDocuments = [
     { id: 'doc-1', doc_type: 'Payslip', is_primary: false, verification_id: null, created_at: '2026-09-01T00:00:00.000Z' },
   ]
-  render(<Upload />)
+  await render(<Upload />)
 
   expect(screen.getByText('Already added')).toBeTruthy()
   expect(screen.queryByLabelText('Select test document')).toBeNull()
-  fireEvent.press(screen.getByText('Back to Passport'))
+  await fireEvent.press(screen.getByText('Back to Passport'))
   expect(mockRouter.replace).toHaveBeenCalledWith('/document-id')
   expect(mockUpload).not.toHaveBeenCalled()
 })
 
-it('replaces the existing document instead of adding one when opened with a replaceId', () => {
+it('replaces the existing document instead of adding one when opened with a replaceId', async () => {
   mockDocType = 'Payslip'
   mockReplaceId = 'doc-1'
   mockDocuments = [
     { id: 'doc-1', doc_type: 'Payslip', is_primary: false, verification_id: null, created_at: '2026-09-01T00:00:00.000Z' },
   ]
-  render(<Upload />)
+  await render(<Upload />)
 
-  fireEvent.press(screen.getByLabelText('Select test document'))
-  fireEvent.press(screen.getByLabelText('Confirm information'))
-  fireEvent.press(screen.getByText('Replace Document'))
+  await fireEvent.press(screen.getByLabelText('Select test document'))
+  await fireEvent.press(screen.getByLabelText('Confirm information'))
+  await fireEvent.press(screen.getByText('Replace Document'))
 
   expect(mockReplace).toHaveBeenCalledWith(
     expect.objectContaining({ id: 'doc-1' }),

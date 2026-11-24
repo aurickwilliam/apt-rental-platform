@@ -7,6 +7,7 @@ import { REGISTRATION_POLICIES } from "../../apps/web/lib/registration-policies.
 
 const migration = await readFile(new URL("../../supabase/migrations/20261029120000_web_registration_policy_acceptance.sql", import.meta.url), "utf8");
 const privacyRevision = await readFile(new URL("../../supabase/migrations/20261106120000_privacy_policy_revision.sql", import.meta.url), "utf8");
+const privacyActivityEmailRevision = await readFile(new URL("../../supabase/migrations/20261107140000_privacy_policy_activity_emails.sql", import.meta.url), "utf8");
 const rolesMigration = await readFile(new URL("../../supabase/migrations/20260927000003_drop_legacy_role_column.sql", import.meta.url), "utf8");
 const valuesGuard = await readFile(new URL("../../supabase/migrations/20261026120000_allow_all_ph_mobile_blocks.sql", import.meta.url), "utf8");
 const suspensionFunction = await readFile(new URL("../../supabase/migrations/20261007000300_get_my_suspension_status.sql", import.meta.url), "utf8");
@@ -79,6 +80,7 @@ test("web registration commits profile + policies together without changing mobi
     await db.query("insert into policy_acceptances(user_id,policy_id,policy_version,source) values($1,'privacy','1.0','web_registration'),($1,'terms','1.1','web_registration')", [legacy.id]);
     const before = (await db.query("select * from policy_acceptances where user_id=$1 order by policy_id", [legacy.id])).rows;
     await db.exec(privacyRevision);
+    await db.exec(privacyActivityEmailRevision);
     assert.deepEqual((await db.query("select * from policy_acceptances where user_id=$1 order by policy_id", [legacy.id])).rows, before);
     await as(db, legacy, async () => {
       assert.equal((await db.query("select id from users")).rows[0].id, legacy.id);
@@ -88,6 +90,7 @@ test("web registration commits profile + policies together without changing mobi
     const newcomer = await person();
     await as(db, newcomer, async () => {
       await assert.rejects(complete(db, { privacyVersion: "1.0" }), /policies have changed/);
+      await assert.rejects(complete(db, { privacyVersion: "1.1" }), /policies have changed/);
       assert.equal((await db.query("select count(*)::int as n from users")).rows[0].n, 0);
       assert.equal((await db.query("select count(*)::int as n from policy_acceptances")).rows[0].n, 0);
     });

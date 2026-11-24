@@ -71,7 +71,7 @@ beforeEach(() => {
 
 describe("useInAppNotificationBanner portal filtering", () => {
   it("toasts a notification the active portal shows", async () => {
-    renderHook(() => useInAppNotificationBanner());
+    await renderHook(() => useInAppNotificationBanner());
 
     await receive(payment("Payment Successful"));
 
@@ -79,7 +79,7 @@ describe("useInAppNotificationBanner portal filtering", () => {
   });
 
   it("stays silent for a notification only the other portal shows", async () => {
-    renderHook(() => useInAppNotificationBanner());
+    await renderHook(() => useInAppNotificationBanner());
 
     await receive(payment("Payment Received"));
 
@@ -87,14 +87,14 @@ describe("useInAppNotificationBanner portal filtering", () => {
   });
 
   it("toasts apartment chat only in the portal that owns the conversation", async () => {
-    const tenant = renderHook(() => useInAppNotificationBanner());
+    const tenant = await renderHook(() => useInAppNotificationBanner());
     await receive(chat());
     expect(mockShowToast).toHaveBeenCalledTimes(1);
-    tenant.unmount();
+    await tenant.unmount();
 
     mockShowToast.mockClear();
     mockRole = "landlord";
-    renderHook(() => useInAppNotificationBanner());
+    await renderHook(() => useInAppNotificationBanner());
     await receive(chat());
     expect(mockShowToast).not.toHaveBeenCalled();
   });

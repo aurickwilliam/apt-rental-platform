@@ -172,7 +172,7 @@ function formHarness(kind, server = {}, props = {}) {
     "../../components/RegistrationBirthDateField": { default: "RegistrationBirthDateField" },
     "../../actions/complete-profile": { completeProfile() {} },
     "../../components/AuthContext": { useAuth: () => ({ role: "tenant", email: "test@example.com" }) },
-    "next/link": { default: "Link" }, "@/app/components/inputs/PasswordField": { default: "PasswordField" }, "@/app/components/inputs/TurnstileWidget": { default: "TurnstileWidget" }, "@/hooks/use-captcha": { useCaptcha: () => ({ attach() {}, take: () => ({ pending: false }) }) }, "@repo/utils": { CAPTCHA_PENDING_MESSAGE: "pending" }, "@/app/components/inputs/PasswordRequirementList": { default: "PasswordRequirementList" },
+    "next/link": { default: "Link" }, "@/app/components/inputs/PasswordField": { default: "PasswordField" }, "@/app/components/inputs/TurnstileWidget": { default: "TurnstileWidget" }, "@/hooks/use-captcha": { useCaptcha: () => ({ attach() {}, take: () => ({ pending: false }) }) }, "@repo/utils": { CAPTCHA_PENDING_MESSAGE: "pending" }, "@/app/components/inputs/PasswordRequirementList": { default: "PasswordRequirementList" }, "@/app/components/i18n/LocaleProvider": { useTranslation: () => ({ language: "en", pending: false, setLanguage() {}, t: key => key }) }, "@repo/i18n": { GENDER_KEYS: {}, enumLabel: (_lang, _map, value) => value },
     "./OtpModal": { default: "OtpModal" }, "./SuccessModal": { default: "SuccessModal" }, "./ErrorModal": { default: "ErrorModal" },
     "../hooks/useOtpFlow": { useOtpFlow: () => ({}) }, "../utils": { validateSignUpForm: () => null }, "../../actions/send-otp": { sendEmailOtp: async () => ({ success: true }) },
   };
@@ -283,7 +283,7 @@ function actionHarness(kind, options = {}) {
     "@repo/supabase/server": { createClient: async () => client }, "@/lib/registration-policies": policies, "@/service/registrationService": service,
     "@repo/constants": { SUFFIXES: [], GENDERS: ["Male"], validatePHMobile: () => ({ formattedNumber: "09171234567" }) },
     "@/lib/birth-date": { validateBirthDate: () => null, getBirthDateDatabaseError: () => null }, "@/lib/registration-address": addressRules,
-    "../sign-up-form/utils": { validateSignUpForm: () => null }, "@repo/utils": { getEmailCodeRequestError: message => message, isCaptchaError: () => false, CAPTCHA_FAILED_MESSAGE: "captcha" },
+    "../sign-up-form/utils": { validateSignUpForm: () => null }, "@repo/utils": { emailCodeRequestErrorMessage: (_lang, message) => message, getEmailCodeRequestError: message => message, isCaptchaError: () => false, CAPTCHA_FAILED_MESSAGE: "captcha" }, "@repo/i18n": { translate: (_lang, _key) => "" }, "@/lib/i18n/locale": { getServerLocale: async () => "en" },
     "next/headers": { cookies: async () => ({ set() {} }) }, "next/navigation": { redirect: path => { throw new Error(`redirect:${path}`); } },
     "@/lib/portal-preference": { PORTAL_COOKIE: "portal" },
   }, { process: { env: { NODE_ENV: "test" } } });
@@ -366,8 +366,9 @@ test("email resend/final verification carry acceptance; stale policies after ver
     "../../hooks/use-resend-cooldown": { useResendCooldown: () => ({ cooldown: 0, start() {}, stop() {}, format() {} }) },
     "../../hooks/use-otp-attempts": { useOtpAttempts: () => ({ recordWrongCode() {}, reset() {} }) },
     "@/hooks/use-auth-lockout": { useAuthLockout: () => ({ secondsLeft: 0, isLocked: false, lock() {}, modalOpen: false, setModalOpen() {} }) },
+    "@/app/components/i18n/LocaleProvider": { useTranslation: () => ({ language: "en", pending: false, setLanguage() {}, t: key => key }) },
     "@repo/supabase/browser": { createClient: () => ({ auth: { verifyOtp: async () => ({ data: { user: { id: "caller" } } }), signOut: async () => signedOut.push(true) } }) },
-    "@repo/utils": { getOtpAttemptError: () => "wrong code", AUTH_THROTTLE_MESSAGE: "blocked", checkAuthThrottle: async () => 0, clearAuthThrottle: async () => {}, recordAuthFailure: async () => 0, isInvalidOtpError: () => true },
+    "@repo/utils": { otpAttemptErrorMessage: () => "wrong code", AUTH_THROTTLE_MESSAGE: "blocked", checkAuthThrottle: async () => 0, clearAuthThrottle: async () => {}, recordAuthFailure: async () => 0, isInvalidOtpError: () => true },
     "../../actions/send-otp": { sendEmailOtp: async (...args) => { resends.push(args); return { success: true }; } },
     "../../actions/verify-signup-code": { verifySignupCode: async () => ({ ok: true, userId: "caller" }) },
     "../../actions/sign-up": { signUp: async (_, fd) => { requests.push(fd); return { acceptanceErrors: { version: "Review current policies." } }; } },

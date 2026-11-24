@@ -28,6 +28,7 @@ import ProfileHeader from '../components/profile/ProfileHeader';
 import VerificationStatus from '../components/profile/VerificationStatus';
 import CompleteProfileCard from '../components/profile/CompleteProfileCard';
 import PortalSwitcher from '../components/profile/PortalSwitcher';
+import AddRoleCard from '../components/profile/AddRoleCard';
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_BOTTOM_OFFSET } from '@/components/layout/CustomTabBar';
 
 export default function Profile() {
@@ -191,6 +192,7 @@ export default function Profile() {
       </View>
 
       <PortalSwitcher authUserId={profile?.user_id} roles={profile?.roles ?? []} currentPortal="tenant" />
+      <AddRoleCard authUserId={profile?.user_id} roles={profile?.roles ?? []} currentPortal="tenant" />
 
       <View className='p-5'>
         <Button

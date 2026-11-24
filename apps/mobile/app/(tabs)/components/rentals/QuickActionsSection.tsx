@@ -18,6 +18,7 @@ import { BottomSheet, Button } from "heroui-native";
 import QuickActionSlotsEditor from "./QuickActionSlotsEditor";
 
 import QuickActionButton from "@/app/(tabs)/components/QuickActionButton";
+import { TUTORIAL_TARGETS } from "@repo/utils";
 import { useColors } from "@/hooks/useTheme";
 import {
   DEFAULT_TENANT_QUICK_ACTION_IDS,
@@ -38,6 +39,12 @@ interface QuickActionDefinition {
 }
 
 const MAX_SHEET_HEIGHT_RATIO = 0.85;
+
+// Quick actions the first-time tutorial can point at.
+const TUTORIAL_QUICK_ACTION_KEYS: Partial<Record<TenantQuickActionId, string>> = {
+  applications: TUTORIAL_TARGETS.mobileQuickApplications,
+  repairs: TUTORIAL_TARGETS.mobileQuickRepairs,
+};
 
 const TENANT_QUICK_ACTIONS: QuickActionDefinition[] = [
   { id: "receipts", label: "Receipts", description: "View payment receipts", icon: IconReceipt },
@@ -193,6 +200,7 @@ export default function QuickActionsSection({
         {displayedActions.map((action) => (
           <QuickActionButton
             key={action.id}
+            tourKey={TUTORIAL_QUICK_ACTION_KEYS[action.id]}
             label={action.label}
             icon={action.icon}
             columns={5}

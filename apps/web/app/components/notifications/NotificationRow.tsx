@@ -7,6 +7,8 @@ import {
   IconSettings,
   IconTool,
 } from "@tabler/icons-react";
+import type { LanguageCode } from "@repo/i18n";
+
 import {
   composeNotificationRowLabel,
   getNotificationPreview,
@@ -28,6 +30,8 @@ const TYPE_ICONS: Record<string, React.ReactNode> = {
 interface NotificationRowProps {
   notification: FeedNotification;
   onOpen: () => void;
+  /** Active UI language for the composed action, unread word and timestamp. */
+  language?: LanguageCode;
   /** Expanded message members retain their own action but not sender identity. */
   compact?: boolean;
   /** A notice with no page to open: pressing it shows the full text in place. */
@@ -43,13 +47,14 @@ export default function NotificationRow({
   notification,
   onOpen,
   compact = false,
+  language = "en",
   expandable = false,
   expanded = false,
 }: NotificationRowProps) {
   const { action, preview } = getNotificationRowPresentation(
-    notification, getNotificationPreview(notification.data),
+    notification, getNotificationPreview(notification.data), language,
   );
-  const timestamp = getRelativeTime(new Date(notification.created_at));
+  const timestamp = getRelativeTime(new Date(notification.created_at), language);
   const displayedPreview = compact ? preview ?? notification.message ?? action : preview;
   const accessibleLabel = composeNotificationRowLabel({
     title: notification.title,
@@ -57,7 +62,7 @@ export default function NotificationRow({
     preview: preview ?? undefined,
     isRead: notification.is_read,
     timestamp,
-  });
+  }, language);
 
   return (
     <Button

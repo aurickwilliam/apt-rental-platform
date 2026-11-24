@@ -2,10 +2,13 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { compile, hookRuntime } from "./test-support/hook-runtime.mjs";
+import { translate } from "../../../packages/i18n/src/index.ts";
 
 const plain = (value) => JSON.parse(JSON.stringify(value));
 const source = (file) => readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
-const shared = compile("../../packages/utils/src/applicationPreferences.ts", {});
+const shared = compile("../../packages/utils/src/applicationPreferences.ts", {
+  "@repo/i18n": { translate: (language, key, vars) => translate(language, key, vars) },
+});
 
 const saved = {
   selectedCities: [],
@@ -123,7 +126,7 @@ test("the apply page pre-fills the questions and the landlord and tenant pages s
   const client = source("app/browse/[apartmentId]/apply/components/ApplyClient.tsx");
   assert.match(client, /applicationFormDefaultsFromPreferences\(savedPreferences\)/);
   assert.match(client, /\.\.\.prefilled,/);
-  assert.match(source("app/browse/[apartmentId]/apply/components/steps/ReviewStep.tsx"), /The landlord sees these details with your application/);
+  assert.match(source("app/browse/[apartmentId]/apply/components/steps/ReviewStep.tsx"), /t\("apply\.review\.preferencesNote"\)/);
   assert.match(source("app/landlord/applications/[applicationId]/page.tsx"), /describeApplicationPreferences\(app\.preferences\)/);
   assert.match(source("app/tenant/applications/[applicationId]/ApplicationDetailClient.tsx"), /describeApplicationPreferences\(application\.preferences\)/);
 });

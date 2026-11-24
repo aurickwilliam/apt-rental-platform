@@ -1,6 +1,7 @@
 import { View, Text } from 'react-native'
 
-import { IconUsers, IconBuilding, IconHome, IconCalendar } from '@tabler/icons-react-native';
+import { IconUsers, IconBuilding, IconHome, IconCalendar, IconBolt } from '@tabler/icons-react-native';
+import { OWN_ELECTRICITY_METER_DETAIL } from '@repo/constants';
 import type { Icon } from '@tabler/icons-react-native';
 
 import type { ApartmentDetails } from 'hooks/apartments';
@@ -54,7 +55,10 @@ export default function ApartmentDetailsSection({
       icon: IconCalendar,
       value: apartment?.lease_duration || 'N/A'
     }
-  ]
+  ];
+  if (apartment?.has_own_electricity_meter === true) {
+    detailData.push({ key: 'electricity', icon: IconBolt, value: OWN_ELECTRICITY_METER_DETAIL });
+  }
 
   return (
     <View className="px-5 flex-row flex-wrap">

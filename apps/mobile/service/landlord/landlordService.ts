@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "@repo/supabase";
 import {
+  fetchEffectiveLeaseTermsWith,
   formatAddress,
   getMaintenanceFeeError,
   normalizeMaintenanceFeeStatus,
@@ -247,7 +248,7 @@ export async function fetchLandlordTenancy(
       .maybeSingle(),
     supabase
       .from("payment")
-      .select("id, amount, date, status, method, reference_id, due_date")
+      .select("id, amount, date, status, method, reference_id, due_date, billing_kind")
       .eq("apartment_id", apartmentId)
       .in("status", ["paid", "pending"])
       .order("date", { ascending: false })
@@ -279,6 +280,7 @@ export async function fetchLandlordTenancy(
     | null;
 
   if (tenancyData?.tenant) {
+    const effectiveTerms=await fetchEffectiveLeaseTermsWith(supabase,tenancyData.id);
     const t = tenancyData.tenant;
     tenant = {
       id: t.id,
@@ -287,7 +289,7 @@ export async function fetchLandlordTenancy(
       mobileNumber: t.mobile_number,
       avatarUrl: t.avatar_url,
       leaseStart: tenancyData.lease_start,
-      leaseEnd: tenancyData.lease_end,
+      leaseEnd: effectiveTerms?effectiveTerms.leaseEnd:tenancyData.lease_end,
       tenancyId: tenancyData.id,
       signedLeasePath: tenancyData.signed_lease_path ?? null,
       signedLeaseUploadedAt: tenancyData.signed_lease_uploaded_at ?? null,
@@ -314,7 +316,7 @@ export async function fetchLandlordTenancy(
     const d = new Date(p.date);
     return {
       id: p.id,
-      month: periodMonthLabel(p.due_date ?? p.date),
+      month: p.billing_kind==='lease_renewal'?'Lease Renewal':periodMonthLabel(p.due_date ?? p.date),
       year: String(d.getFullYear()),
       amount: Number(p.amount ?? 0),
       paidDate: `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`,
@@ -727,6 +729,7 @@ export type ManageApartmentDescription = {
   floor_level: string | null;
   max_occupants: number | null;
   lease_duration: string | null;
+  has_own_electricity_meter: boolean;
   amenities: string[];
   lease_agreement_url: string | null;
   landlord: {
@@ -765,7 +768,7 @@ export async function fetchManageApartmentDescription(
         street_address, barangay, city, province,
         no_bedrooms, no_bathrooms, area_sqm,
         furnished_type, floor_level, max_occupants,
-        lease_duration, amenities, lease_agreement_url,
+        lease_duration, has_own_electricity_meter, amenities, lease_agreement_url,
         security_deposit, advance_rent,
         landlord:landlord_id (
           first_name,
@@ -909,6 +912,7 @@ export type LandlordPaymentRecord = {
   period_start: string | null;
   period_end: string | null;
   due_date: string | null;
+  billing_kind: string | null;
   tenant_name: string | null;
 };
 
@@ -927,6 +931,7 @@ export async function fetchLandlordPayments(apartmentId: string): Promise<Landlo
         period_start,
         period_end,
         due_date,
+        billing_kind,
         tenant:users!payment_tenant_id_fkey (first_name, last_name)
       `
     )
@@ -949,6 +954,7 @@ export async function fetchLandlordPayments(apartmentId: string): Promise<Landlo
       period_start: string | null;
       period_end: string | null;
       due_date: string | null;
+      billing_kind: string | null;
       tenant: { first_name: string | null; last_name: string | null } | null;
     };
     const tenant = p.tenant;
@@ -963,6 +969,7 @@ export async function fetchLandlordPayments(apartmentId: string): Promise<Landlo
       period_start: p.period_start,
       period_end: p.period_end,
       due_date: p.due_date,
+      billing_kind: p.billing_kind,
       tenant_name:
         tenant?.first_name || tenant?.last_name
           ? `${tenant.first_name ?? ""} ${tenant.last_name ?? ""}`.trim()
@@ -1017,6 +1024,7 @@ export async function fetchAllLandlordPayments(landlordId: string): Promise<AllL
         period_start,
         period_end,
         due_date,
+        billing_kind,
         apartment_id,
         apartment:apartments (name),
         tenant:users!payment_tenant_id_fkey (first_name, last_name)
@@ -1041,6 +1049,7 @@ export async function fetchAllLandlordPayments(landlordId: string): Promise<AllL
       period_start: string | null;
       period_end: string | null;
       due_date: string | null;
+      billing_kind: string | null;
       apartment_id: string;
       apartment: { name: string | null } | null;
       tenant: { first_name: string | null; last_name: string | null } | null;
@@ -1057,6 +1066,7 @@ export async function fetchAllLandlordPayments(landlordId: string): Promise<AllL
       period_start: p.period_start,
       period_end: p.period_end,
       due_date: p.due_date,
+      billing_kind: p.billing_kind,
       apartment_id: p.apartment_id,
       apartment_name: p.apartment?.name ?? null,
       tenant_name:

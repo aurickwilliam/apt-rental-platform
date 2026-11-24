@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState, useCallback, useState } from 'react';
+import { startTransition, useActionState, useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import NextLink from 'next/link';
 
 import PasswordField from '@/app/components/inputs/PasswordField';
+import { useTranslation } from '@/app/components/i18n/LocaleProvider';
 import { useAuth } from './AuthContext';
 import { signIn, type SignInFormState } from '../actions/sign-in';
 import { checkEmailAvailability } from '../actions/check-email-availability';
@@ -28,6 +29,7 @@ type SignUpEmailError = {
 };
 
 export default function AuthForm({ next }: { next?: string }) {
+  const { t } = useTranslation();
   const { type, role, email, setEmail } = useAuth();
   const router = useRouter();
   const [signUpError, setSignUpError] = useState<string | null>(null);
@@ -71,7 +73,16 @@ export default function AuthForm({ next }: { next?: string }) {
 
   const onSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
-      // Sign-in posts through the server action; only sign-up is intercepted.
+      if (type === 'sign-in') {
+        // Dispatch the action ourselves instead of using the form's `action`: React
+        // resets a form after its action finishes, which wiped the email (and with
+        // it the sign-in lock, which is keyed by that email) after every attempt and
+        // made people retype. Same pattern as Complete Profile.
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        startTransition(() => formAction(formData));
+        return;
+      }
       if (type !== 'sign-up') return;
 
       e.preventDefault();
@@ -107,12 +118,12 @@ export default function AuthForm({ next }: { next?: string }) {
         router.push(`/sign-up-form?role=${role}&email=${emailValue}`);
       } catch {
         console.error('Could not check signup email availability');
-        setSignUpError('Could not validate your email right now. Please try again.');
+        setSignUpError(t('auth.error.emailCheck'));
       } finally {
         setCheckingEmail(false);
       }
     },
-    [type, role, router],
+    [type, role, router, t, formAction],
   );
 
   const busy = isPending || checkingEmail;
@@ -136,7 +147,7 @@ export default function AuthForm({ next }: { next?: string }) {
               onPress={confirmEmail.open}
               className="mt-1 cursor-pointer text-sm font-medium text-primary"
             >
-              Send me a new code
+              {t('auth.resendConfirmation')}
             </Link>
           )}
         </div>
@@ -162,7 +173,7 @@ export default function AuthForm({ next }: { next?: string }) {
             confirmEmail.cancel();
             close();
           }}
-          verifyLabel="Verify Email"
+          verifyLabel={t("auth.signIn.verifyEmail")}
           locked={confirmEmail.otpLocked}
           lockoutSeconds={confirmEmail.lockoutSeconds}
         />
@@ -179,7 +190,6 @@ export default function AuthForm({ next }: { next?: string }) {
       {/* Form */}
       <Form
         className={`${visibleError ? 'mt-4' : 'mt-[clamp(1.5rem,4vh,2rem)]'} flex flex-col gap-[clamp(0.75rem,2vh,1rem)]`}
-        action={type === 'sign-in' ? formAction : undefined}
         onSubmit={onSubmit}
       >
         {/* Hidden field to pass the role to the server action */}
@@ -198,31 +208,31 @@ export default function AuthForm({ next }: { next?: string }) {
           isDisabled={busy}
           isInvalid={emailError ? true : undefined}
         >
-          <Label>Email</Label>
+          <Label>{t("auth.email")}</Label>
 
-          <Input placeholder="Enter your email" className="bg-card! text-foreground!" />
+          <Input placeholder={t("auth.emailPlaceholder")} className="bg-card! text-foreground!" />
 
           <FieldError className="text-xs">
             {({ validationDetails }) => {
               if (validationDetails.valueMissing) {
-                return "Email is required";
+                return t("auth.error.emailRequired");
               }
 
               if (validationDetails.typeMismatch) {
-                return "Enter a valid email";
+                return t("auth.error.invalidEmail");
               }
 
-              if (emailError?.kind === 'required') return "Email is required";
+              if (emailError?.kind === 'required') return t("auth.error.emailRequired");
 
               if (emailError?.kind === 'registered') {
                 return (
                   <>
-                    <span className="block">This email is already registered.</span>
+                    <span className="block">{t("auth.error.emailRegistered")}</span>
                     <span className="mt-1 block text-muted-foreground">
                       <NextLink href="/sign-in" className="text-xs text-brand underline">
-                        Sign in
+                        {t("auth.signIn.inline")}
                       </NextLink>{' '}
-                      to your existing account to add another role.
+                      {t("auth.error.emailRegisteredHint")}
                     </span>
                   </>
                 );
@@ -238,17 +248,17 @@ export default function AuthForm({ next }: { next?: string }) {
             <>
               <PasswordField
                 name="password"
-                label="Password"
+                label={t("auth.password")}
                 isRequired
-                errorMessage="Please enter your password"
-                placeholder='Enter your password'
+                errorMessage={t("auth.error.passwordRequired")}
+                placeholder={t("auth.passwordPlaceholder")}
               />
 
               <Link
                 href="/forgot-password"
                 className="text-sm text-right text-brand underline"
               >
-                Forgot Password?
+                {t("auth.forgotPassword")}
               </Link>
             </>
           )
@@ -266,8 +276,8 @@ export default function AuthForm({ next }: { next?: string }) {
           {signInLocked
             ? `Try again in ${formatLockoutClock(signInLockout.secondsLeft)}`
             : busy
-              ? (type === 'sign-up' ? 'Checking Email...' : 'Signing In...')
-              : (type === 'sign-up' ? 'Sign Up' : 'Sign In')
+              ? (type === 'sign-up' ? t('auth.checkingEmail') : t('auth.signingIn'))
+              : (type === 'sign-up' ? t('auth.signUp.action') : t('auth.signIn.action'))
           }
         </Button>
       </Form>

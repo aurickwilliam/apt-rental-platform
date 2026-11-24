@@ -52,7 +52,7 @@ jest.mock('heroui-native', () => {
 });
 
 const openAddDocumentSheet = async () => {
-  fireEvent.press(screen.getByText('Add document'));
+  await fireEvent.press(screen.getByText('Add document'));
   await waitFor(() => screen.getByText('Choose photo'));
 };
 
@@ -63,8 +63,8 @@ describe('UploadDocumentField', () => {
     jest.clearAllMocks();
   });
 
-  const renderField = (props: Partial<React.ComponentProps<typeof UploadDocumentField>> = {}) =>
-    render(
+  const renderField = async (props: Partial<React.ComponentProps<typeof UploadDocumentField>> = {}) =>
+    await render(
       <UploadDocumentField
         label="Document"
         value={null}
@@ -80,9 +80,9 @@ describe('UploadDocumentField', () => {
         assets: [{ uri: 'file://doc.pdf', name: 'doc.pdf', mimeType: 'application/pdf', size: 1000 }],
       });
 
-      renderField();
+      await renderField();
       await openAddDocumentSheet();
-      fireEvent.press(screen.getByText('Choose file'));
+      await fireEvent.press(screen.getByText('Choose file'));
 
       await waitFor(() => expect(mockOnChange).toHaveBeenCalledWith({
         kind: 'file',
@@ -96,9 +96,9 @@ describe('UploadDocumentField', () => {
         assets: [{ uri: 'file://doc.docx', name: 'doc.docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', size: 1000 }],
       });
 
-      renderField();
+      await renderField();
       await openAddDocumentSheet();
-      fireEvent.press(screen.getByText('Choose file'));
+      await fireEvent.press(screen.getByText('Choose file'));
 
       await waitFor(() => expect(mockOnChange).toHaveBeenCalled());
     });
@@ -111,9 +111,9 @@ describe('UploadDocumentField', () => {
       });
       (compressImage as jest.Mock).mockResolvedValue({ uri: 'file://compressed.jpg', width: 80, height: 80 });
 
-      renderField();
+      await renderField();
       await openAddDocumentSheet();
-      fireEvent.press(screen.getByText('Choose photo'));
+      await fireEvent.press(screen.getByText('Choose photo'));
 
       await waitFor(() => expect(mockOnChange).toHaveBeenCalledWith({
         kind: 'image',
@@ -127,9 +127,9 @@ describe('UploadDocumentField', () => {
         assets: [{ uri: 'file://image.png', name: 'image.png', mimeType: 'image/png', size: 1000 }],
       });
 
-      renderField();
+      await renderField();
       await openAddDocumentSheet();
-      fireEvent.press(screen.getByText('Choose file'));
+      await fireEvent.press(screen.getByText('Choose file'));
 
       await waitFor(() => screen.getByText('This file type is unsupported.'));
       expect(mockOnChange).not.toHaveBeenCalled();
@@ -144,9 +144,9 @@ describe('UploadDocumentField', () => {
         assets: [{ uri: 'file://doc.pdf', name: 'doc.pdf', mimeType: 'application/pdf', size: exactSize }],
       });
 
-      renderField();
+      await renderField();
       await openAddDocumentSheet();
-      fireEvent.press(screen.getByText('Choose file'));
+      await fireEvent.press(screen.getByText('Choose file'));
 
       await waitFor(() => expect(mockOnChange).toHaveBeenCalled());
     });
@@ -158,9 +158,9 @@ describe('UploadDocumentField', () => {
         assets: [{ uri: 'file://doc.pdf', name: 'doc.pdf', mimeType: 'application/pdf', size: overSize }],
       });
 
-      renderField();
+      await renderField();
       await openAddDocumentSheet();
-      fireEvent.press(screen.getByText('Choose file'));
+      await fireEvent.press(screen.getByText('Choose file'));
 
       await waitFor(() => screen.getByText('File must be 5MB or smaller.'));
       expect(mockOnChange).not.toHaveBeenCalled();
@@ -171,9 +171,9 @@ describe('UploadDocumentField', () => {
     it('makes no onChange call and shows no error when the document picker is cancelled', async () => {
       (DocumentPicker.getDocumentAsync as jest.Mock).mockResolvedValue({ canceled: true });
 
-      renderField();
+      await renderField();
       await openAddDocumentSheet();
-      fireEvent.press(screen.getByText('Choose file'));
+      await fireEvent.press(screen.getByText('Choose file'));
 
       await act(async () => {});
       expect(mockOnChange).not.toHaveBeenCalled();
@@ -185,9 +185,9 @@ describe('UploadDocumentField', () => {
       (ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({ granted: true });
       (ImagePicker.launchImageLibraryAsync as jest.Mock).mockResolvedValue({ canceled: true });
 
-      renderField();
+      await renderField();
       await openAddDocumentSheet();
-      fireEvent.press(screen.getByText('Choose photo'));
+      await fireEvent.press(screen.getByText('Choose photo'));
 
       await act(async () => {});
       expect(mockOnChange).not.toHaveBeenCalled();

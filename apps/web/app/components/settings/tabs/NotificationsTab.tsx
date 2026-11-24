@@ -9,6 +9,7 @@ import {
 } from "@tabler/icons-react";
 import { Button, Spinner } from "@heroui/react";
 
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import NotificationDisplaySettings from "../NotificationDisplaySettings";
 import SettingsRow from "../SettingsRow";
 import SectionTitle from "../SectionTitle";
@@ -28,6 +29,7 @@ export default function NotificationsTab({
 }: {
   isAdmin?: boolean;
 }) {
+  const { t } = useTranslation();
   const { preferences, loading, GENERAL_TOGGLES, NOTIFICATION_TYPE_LABELS, toggleGeneral, toggleType, resetToDefaults } = useNotificationPreferences();
 
   const typesDisabled = !preferences.notifications_enabled && !preferences.push_enabled;
@@ -35,7 +37,7 @@ export default function NotificationsTab({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Spinner color="accent" aria-label="Loading notifications" />
+        <Spinner color="accent" aria-label={t("settings.notifications.loading")} />
       </div>
     );
   }
@@ -43,38 +45,36 @@ export default function NotificationsTab({
   return (
     <>
       <h2 className="font-nunito text-lg font-bold text-primary">
-        Notifications
+        {t("settings.notifications.title")}
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
         {isAdmin
-          ? "Manage delivery of administrator verification alerts and other updates."
-          : "Manage how you receive updates."}
+          ? t("settings.notifications.admin.description")
+          : t("settings.notifications.description")}
       </p>
       <div className="mt-3 divide-y divide-border">
         {isAdmin ? (
           <div>
             <div className="px-4 pb-3">
-              <SectionTitle title="Verification alerts" />
+              <SectionTitle title={t("settings.notifications.verification")} />
             </div>
             <div className="divide-y divide-border">
               <SettingsRow
                 icon={TYPE_ICONS.system}
-                title="Verification alerts"
-                description="Allow delivery of system alerts for new account and apartment verification submissions."
+                title={t("settings.notifications.verification")}
+                description={t("settings.notifications.verification.description")}
                 suffix={
                   <ToggleSwitch
                     isSelected={preferences.system}
                     onValueChange={() => toggleType("system")}
                     disabled={typesDisabled}
-                    aria-label="Verification alerts"
+                    aria-label={t("settings.notifications.verification")}
                   />
                 }
               />
             </div>
             <p className="px-4 py-3 text-xs text-muted-foreground">
-              This controls mobile banner and push delivery where
-              available. Verification submissions still appear in
-              the admin queue.
+              {t("settings.notifications.verification.note")}
             </p>
           </div>
         ) : null}
@@ -84,7 +84,7 @@ export default function NotificationsTab({
 
         <div>
           <div className="px-4 pb-3">
-            <SectionTitle title="General" />
+            <SectionTitle title={t("settings.notifications.general")} />
           </div>
           <div className="divide-y divide-border">
             {GENERAL_TOGGLES.filter(({ key }) => !isAdmin || key !== "show_chat_toasts").map(({ key, icon, title, description }) => (
@@ -109,10 +109,10 @@ export default function NotificationsTab({
         {!isAdmin ? (
           <div className="pt-6">
             <div className="px-4 pb-3">
-              <SectionTitle title="Notification Types" />
+              <SectionTitle title={t("settings.notifications.types")} />
             </div>
             <p className="px-4 pb-3 text-sm text-muted-foreground">
-              Per-type toggles are shared by both channels, so they only matter when at least one master is on.
+              {t("settings.notifications.types.note")}
             </p>
             <div className="divide-y divide-border">
               {NOTIFICATION_TYPE_LABELS.map(({ type, label }) => (
@@ -137,7 +137,7 @@ export default function NotificationsTab({
         {/* Reset */}
         <div className="pt-4 pb-6 px-4">
           <Button variant="outline" onClick={resetToDefaults}>
-            Reset to Defaults
+            {t("settings.notifications.reset")}
           </Button>
         </div>
 

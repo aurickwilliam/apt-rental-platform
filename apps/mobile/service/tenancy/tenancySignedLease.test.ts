@@ -19,17 +19,20 @@ jest.mock("@repo/supabase", () => ({ supabase: {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockRpc.mockResolvedValue({ data: { tenancyId: "tenancy" }, error: null });
+  mockRpc.mockImplementation(async(name:string)=>name==='get_effective_lease_terms'
+    ?{data:{leaseEnd:'2027-11-01',monthlyRent:12000,renewalAgreementPath:null},error:null}
+    :{ data: { tenancyId: "tenancy" }, error: null });
 });
 
-it("loads signed-lease metadata in the existing active-tenancy query without signing or a separate read", async () => {
+it("keeps signed-lease metadata in one active-tenancy query and resolves effective renewal dates separately", async () => {
   mockRead.mockResolvedValue({ data: {
     id: "tenancy", signed_lease_path: "tenancy/lease.pdf", signed_lease_uploaded_at: "2026-11-01",
     tenant_acknowledged_at: "2026-11-02", apartment: { apartment_images: [] },
   }, error: null });
   const result = await fetchTenancy("tenant");
   expect(result).toMatchObject({ signed_lease_path: "tenancy/lease.pdf",
-    signed_lease_uploaded_at: "2026-11-01", tenant_acknowledged_at: "2026-11-02" });
+    signed_lease_uploaded_at: "2026-11-01", tenant_acknowledged_at: "2026-11-02",lease_end:'2027-11-01',monthly_rent:12000 });
+  expect(mockRpc).toHaveBeenCalledWith('get_effective_lease_terms',{p_tenancy_id:'tenancy'});
   expect(mockSelect).toHaveBeenCalledWith("tenancies", expect.stringContaining("signed_lease_path"));
   expect(mockEq).toHaveBeenCalledWith("tenancies", "tenant_id", "tenant");
   expect(mockEq).toHaveBeenCalledWith("tenancies", "status", "active");

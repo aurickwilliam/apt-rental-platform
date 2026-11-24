@@ -17,32 +17,32 @@ jest.mock('heroui-native', () => {
 });
 
 describe('ReactionStrip', () => {
-  it('renders the quick-reaction set', () => {
-    render(<ReactionStrip />);
+  it('renders the quick-reaction set', async () => {
+    await render(<ReactionStrip />);
 
     expect(screen.getByLabelText('React with ❤️')).toBeTruthy();
     expect(screen.getByLabelText('React with 👍')).toBeTruthy();
   });
 
-  it('notifies the parent on emoji press', () => {
+  it('notifies the parent on emoji press', async () => {
     const onSelect = jest.fn();
-    render(<ReactionStrip onSelect={onSelect} />);
+    await render(<ReactionStrip onSelect={onSelect} />);
 
-    fireEvent.press(screen.getByLabelText('React with 😂'));
+    await fireEvent.press(screen.getByLabelText('React with 😂'));
 
     expect(onSelect).toHaveBeenCalledTimes(1);
     expect(onSelect).toHaveBeenCalledWith('😂');
   });
 
-  it('offers only the preset reactions, with no custom picker', () => {
-    render(<ReactionStrip />);
+  it('offers only the preset reactions, with no custom picker', async () => {
+    await render(<ReactionStrip />);
 
     expect(screen.queryByLabelText('More reactions')).toBeNull();
     expect(screen.getAllByLabelText(/^React with /)).toHaveLength(6);
   });
 
-  it('marks the current reaction as selected', () => {
-    render(<ReactionStrip myReaction="😂" />);
+  it('marks the current reaction as selected', async () => {
+    await render(<ReactionStrip myReaction="😂" />);
 
     expect(screen.getByLabelText('React with 😂').props.accessibilityState).toEqual({ selected: true });
     expect(screen.getByLabelText('React with ❤️').props.accessibilityState).toEqual({ selected: false });

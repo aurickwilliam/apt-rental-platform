@@ -9,6 +9,8 @@ export interface BrowseApartment {
   bedrooms?: number;
   bathrooms?: number;
   areaSqm?: number;
+  /** Verified preference matches; set only on "Recommended for You" cards. */
+  reasons?: string[];
 }
 
 /** Columns a Browse card needs; every card read selects exactly these. */

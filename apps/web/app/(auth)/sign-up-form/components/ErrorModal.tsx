@@ -1,5 +1,9 @@
+"use client";
+
 import { Modal, Button } from "@heroui/react";
 import { IconAlertCircle as CircleAlert } from "@tabler/icons-react";
+
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 
 interface ErrorModalProps {
   isOpen: boolean;
@@ -12,6 +16,8 @@ export default function ErrorModal({
   onOpenChange,
   error,
 }: ErrorModalProps) {
+  const { t } = useTranslation();
+
   return (
     <Modal>
       <Modal.Backdrop
@@ -24,7 +30,7 @@ export default function ErrorModal({
             <Modal.CloseTrigger className="text-foreground" />
             <Modal.Header>
               <Modal.Heading>
-                Something went wrong
+                {t("auth.errorModal.title")}
               </Modal.Heading>
             </Modal.Header>
 
@@ -44,7 +50,7 @@ export default function ErrorModal({
                 className="w-full"
                 slot="close"
               >
-                Close
+                {t("common.close")}
               </Button>
             </Modal.Footer>
           </Modal.Dialog>

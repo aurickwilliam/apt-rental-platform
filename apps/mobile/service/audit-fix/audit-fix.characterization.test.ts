@@ -312,7 +312,7 @@ describe('audit-fix bug-condition characterization (unfixed flow)', () => {
 
   /** Validates: Requirements 1.8, 2.8 */
   test.failing('Property 4: an unrelated tenancy realtime event does not refetch the active tenancy', async () => {
-    const { result } = renderHook(() => useTenancy());
+    const { result } = await renderHook(() => useTenancy());
 
     await waitFor(() => expect(result.current.tenancy?.id).toBe(TENANCY_ID));
     const fetchesBeforeUnrelatedEvent = mockGetUser.mock.calls.length;
@@ -333,7 +333,7 @@ describe('audit-fix preservation characterization (unfixed flow)', () => {
     const queryClient = createMobileQueryClient();
     const wrapper = ({ children }: { children: ReactNode }) =>
       createElement(QueryClientProvider, { client: queryClient }, children);
-    const { result, unmount } = renderHook(() => useProfile(), { wrapper });
+    const { result, unmount } = await renderHook(() => useProfile(), { wrapper });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.profile?.id).toBe(CURRENT_USER_ID);
@@ -344,7 +344,7 @@ describe('audit-fix preservation characterization (unfixed flow)', () => {
 
     expect(mockGetUser).toHaveBeenCalledTimes(2);
     expect(result.current.profile?.id).toBe(CURRENT_USER_ID);
-    unmount();
+    await unmount();
     queryClient.clear();
   });
 

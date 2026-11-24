@@ -9,6 +9,9 @@ import {
   resolvePrivateMediaUrls,
 } from '../media/privateMediaResolver';
 
+import { compressImage } from '@/utils/compressImage';
+import { Image } from 'react-native';
+
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 export type MessageType = 'text' | 'image' | 'video' | 'gif' | 'file';
@@ -344,6 +347,37 @@ export async function uploadChatAttachment(
   return path;
 }
 
+/**
+ * Compresses a picked image for chat upload (1600px long edge, quality 0.7,
+ * JPEG) — same `compressImage` used by avatar/cover uploads. Videos, GIFs
+ * and files are passed through unchanged. Failure falls back to the original
+ * so an unreadable dimension never blocks a send.
+ */
+export async function compressChatImageAsset(
+  asset: PickedChatAsset
+): Promise<PickedChatAsset> {
+  if (resolveMessageType(asset.mimeType) !== 'image') return asset;
+  if (asset.externalUrl) return asset;
+
+  const dims = await new Promise<{ width: number; height: number } | null>(
+    (resolve) => {
+      Image.getSize(
+        asset.localUri,
+        (width, height) => resolve({ width, height }),
+        () => resolve(null),
+      );
+    },
+  );
+  if (!dims) return asset;
+
+  const compressed = await compressImage(asset.localUri, dims.width, dims.height);
+  return {
+    ...asset,
+    localUri: compressed.uri,
+    mimeType: 'image/jpeg',
+  };
+}
+
 /** Uploads a generated video poster frame (jpg) and returns its storage path. */
 export async function uploadChatThumbnail(senderId: string, localUri: string): Promise<string> {
   const file = new File(localUri);
@@ -405,13 +439,14 @@ export async function uploadChatAttachments(
           continue;
         }
 
-        const messageType = resolveMessageType(asset.mimeType);
-        const attachmentPath = await uploadChatAttachment(senderId, asset.localUri, asset.mimeType);
+        const prepared = await compressChatImageAsset(asset);
+        const messageType = resolveMessageType(prepared.mimeType);
+        const attachmentPath = await uploadChatAttachment(senderId, prepared.localUri, prepared.mimeType);
 
         let thumbnailPath: string | undefined;
-        if (asset.thumbnailUri) {
+        if (prepared.thumbnailUri) {
           try {
-            thumbnailPath = await uploadChatThumbnail(senderId, asset.thumbnailUri);
+            thumbnailPath = await uploadChatThumbnail(senderId, prepared.thumbnailUri);
           } catch {
             // A missing thumbnail shouldn't fail the whole attachment —
             // mapMessages already handles a null thumbnailUrl gracefully.
@@ -422,7 +457,7 @@ export async function uploadChatAttachments(
           localUri: asset.localUri,
           attachmentPath,
           messageType,
-          mimeType: asset.mimeType,
+          mimeType: prepared.mimeType,
           thumbnailPath,
         });
       } catch (err) {

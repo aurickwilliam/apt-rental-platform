@@ -140,18 +140,23 @@ test("visit detail has owner/id filters and unchanged resolved dates; list thumb
   assert.ok(db.calls[0].limits.some(args => args[1]?.referencedTable === "apartment.apartment_images"));
 });
 
-test("property description preserves lease dates with two reads; apartment-only pages use one; complete overview stays four reads", async () => {
+test("property description and complete overview also resolve effective renewal terms; apartment-only pages stay lightweight", async () => {
   const apartment = { id: "apt", landlord_id: "owner", name: "Home", apartment_images: [], amenities: [] };
   const tenancy = { id: "tenancy", apartment_id: "apt", status: "active", lease_start: "2026-01-01", lease_end: "2027-01-01", tenant: { id: "tenant", first_name: "Ana" } };
   const db = database({ apartments: [apartment], tenancies: [tenancy], maintenance_request: [], payment: [] });
-  const service = compile("service/landlordUnitDetailService.ts", { "@/app/tenant/payment/utils": { periodMonthLabel: () => "October" } });
+  let termReads=0;
+  db.client.rpc=async(name,args)=>{assert.equal(name,'get_effective_lease_terms');assert.equal(args.p_tenancy_id,'tenancy');termReads++;return {data:{leaseEnd:'2028-01-01',monthlyRent:15000},error:null};};
+  const service = compile("service/landlordUnitDetailService.ts", { "@/app/tenant/payment/utils": { periodMonthLabel: () => "October" },'@repo/utils': {fetchEffectiveLeaseTermsWith:async(client,id)=>{const result=await client.rpc('get_effective_lease_terms',{p_tenancy_id:id});return result.data;}} });
   const description = await service.fetchLandlordUnitDescription(db.client, "apt");
   assert.equal(db.calls.length, 2);
-  assert.deepEqual(plain(description.tenant), { leaseStart: tenancy.lease_start, leaseEnd: tenancy.lease_end });
+  assert.deepEqual(plain(description.tenant), { leaseStart: tenancy.lease_start, leaseEnd: '2028-01-01' });
+  assert.equal(termReads,1);
   await service.fetchLandlordUnitApartment(db.client, "apt");
   assert.equal(db.calls.length, 3);
+  assert.equal(termReads,1,'apartment-only reads do not resolve lease terms');
   const full = await service.fetchLandlordUnitDetail(db.client, "apt");
   assert.equal(db.calls.length, 7);
+  assert.equal(termReads,2);
   assert.deepEqual(plain(description.apartment), plain(full.apartment));
   assert.deepEqual(plain(description.tenant), { leaseStart: full.tenant.leaseStart, leaseEnd: full.tenant.leaseEnd });
 });
@@ -268,6 +273,9 @@ test("Passport prioritizes only visible image rendering; original URLs, private 
     "react/jsx-runtime": jsxRuntime, react: { useState: () => [false, () => {}] },
     "next/image": { default: "Image" }, "@heroui/react": { Card: { Content: "Content" }, Button: "Button", Skeleton: "Skeleton" },
     "@tabler/icons-react": { IconRefresh: "Refresh" }, "./PassportStatusChip": { default: "Status" },
+    "@/app/components/i18n/LocaleProvider": {
+      useTranslation: () => ({ language: "en", pending: false, setLanguage() {}, t: key => key }),
+    },
   });
   const walk = node => !node || typeof node !== "object" ? [] : [node, ...[node.props?.children].flat(Infinity).flatMap(walk)];
   const image = walk(h.default({ idType: "Fixture", sides: [{ label: "Front", url: "fixture-image" }], loading: false, onOpenViewer() {} })).find(node => node.type === "Image");
@@ -302,9 +310,11 @@ test("admin analytics starts current-state reads alongside all-time date resolut
   assert.equal(calls.filter(([name]) => name === "get_admin_listing_status").length, 1);
 });
 
-test("admin apartment counts start while preview reads are blocked; filters and exact-count definitions are preserved", async () => {
+test("admin apartment landlord counts start while preview reads are blocked; rental activity comes from its one admin function", async () => {
   const preview = deferred();
   const db = database({ apartments: [{ id: "apt", landlord_id: "owner", deleted_at: null }], users: [], apartment_images: [], apartment_verifications: [], tenancies: [], rental_application: [], visit_request: [], maintenance_request: [], reviews: [], admin_audit_logs: [] }, { apartment_images: preview.promise });
+  const rpcCalls = [];
+  db.client.rpc = async (name, args) => { rpcCalls.push([name, args]); return { data: null, error: null }; };
   const components = new Proxy({}, { get: (_, key) => key });
   const h = compile("app/admin/apartments/[id]/page.tsx", {
     "react/jsx-runtime": jsxRuntime,
@@ -319,11 +329,15 @@ test("admin apartment counts start while preview reads are blocked; filters and 
   const pending = h.default({ params: Promise.resolve({ id: "apt" }) });
   await settle();
   const counts = db.calls.filter(call => call.options?.head);
-  assert.equal(counts.length, 16);
-  assert.equal(counts.filter(call => call.table === "rental_application").length, 4);
-  assert.equal(counts.filter(call => call.table === "visit_request").length, 6);
-  assert.equal(counts.filter(call => call.table === "maintenance_request").length, 4);
-  for (const call of counts) assert.equal(call.options.count, "exact");
+  assert.equal(counts.length, 2);
+  assert.ok(counts.every(call => call.table === "apartments" && call.options.count === "exact"));
+  assert.equal(rpcCalls.length, 1);
+  assert.equal(rpcCalls[0][0], "get_admin_apartment_activity");
+  assert.equal(rpcCalls[0][1].p_apartment_id, "apt");
+  // Admins cannot read these tables directly, so nothing may query them.
+  for (const table of ["tenancies", "rental_application", "visit_request", "maintenance_request", "payment"]) {
+    assert.equal(db.calls.some(call => call.table === table), false, table);
+  }
   preview.resolve();
   await pending;
 });

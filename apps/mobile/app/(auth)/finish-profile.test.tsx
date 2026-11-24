@@ -43,8 +43,8 @@ describe("FinishProfile screen", () => {
     setParams({ email: "a@example.test", firstName: "Maria", lastName: "Dela Cruz" });
   });
 
-  it("prefills the names from the sign-in provider and shows the email read-only", () => {
-    render(<FinishProfile />);
+  it("prefills the names from the sign-in provider and shows the email read-only", async () => {
+    await render(<FinishProfile />);
 
     expect(screen.getByDisplayValue("Maria")).toBeTruthy();
     expect(screen.getByDisplayValue("Dela Cruz")).toBeTruthy();
@@ -52,53 +52,53 @@ describe("FinishProfile screen", () => {
     expect(screen.queryByPlaceholderText("Create a password")).toBeNull();
   });
 
-  it("offers the account type choice only when none was chosen before", () => {
-    const { unmount } = render(<FinishProfile />);
+  it("offers the account type choice only when none was chosen before", async () => {
+    const { unmount } = await render(<FinishProfile />);
     expect(screen.getByText("Choose your account type")).toBeTruthy();
     expect(screen.getByText("Role tab: tenant")).toBeTruthy();
-    unmount();
+    await unmount();
 
     setParams({ email: "a@example.test", userSide: "landlord" });
-    render(<FinishProfile />);
+    await render(<FinishProfile />);
     expect(screen.queryByText("Choose your account type")).toBeNull();
     expect(screen.getByText(/Complete Your Landlord Profile/)).toBeTruthy();
   });
 
-  it("starts from the suggested role", () => {
+  it("starts from the suggested role", async () => {
     setParams({ email: "a@example.test", suggestedRole: "landlord" });
-    render(<FinishProfile />);
+    await render(<FinishProfile />);
 
     expect(screen.getByText("Role tab: landlord")).toBeTruthy();
   });
 
-  it("offers a way out only for an account with no profile", () => {
-    const { unmount } = render(<FinishProfile />);
+  it("offers a way out only for an account with no profile", async () => {
+    const { unmount } = await render(<FinishProfile />);
     expect(screen.queryByText("Use a different account")).toBeNull();
-    unmount();
+    await unmount();
 
     setParams({ email: "a@example.test", profileMissing: "1" });
-    render(<FinishProfile />);
+    await render(<FinishProfile />);
     expect(screen.getByText("Use a different account")).toBeTruthy();
   });
 
-  it("keeps what is typed in the street address", () => {
-    render(<FinishProfile />);
+  it("keeps what is typed in the street address", async () => {
+    await render(<FinishProfile />);
 
-    fireEvent.changeText(screen.getByPlaceholderText("Enter your street address"), "1 Main St");
-    readAndCloseRegistrationPolicy("Privacy Policy");
+    await fireEvent.changeText(screen.getByPlaceholderText("Enter your street address"), "1 Main St");
+    await readAndCloseRegistrationPolicy("Privacy Policy");
 
     expect(screen.getByDisplayValue("1 Main St")).toBeTruthy();
   });
 
   it("shows the required errors and saves nothing for an empty form", async () => {
     setParams({ email: "a@example.test" });
-    render(<FinishProfile />);
+    await render(<FinishProfile />);
 
-    readAndCloseRegistrationPolicy("Privacy Policy");
-    readAndCloseRegistrationPolicy("Terms and Conditions");
-    fireEvent.press(screen.getByLabelText("I have read and agree to the Privacy Policy"));
-    fireEvent.press(screen.getByLabelText("I have read and agree to the Terms and Conditions"));
-    fireEvent.press(screen.getByText("Submit"));
+    await readAndCloseRegistrationPolicy("Privacy Policy");
+    await readAndCloseRegistrationPolicy("Terms and Conditions");
+    await fireEvent.press(screen.getByLabelText("I have read and agree to the Privacy Policy"));
+    await fireEvent.press(screen.getByLabelText("I have read and agree to the Terms and Conditions"));
+    await fireEvent.press(screen.getByText("Submit"));
 
     await waitFor(() => expect(screen.getAllByText("This field is required").length).toBeGreaterThan(0));
     expect(mockFinishProfile).not.toHaveBeenCalled();

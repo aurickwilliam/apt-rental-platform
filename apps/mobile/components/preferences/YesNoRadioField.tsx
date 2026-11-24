@@ -1,6 +1,8 @@
 import { Text, View } from "react-native";
 import { FieldError, Label, Radio, RadioGroup } from "heroui-native";
 
+import { useTranslation } from "@/hooks/i18n";
+
 interface YesNoRadioFieldProps {
   label: string;
   /** undefined while unanswered, so neither option is preselected. */
@@ -21,6 +23,7 @@ export default function YesNoRadioField({
   error,
   required = false,
 }: YesNoRadioFieldProps) {
+  const { t } = useTranslation();
   return (
     <View className="flex gap-3">
       <Text className="text-foreground text-base font-nunitoSemiBold">
@@ -34,8 +37,8 @@ export default function YesNoRadioField({
         isInvalid={!!error}
       >
         {[
-          { key: "yes", text: "Yes" },
-          { key: "no", text: "No" },
+          { key: "yes", text: t("common.yes") },
+          { key: "no", text: t("common.no") },
         ].map(({ key, text }) => (
           <RadioGroup.Item
             key={key}

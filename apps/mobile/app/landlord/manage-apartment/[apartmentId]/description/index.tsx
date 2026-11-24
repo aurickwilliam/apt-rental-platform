@@ -24,6 +24,7 @@ import { useColors } from "hooks/useTheme";
 import { useLeaseAgreement } from "@/hooks/apartments";
 
 import { formatPesoDisplay, formatDate } from "@repo/utils";
+import { OWN_ELECTRICITY_METER_DETAIL } from "@repo/constants";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -260,6 +261,9 @@ export default function Index() {
         </TouchableOpacity>
       </View>
 
+      {apartment?.has_own_electricity_meter === true && (
+        <Text className="mt-3 text-foreground font-nunitoSemiBold text-sm">{OWN_ELECTRICITY_METER_DETAIL}</Text>
+      )}
       <View className="flex-row flex-wrap justify-between mt-5">
         <View className="w-1/2 mb-5">
           <PerkItem

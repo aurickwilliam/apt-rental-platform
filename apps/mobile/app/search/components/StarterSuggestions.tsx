@@ -1,11 +1,11 @@
-import { ScrollView, Text } from 'react-native';
+import { ScrollView } from 'react-native';
 
-import { PressableFeedback } from 'heroui-native';
+import { Chip } from 'heroui-native';
 
 export interface StarterSuggestion {
-  title: string;
-  detail: string;
-  /** What is sent when the card is tapped. */
+  /** One short line shown on the chip. */
+  label: string;
+  /** What is sent when the chip is tapped. */
   message: string;
 }
 
@@ -14,7 +14,7 @@ interface StarterSuggestionsProps {
   onSelect: (message: string) => void;
 }
 
-/** Conversation starters shown above the composer before the first message. */
+/** Conversation starters shown as one row of chips above the composer before the first message. */
 export default function StarterSuggestions({ suggestions, onSelect }: StarterSuggestionsProps) {
   if (suggestions.length === 0) return null;
 
@@ -24,20 +24,19 @@ export default function StarterSuggestions({ suggestions, onSelect }: StarterSug
       showsHorizontalScrollIndicator={false}
       // A horizontal ScrollView grows to fill its parent's height otherwise.
       style={{ flexGrow: 0 }}
-      contentContainerClassName="gap-2 px-4 pb-2 items-start"
+      contentContainerClassName="gap-2 px-4 pb-2 items-center"
       keyboardShouldPersistTaps="handled"
     >
       {suggestions.map((suggestion) => (
-        <PressableFeedback
+        <Chip
           key={suggestion.message}
+          variant="secondary"
+          color="default"
           onPress={() => onSelect(suggestion.message)}
-          className="rounded-2xl border border-border bg-surface px-4 py-3"
-          accessibilityRole="button"
           accessibilityLabel={`Send suggestion: ${suggestion.message}`}
         >
-          <Text className="text-sm font-nunitoSemiBold text-foreground">{suggestion.title}</Text>
-          <Text className="text-xs font-inter text-muted mt-0.5">{suggestion.detail}</Text>
-        </PressableFeedback>
+          <Chip.Label numberOfLines={1}>{suggestion.label}</Chip.Label>
+        </Chip>
       ))}
     </ScrollView>
   );

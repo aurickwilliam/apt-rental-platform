@@ -5,8 +5,8 @@ import { Button } from "@heroui/react";
 import { IconCheck, IconCopy, IconDownload, IconShare2 } from "@tabler/icons-react";
 import { useHydrated } from "@/hooks/use-hydrated";
 import type { LandlordPaymentRecord } from "@/service/landlordPaymentService";
-import { receiptData } from "../lib/receiptData";
-import { renderReceiptImage } from "../lib/receiptImage";
+import { receiptData } from "@/lib/receipt-data";
+import { renderReceiptImage } from "@/lib/receipt-image";
 
 type Feedback = "idle" | "copied" | "shared" | "saved";
 type Busy = "copy" | "share" | null;

@@ -92,7 +92,7 @@ export default function ReceiptCard({
           <View className='border-t border-dashed border-gray-300 pt-5' />
 
           <View className='gap-4'>
-            {payment?.billing_kind === 'move_in' ? <ReceiptRow label='Payment for' value='Move-in payment' /> : null}
+            {payment?.billing_kind === 'lease_renewal' ? <ReceiptRow label='Payment for' value='Lease Renewal' /> : payment?.billing_kind === 'move_in' ? <ReceiptRow label='Payment for' value='Move-in payment' /> : null}
             {periodLabel && (
               <ReceiptRow label='Payment Period' value={periodLabel} />
             )}

@@ -644,6 +644,7 @@ export default function ChatScreen() {
             profilePicture={otherUserAvatar ?? undefined}
             phoneNumber={otherUserPhoneNumber ?? undefined}
             apartmentTitle={apartmentTitle ?? undefined}
+            onViewProfile={portal && otherUserId ? handleViewProfile : undefined}
           />
         </View>
       }

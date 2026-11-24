@@ -10,6 +10,7 @@ import { bboxContains, expandBBox, filterPinsToVisible, type BBox } from "@repo/
 import { createClient } from "@repo/supabase/browser";
 
 import AuthPromptModal from "@/app/components/ui/AuthPromptModal";
+import { useTranslation } from "@/app/components/i18n/LocaleProvider";
 import { useAsyncResource } from "@/hooks/use-async-resource";
 import { useFavoriteActions } from "@/hooks/use-favorite-actions";
 
@@ -47,6 +48,7 @@ interface MapSearchClientProps {
 export default function MapSearchClient({ basePath, layout }: MapSearchClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
   const mapPath = `${basePath}/map`;
 
   // Filters come from the URL; the camera params must not count as a filter
@@ -86,7 +88,7 @@ export default function MapSearchClient({ basePath, layout }: MapSearchClientPro
   const { data, loading, error, refresh } = useAsyncResource(
     load,
     EMPTY_RESULTS,
-    "We couldn't load apartments for this area.",
+    t("browse.map.loadFailed"),
   );
 
   // Search and filter changes update the URL in place: a router navigation would
@@ -166,10 +168,10 @@ export default function MapSearchClient({ basePath, layout }: MapSearchClientPro
           size="lg"
           className="shrink-0 cursor-pointer"
           onPress={() => router.push(listHref)}
-          aria-label="Back to the list"
+          aria-label={t("browse.map.backToList")}
         >
           <IconList size={18} />
-          <span className="hidden sm:inline">List</span>
+          <span className="hidden sm:inline">{t("browse.map.list")}</span>
         </Button>
         <div className="min-w-0 flex-1">
           <Suspense>
@@ -189,7 +191,7 @@ export default function MapSearchClient({ basePath, layout }: MapSearchClientPro
         className={`grid gap-4 ${expanded ? "lg:grid-cols-1" : "lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]"}`}
       >
         <section
-          aria-label="Apartments in the map area"
+          aria-label={t("browse.map.listAria")}
           className={`min-w-0 ${phonePane === "map" ? "hidden" : ""} ${expanded ? "lg:hidden" : "lg:block"}`}
         >
           <MapResultsList
@@ -210,7 +212,7 @@ export default function MapSearchClient({ basePath, layout }: MapSearchClientPro
         </section>
 
         <section
-          aria-label="Map"
+          aria-label={t("browse.map.aria")}
           className={`min-w-0 h-[calc(100dvh-14rem)] lg:sticky lg:self-start ${layout.mapSticky} ${
             phonePane === "list" ? "hidden lg:block" : ""
           }`}
@@ -246,8 +248,8 @@ export default function MapSearchClient({ basePath, layout }: MapSearchClientPro
       <AuthPromptModal
         isOpen={isAuthModalOpen}
         onOpenChange={setIsAuthModalOpen}
-        title="Sign in to save favorites"
-        description="Create an account to save apartments and access them anytime."
+        title={t("favorites.signInTitle")}
+        description={t("favorites.signInBody")}
       />
 
       <Button
@@ -257,7 +259,7 @@ export default function MapSearchClient({ basePath, layout }: MapSearchClientPro
         className="fixed bottom-6 left-1/2 z-20 -translate-x-1/2 cursor-pointer rounded-full shadow-xl lg:hidden"
       >
         {phonePane === "map" ? <IconList size={18} /> : <IconMap2 size={18} />}
-        {phonePane === "map" ? "Show list" : "Show map"}
+        {phonePane === "map" ? t("browse.map.showList") : t("browse.map.showMap")}
       </Button>
     </div>
   );

@@ -120,8 +120,9 @@ export class NotificationFeedStore {
     return request;
   };
 
-  markRead = async (ids: string[], write: () => Promise<void>): Promise<void> => {
-    if (!this.active || ids.length === 0) return;
+  /** Resolves true only when the write was confirmed; failures are reported, rolled back and resolve false. */
+  markRead = async (ids: string[], write: () => Promise<void>): Promise<boolean> => {
+    if (!this.active || ids.length === 0) return false;
     const generation = this.generation;
     const operation = Symbol("mark-read");
     this.pendingReads.set(operation, new Set(ids));
@@ -129,10 +130,10 @@ export class NotificationFeedStore {
     let failed = false;
     try {
       await write();
-      if (!this.active || generation !== this.generation) return;
+      if (!this.active || generation !== this.generation) return false;
       for (const id of ids) this.confirmedReads.add(id);
     } catch (error) {
-      if (!this.active || generation !== this.generation) return;
+      if (!this.active || generation !== this.generation) return false;
       failed = true;
       this.dependencies.onError("Couldn't mark notifications read.", error);
     } finally {
@@ -142,5 +143,6 @@ export class NotificationFeedStore {
       }
     }
     if (failed) this.onRealtime();
+    return !failed;
   };
 }

@@ -1,13 +1,24 @@
 import { supabase } from "@repo/supabase";
+import { translate, type LanguageCode } from "@repo/i18n";
 
-export const SUSPENDED_TITLE = "Account suspended";
-export const SUSPENDED_MESSAGE =
-  "Your account has been suspended. Contact support if you think this is a mistake.";
+/** English title kept for callers that have no language in scope. */
+export const SUSPENDED_TITLE = translate("en", "authMobile.suspended.title");
+/** English message kept for callers that have no language in scope. */
+export const SUSPENDED_MESSAGE = translate("en", "authMobile.suspended.message");
 
-export function buildSuspendedMessage(reason?: string | null): string {
+export function suspendedTitle(language: LanguageCode = "en"): string {
+  return translate(language, "authMobile.suspended.title");
+}
+
+export function buildSuspendedMessage(
+  reason?: string | null,
+  language: LanguageCode = "en",
+): string {
   const trimmed = reason?.trim();
-  if (!trimmed) return SUSPENDED_MESSAGE;
-  return `Your account has been suspended.\n\nReason: ${trimmed}\n\nContact support if you think this is a mistake.`;
+  if (!trimmed) return translate(language, "authMobile.suspended.message");
+  return translate(language, "authMobile.suspended.messageWithReason", {
+    reason: trimmed,
+  });
 }
 
 // OAuth redirects carry failures as error params in the query or the hash.
