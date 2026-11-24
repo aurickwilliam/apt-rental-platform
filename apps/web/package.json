@@ -11,8 +11,8 @@
     "test": "node --experimental-strip-types --test lib/*.test.mjs"
   },
   "dependencies": {
-    "@heroui/react": "3.2.6",
-    "@heroui/styles": "3.2.6",
+    "@heroui/react": "3.2.8",
+    "@heroui/styles": "3.2.8",
     "@internationalized/date": "^3.12.4",
     "@repo/constants": "workspace:*",
     "@repo/hooks": "workspace:*",
