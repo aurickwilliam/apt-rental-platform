@@ -358,7 +358,7 @@ function LandlordVisitRequestDetailContent() {
                         }}
                         className="flex-1"
                       >
-                        <Select.Trigger className="bg-card border-border text-card-foreground">
+                        <Select.Trigger className="bg-card border-input dark:border-border text-card-foreground">
                           <Select.Value />
                           <Select.Indicator />
                         </Select.Trigger>
@@ -377,7 +377,7 @@ function LandlordVisitRequestDetailContent() {
                         onChange={(k) => setReschedulePeriod((k ? String(k) : "AM") as "AM" | "PM")}
                         className="w-24"
                       >
-                        <Select.Trigger className="bg-card border-border text-card-foreground">
+                        <Select.Trigger className="bg-card border-input dark:border-border text-card-foreground">
                           <Select.Value />
                           <Select.Indicator />
                         </Select.Trigger>

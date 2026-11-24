@@ -48,7 +48,7 @@ export default function AdminFilterToolbar({
           className="min-w-0 flex-1 sm:w-80 sm:flex-none"
         >
           <Label className="sr-only">{searchLabel}</Label>
-          <SearchField.Group className="border border-border bg-card shadow-none focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
+          <SearchField.Group className="border border-input dark:border-border bg-card shadow-none focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
             <SearchField.SearchIcon className="text-muted-foreground" />
             <SearchField.Input placeholder={searchPlaceholder} />
             <SearchField.ClearButton className="cursor-pointer text-white" />

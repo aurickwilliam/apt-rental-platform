@@ -112,7 +112,7 @@
         "accent": "#EFF6FF",
         "accentForeground": "#333333",
         "destructive": "#E50914",
-        "border": "#D1D5DB",
+        "border": "#E5EAF2",
         "input": "#D1D5DB",
         "ring": "#376BF5",
         "radius": "0.625rem"

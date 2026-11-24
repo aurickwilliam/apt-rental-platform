@@ -109,7 +109,7 @@ Mobile inline colors come from `apps/mobile/constants/theme.ts` through `useColo
 | `textSecondary` / `gray500` / `--muted-foreground` | `#6C757D` | `#9CA3AF` | Secondary text, labels, metadata |
 | `gray400` | `#9CA3AF` | `#6B7280` | Placeholders, disabled, tertiary |
 | `gray300` | `#BDBDBD` | `#3D3D3D` | Placeholder-level, chip borders |
-| `gray200` | `#D1D5DB` | `#2A2A2A` | Borders (`--border` web), dividers |
+| `gray200` | `#D1D5DB` | `#2A2A2A` | Form-control outlines (`--input` web), dividers |
 | `gray100` | `#E5E7EB` | `#1E1E1E` | Muted fills, hairline dividers |
 
 Mobile `gray-500` is `#626B73` (dark `#9CA3AF`), matching mobile secondary text. Web's `grey-*` is a separate shifted scale (`grey-700 #6C757D` … `grey-200 #E5E7EB`) — prefer `gray-*`/COLORS tokens.
@@ -132,7 +132,7 @@ The shared landlord Google map picker and its read-only listing preview follow t
 
 The picker's pin is an HTML overlay (`apps/web/lib/map-picker-pin.ts`), like the map search's price pills, not a `google.maps.Marker` — so no Google Cloud Map ID is required. It is the filled APT-blue map-pin icon (`text-primary`) at `size-10`, with a white centre dot and a soft drop shadow, its tip anchored on the coordinate. Editable pickers (`create` Step 2, Edit Property) show a grab cursor and drag with pointer events: the new position is reported once on release, and a press under 3 px is a tap that never moves the pin. Read-only previews render the same pin with no cursor change and no interaction. The pin is decorative (`aria-hidden`); the Latitude/Longitude readout is the accessible value.
 
-`:root`: `--radius 0.625rem`, `--background #F8F9FA`, `--foreground #333333`, `--card #FFFFFF`, `--primary #376BF5`, `--brand #376BF5` (dark `#5B8BF7`; `text-brand` for headings and links, like mobile `text-accent`), `--secondary #EFF6FF` / `--secondary-foreground #2F5FE0` / `--secondary-hover #E2ECFE` (soft blue; dark `#1A2340` / `#5B8BF7` / `#1C2647`), `--sky #0369A1` / `--sky-light #E0F2FE` (dark `#7DD3FC` / `#0C2A3D`), `--color-rating #FBBF24`, `--muted #E5E7EB`, `--muted-foreground #6C757D`, `--accent #EFF6FF`, `--destructive #E50914`, `--border #D1D5DB`, `--ring #376BF5`. HeroUI themed purely by `--heroui-primary/--heroui-focus` (no `HeroUIProvider` config); dark mode keeps `--primary #376BF5`.
+`:root`: `--radius 0.625rem`, `--background #F8F9FA`, `--foreground #333333`, `--card #FFFFFF`, `--primary #376BF5`, `--brand #376BF5` (dark `#5B8BF7`; `text-brand` for headings and links, like mobile `text-accent`), `--secondary #EFF6FF` / `--secondary-foreground #2F5FE0` / `--secondary-hover #E2ECFE` (soft blue; dark `#1A2340` / `#5B8BF7` / `#1C2647`), `--sky #0369A1` / `--sky-light #E0F2FE` (dark `#7DD3FC` / `#0C2A3D`), `--color-rating #FBBF24`, `--muted #E5E7EB`, `--muted-foreground #6C757D`, `--accent #EFF6FF`, `--destructive #E50914`, `--border #E5EAF2` (the soft card/table/divider hairline, same as mobile; light mode only), `--input #D1D5DB` (form-control outlines, so fields stay stronger than cards), `--ring #376BF5`. HeroUI themed purely by `--heroui-primary/--heroui-focus` (no `HeroUIProvider` config); dark mode keeps `--primary #376BF5`.
 
 ⚠ Undefined legacy tokens: `redHead-*`, mobile `grey-*`, `text-text`, `darkerWhite`, `mediumGrey`, `COLORS.redHead`; tenant pages' one-off `zinc-*` palette (§24.2, §24.5).
 
