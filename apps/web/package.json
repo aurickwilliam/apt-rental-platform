@@ -11,8 +11,8 @@
     "test": "node --experimental-strip-types --import ./lib/test-support/register-ts-resolve.mjs --test lib/*.test.mjs"
   },
   "dependencies": {
-    "@heroui/react": "3.2.7",
-    "@heroui/styles": "3.2.7",
+    "@heroui/react": "3.2.8",
+    "@heroui/styles": "3.2.8",
     "@internationalized/date": "^3.12.4",
     "@repo/constants": "workspace:*",
     "@repo/hooks": "workspace:*",
